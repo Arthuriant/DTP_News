@@ -1,18 +1,19 @@
-import Contact from "@/components/Contact";
+// import BagCustomizer from "@/components/BagCustomizer";
+// import { Metadata } from "next";
 
-import { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Contact Page | NextCommerce Nextjs E-commerce template",
-  description: "This is Contact Page for NextCommerce Template",
-  // other metadata
-};
+// export const metadata: Metadata = {
+//   title: "Customize Your Bag | NextCommerce Nextjs E-commerce template",
+//   description: "Customize the color of your 3D monster bag directly on NextCommerce.",
+//   // other metadata
+// };
 
-const ContactPage = () => {
-  return (
-    <main>
-      <Contact />
-    </main>
-  );
-};
+// const CustomizePage = () => {
+//   return (
+//     <main>
+//       {/* Memanggil komponen interaktif utama */}
+//       <BagCustomizer />
+//     </main>
+//   );
+// };
 
-export default ContactPage;
+// export default CustomizePage;
