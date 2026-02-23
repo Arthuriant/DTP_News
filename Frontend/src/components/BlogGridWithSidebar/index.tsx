@@ -1,39 +1,24 @@
 import React from "react";
 import Breadcrumb from "../Common/Breadcrumb";
 import BlogItem from "../Blog/BlogItem";
-import blogData from "../BlogGrid/blogData"; 
-import SearchForm from "../Blog/SearchForm"; 
+import blogData from "../BlogGrid/blogData";
+import SearchForm from "../Blog/SearchForm";
 import LatestPosts from "../Blog/LatestPosts";
 import LatestProducts from "../Blog/LatestProducts";
 import Categories from "../Blog/Categories";
-import shopData from "../Shop/shopData"; 
- 
+import shopData from "../Shop/shopData";
+
 const BlogGridWithSidebar = () => {
+  // Data kategori disesuaikan dengan produk kulit
   const categories = [
-    {
-      name: "Desktop",
-      products: 10,
-    },
-    {
-      name: "Laptop",
-      products: 12,
-    },
-    {
-      name: "Monitor",
-      products: 30,
-    },
-    {
-      name: "UPS",
-      products: 23,
-    },
-    {
-      name: "Phone",
-      products: 10,
-    },
-    {
-      name: "Watch",
-      products: 13,
-    },
+    { name: "Leather Handbag", products: 10 },
+    { name: "Men's Wallet", products: 12 },
+    { name: "Women's Wallet", products: 8 },
+    { name: "Leather Belt", products: 15 },
+    { name: "Leather Backpack", products: 7 },
+    { name: "Leather Shoes", products: 9 },
+    { name: "Leather Accessories", products: 11 },
+    { name: "Crossbody Bag", products: 6 },
   ];
 
   return (
@@ -196,56 +181,49 @@ const BlogGridWithSidebar = () => {
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Desktop
+                      Leather Handbag
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Macbook
+                      Men's Wallet
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      PC
+                      Leather Belt
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Watch
+                      Backpack
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      USB Cable
+                      Leather Shoes
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Mouse
+                      Accessories
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Windows PC
+                      Crossbody
                     </a>
-
                     <a
                       className="inline-flex hover:text-white border border-gray-3 py-2 px-4 rounded-md ease-out duration-200 hover:bg-blue hover:border-blue"
                       href="#"
                     >
-                      Monitor
+                      Full Grain
                     </a>
                   </div>
                 </div>

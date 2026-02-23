@@ -8,21 +8,22 @@ const CounDown = () => {
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
 
-  const deadline = "December, 31, 2024";
+  const deadline = "December, 31, 2026";
 
   const getTime = () => {
     const time = Date.parse(deadline) - Date.now();
 
-    setDays(Math.floor(time / (1000 * 60 * 60 * 24)));
-    setHours(Math.floor((time / (1000 * 60 * 60)) % 24));
-    setMinutes(Math.floor((time / 1000 / 60) % 60));
-    setSeconds(Math.floor((time / 1000) % 60));
+    if (time > 0) {
+      setDays(Math.floor(time / (1000 * 60 * 60 * 24)));
+      setHours(Math.floor((time / (1000 * 60 * 60)) % 24));
+      setMinutes(Math.floor((time / 1000 / 60) % 60));
+      setSeconds(Math.floor((time / 1000) % 60));
+    }
   };
 
   useEffect(() => {
     // @ts-ignore
     const interval = setInterval(() => getTime(deadline), 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -36,72 +37,40 @@ const CounDown = () => {
             </span>
 
             <h2 className="font-bold text-dark text-xl lg:text-heading-4 xl:text-heading-3 mb-3">
-              Enhance Your Music Experience
+              Elevate Your Style with Premium Leather
             </h2>
 
-            <p>The Havit H206d is a wired PC headphone.</p>
+            <p>Our handcrafted leather bags are designed for durability and elegance.</p>
 
-            {/* <!-- Countdown timer --> */}
-            <div
-              className="flex flex-wrap gap-6 mt-6"
-              x-data="timer()"
-              x-init="countdown()"
-            >
-              {/* <!-- timer day --> */}
+            <div className="flex flex-wrap gap-6 mt-6">
               <div>
-                <span
-                  className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2"
-                  x-text="days"
-                >
-                  {" "}
-                  {days < 10 ? "0" + days : days}{" "}
+                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+                  {days < 10 ? "0" + days : days}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">
-                  Days
-                </span>
+                <span className="block text-custom-sm text-dark text-center">Days</span>
               </div>
 
-              {/* <!-- timer hours --> */}
               <div>
-                <span
-                  className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2"
-                  x-text="hours"
-                >
-                  {" "}
-                  {hours < 10 ? "0" + hours : hours}{" "}
+                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+                  {hours < 10 ? "0" + hours : hours}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">
-                  Hours
-                </span>
+                <span className="block text-custom-sm text-dark text-center">Hours</span>
               </div>
 
-              {/* <!-- timer minutes --> */}
               <div>
-                <span
-                  className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2"
-                  x-text="minutes"
-                >
-                  {minutes < 10 ? "0" + minutes : minutes}{" "}
+                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+                  {minutes < 10 ? "0" + minutes : minutes}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">
-                  Minutes
-                </span>
+                <span className="block text-custom-sm text-dark text-center">Minutes</span>
               </div>
 
-              {/* <!-- timer seconds --> */}
               <div>
-                <span
-                  className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2"
-                  x-text="seconds"
-                >
-                  {seconds < 10 ? "0" + seconds : seconds}{" "}
+                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+                  {seconds < 10 ? "0" + seconds : seconds}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">
-                  Seconds
-                </span>
+                <span className="block text-custom-sm text-dark text-center">Seconds</span>
               </div>
             </div>
-            {/* <!-- Countdown timer ends --> */}
 
             <a
               href="#"
@@ -111,7 +80,6 @@ const CounDown = () => {
             </a>
           </div>
 
-          {/* <!-- bg shapes --> */}
           <Image
             src="/images/countdown/countdown-bg.png"
             alt="bg shapes"
@@ -119,13 +87,17 @@ const CounDown = () => {
             width={737}
             height={482}
           />
-          <Image
-            src="/images/countdown/countdown-01.png"
-            alt="product"
-            className="hidden lg:block absolute right-4 xl:right-33 bottom-4 xl:bottom-10 -z-1"
-            width={411}
-            height={376}
-          />
+
+          {/* Bagian yang diubah agar gambar di tengah secara vertikal */}
+          <div className="hidden lg:flex absolute right-4 xl:right-20 top-0 bottom-0 items-center -z-1">
+            <Image
+              src="/images/countdown/countdown-01.png"
+              alt="leather bag product"
+              width={411}
+              height={376}
+              className="object-contain"
+            />
+          </div>
         </div>
       </div>
     </section>

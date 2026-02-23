@@ -10,7 +10,7 @@ const Hero = () => {
         <div className="flex flex-wrap gap-5">
           <div className="xl:max-w-[757px] w-full">
             <div className="relative z-1 rounded-[10px] bg-white overflow-hidden">
-              {/* <!-- bg shapes --> */}
+              {/* */}
               <Image
                 src="/images/hero/hero-bg.png"
                 alt="hero bg shapes"
@@ -25,11 +25,12 @@ const Hero = () => {
 
           <div className="xl:max-w-[393px] w-full">
             <div className="flex flex-col sm:flex-row xl:flex-col gap-5">
+              {/* Card 1: Tote Bag */}
               <div className="w-full relative rounded-[10px] bg-white p-4 sm:p-7.5">
                 <div className="flex items-center gap-14">
                   <div>
                     <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-20">
-                      <a href="#"> iPhone 14 Plus & 14 Pro Max </a>
+                      <a href="#"> Luxury Leather Bag </a>
                     </h2>
 
                     <div>
@@ -38,10 +39,10 @@ const Hero = () => {
                       </p>
                       <span className="flex items-center gap-3">
                         <span className="font-medium text-heading-5 text-red">
-                          $699
+                          $199
                         </span>
                         <span className="font-medium text-2xl text-dark-4 line-through">
-                          $999
+                          $299
                         </span>
                       </span>
                     </div>
@@ -49,19 +50,22 @@ const Hero = () => {
 
                   <div>
                     <Image
-                      src="/images/hero/hero-02.png"
-                      alt="mobile image"
+                      src="/images/hero/hero-02.png" // Ganti dengan gambar tas tote
+                      alt="leather tote bag"
                       width={123}
                       height={161}
+                      className="object-contain"
                     />
                   </div>
                 </div>
               </div>
+
+              {/* Card 2: Travel Bag */}
               <div className="w-full relative rounded-[10px] bg-white p-4 sm:p-7.5">
                 <div className="flex items-center gap-14">
                   <div>
                     <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-20">
-                      <a href="#"> Wireless Headphone </a>
+                      <a href="#"> Premium Travel Duffel </a>
                     </h2>
 
                     <div>
@@ -70,10 +74,10 @@ const Hero = () => {
                       </p>
                       <span className="flex items-center gap-3">
                         <span className="font-medium text-heading-5 text-red">
-                          $699
+                          $349
                         </span>
                         <span className="font-medium text-2xl text-dark-4 line-through">
-                          $999
+                          $450
                         </span>
                       </span>
                     </div>
@@ -81,22 +85,21 @@ const Hero = () => {
 
                   <div>
                     <Image
-                      src="/images/hero/hero-01.png"
-                      alt="mobile image"
+                      src="/images/hero/hero-01.png" // Ganti dengan gambar tas duffel
+                      alt="leather duffel bag"
                       width={123}
                       height={161}
+                      className="object-contain"
                     />
                   </div>
                 </div>
               </div>
-
-              
             </div>
           </div>
         </div>
       </div>
 
-      {/* <!-- Hero features --> */}
+      {/* */}
       <HeroFeature />
     </section>
   );

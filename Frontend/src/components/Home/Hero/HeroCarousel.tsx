@@ -23,6 +23,7 @@ const HeroCarousal = () => {
       modules={[Autoplay, Pagination]}
       className="hero-carousel"
     >
+      {/* Slide 1 */}
       <SwiperSlide>
         <div className="flex items-center pt-6 sm:pt-0 flex-col-reverse sm:flex-row">
           <div className="max-w-[394px] py-10 sm:py-15 lg:py-24.5 pl-4 sm:pl-7.5 lg:pl-12.5">
@@ -38,11 +39,11 @@ const HeroCarousal = () => {
             </div>
 
             <h1 className="font-semibold text-dark text-xl sm:text-3xl mb-3">
-              <a href="#">True Wireless Noise Cancelling Headphone</a>
+              <a href="#">Premium Handcrafted Leather Messenger Bag</a>
             </h1>
 
             <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi at ipsum at risus euismod lobortis in
+              Experience the perfect blend of luxury and durability with our 100% genuine top-grain leather collection.
             </p>
 
             <a
@@ -55,14 +56,16 @@ const HeroCarousal = () => {
 
           <div>
             <Image
-              src="/images/hero/hero-01.png"
-              alt="headphone"
+              src="/images/hero/hero-01.png" // Pastikan ganti file ini dengan gambar tas kulit
+              alt="premium leather bag"
               width={351}
               height={358}
             />
           </div>
         </div>
       </SwiperSlide>
+
+      {/* Slide 2 */}
       <SwiperSlide>
         {" "}
         <div className="flex items-center pt-6 sm:pt-0 flex-col-reverse sm:flex-row">
@@ -79,12 +82,11 @@ const HeroCarousal = () => {
             </div>
 
             <h1 className="font-semibold text-dark text-xl sm:text-3xl mb-3">
-              <a href="#">True Wireless Noise Cancelling Headphone</a>
+              <a href="#">Classic Genuine Leather Business Briefcase</a>
             </h1>
 
             <p>
-              Lorem ipsum dolor sit, consectetur elit nunc suscipit non ipsum
-              nec suscipit.
+              Professional, sleek, and timeless. Elevate your daily work commute with our signature vintage leather series.
             </p>
 
             <a
@@ -97,8 +99,8 @@ const HeroCarousal = () => {
 
           <div>
             <Image
-              src="/images/hero/hero-01.png"
-              alt="headphone"
+              src="/images/hero/hero-02.png" // Sesuaikan path gambar slide kedua
+              alt="vintage leather briefcase"
               width={351}
               height={358}
             />
