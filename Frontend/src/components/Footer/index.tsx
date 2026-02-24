@@ -32,7 +32,7 @@ const Footer = () => {
                     />
                   </svg>
                 </span>
-                685 Market Street,Las Vegas, LA 95820,United States.
+                Jalan Kanayakan 21, Dago, Coblong, Bandung 40135, Jawa Barat, Indonesia.
               </li>
 
               <li>
@@ -81,7 +81,7 @@ const Footer = () => {
                       fill="#3C50E0"
                     />
                   </svg>
-                  support@example.com
+                  polman-bandung.ac.id
                 </a>
               </li>
             </ul>
