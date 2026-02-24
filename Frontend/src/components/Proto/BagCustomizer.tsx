@@ -4,6 +4,8 @@ import { useState } from "react";
 import DynamicPart from "./DynamicPart";
 import StaticPart from "./StaticPart";
 import Breadcrumb from "../Common/Breadcrumb";
+import SpritePart from "./SpritePart";
+import StaticSpritePart from "./StaticSpritePart";
 
 const BAG_PARTS = [
   { id: "body", name: "BODY" },
@@ -50,6 +52,38 @@ export default function BagCustomizer() {
   });
 
   const [activeView, setActiveView] = useState<string>("front");
+  // --- LOGIKA 360 ROTATION ---
+  const TOTAL_FRAMES = 16; // Sesuai jumlah telinga di gambar Mas
+  const [frame360, setFrame360] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+
+  // Mulai geser
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    setStartX(clientX);
+  };
+
+  // Sedang menggeser
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const diff = clientX - startX;
+    
+    if (Math.abs(diff) > 3) {
+      setFrame360((prev) => {
+        let newFrame = prev + (diff > 0 ? -1 : 1); 
+        if (newFrame < 0) newFrame = TOTAL_FRAMES - 1;
+        if (newFrame >= TOTAL_FRAMES) newFrame = 0;
+        return newFrame;
+      });
+      setStartX(clientX);
+    }
+  };
+
+  // Berhenti geser
+  const handleDragEnd = () => setIsDragging(false);
 
   const handleColorSelect = (partId: string, hexColor: string) => {
     setSelections((prev) => ({ ...prev, [partId]: hexColor }));
@@ -119,11 +153,69 @@ export default function BagCustomizer() {
                   </div>
                 )}
 
-                {/* --- 360 VIEW --- */}
+               {/* --- 360 VIEW --- */}
                 {activeView === "360" && (
-                  <div key="360" className="animate-soft-fade w-full max-w-[400px] aspect-[4/5] relative flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-2xl bg-blue-50">
-                    <span className="text-4xl mb-2 text-blue-500">↻</span>
-                    <span className="text-blue-600 font-medium">360° Interactive View</span>
+                  <div 
+                    className="w-full max-w-[420px] aspect-[4/5] relative cursor-grab active:cursor-grabbing touch-none flex items-center justify-center"
+                    onMouseDown={handleDragStart}
+                    onMouseMove={handleDragMove}
+                    onMouseUp={handleDragEnd}
+                    onMouseLeave={handleDragEnd}
+                    onTouchStart={handleDragStart}
+                    onTouchMove={handleDragMove}
+                    onTouchEnd={handleDragEnd}
+                  >
+                    {/* WRAPPED BARU: scale-[0.80] 
+                      Berfungsi untuk mengecilkan gambar agar tidak nabrak/terpotong di ujung layar 
+                    */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      <SpritePart
+                        partName="telinga" 
+                        color={selections.telinga} 
+                        texture={textureSelections.telinga} 
+                        zIndex={20} 
+                        currentFrame={frame360}
+                        totalFrames={TOTAL_FRAMES}
+                      />
+                      <SpritePart
+                        partName="body" 
+                        color={selections.body} 
+                        texture={textureSelections.body} 
+                        zIndex={30} 
+                        currentFrame={frame360}
+                        totalFrames={TOTAL_FRAMES}
+                      />
+                      <SpritePart
+                        partName="tali" 
+                        color={selections.tali} 
+                        texture={textureSelections.tali} 
+                        zIndex={10} 
+                        currentFrame={frame360}
+                        totalFrames={TOTAL_FRAMES}
+                      />
+                      
+                      {(frame360 < 4 || frame360 > 12) && (
+                        <>
+                          <StaticSpritePart 
+                            imageUrl="/assets/TasKelalawar/360/mata.png" 
+                            zIndex={40} 
+                            currentFrame={frame360}
+                            totalFrames={TOTAL_FRAMES}
+                          />
+                          <StaticSpritePart 
+                            imageUrl="/assets/TasKelalawar/360/gigi.png" 
+                            zIndex={60} 
+                            currentFrame={frame360}
+                            totalFrames={TOTAL_FRAMES}
+                          />
+                        </>
+                      )}
+                    </div>
+
+                    {/* Instruksi Geser di layar */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 px-4 py-2 rounded-full text-[11px] font-bold text-gray-600 shadow-sm pointer-events-none flex items-center gap-2 border border-gray-100 z-50">
+                      <span className="text-lg leading-none pb-0.5">↔</span> Geser untuk memutar
+                    </div>
                   </div>
                 )}
 

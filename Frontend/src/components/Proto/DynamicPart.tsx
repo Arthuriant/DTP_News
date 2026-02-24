@@ -12,7 +12,7 @@ export default function DynamicPart({ pov, partName, color, texture, zIndex }: D
   const basePath = `/assets/TasKelalawar/${pov}`;
 
   return (
-    // Trik React: Memberikan 'key={texture}' memaksa komponen me-load ulang animasinya setiap kali material diganti
+
     <div key={texture} className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
       
       {/* Gambar Base */}
