@@ -16,10 +16,11 @@ export default function StaticSpritePart({ imageUrl, zIndex, currentFrame, total
       style={{ 
         zIndex,
         backgroundImage: `url(${imageUrl})`,
-        // UBAH DI SINI: dari 100% menjadi auto
         backgroundSize: `${totalFrames * 100}% auto`, 
         backgroundPosition: `${xPos}% center`,
         backgroundRepeat: 'no-repeat',
+        transform: 'translateZ(0)',
+        willChange: 'background-position',
       }}
     />
   );

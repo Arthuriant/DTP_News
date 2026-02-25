@@ -20,10 +20,11 @@ export default function SpritePart({ partName, color, texture, zIndex, currentFr
         className="absolute inset-0"
         style={{
           backgroundImage: `url(${basePath}/${partName}-${texture}-grayscale.png)`,
-          // UBAH DI SINI: dari 100% menjadi auto
-          backgroundSize: `${totalFrames * 100}% auto`, 
+          backgroundSize: `${totalFrames * 100}% auto`,
           backgroundPosition: `${xPos}% center`,
           backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+          willChange: 'background-position',
         }}
       />
 
@@ -34,16 +35,16 @@ export default function SpritePart({ partName, color, texture, zIndex, currentFr
           backgroundColor: color,
           mixBlendMode: 'multiply',
           WebkitMaskImage: `url(${basePath}/${partName}-mask.png)`,
-          // UBAH DI SINI: dari 100% menjadi auto
           WebkitMaskSize: `${totalFrames * 100}% auto`,
           WebkitMaskPosition: `${xPos}% center`,
           WebkitMaskRepeat: 'no-repeat',
           
           maskImage: `url(${basePath}/${partName}-mask.png)`,
-          // UBAH DI SINI JUGA: dari 100% menjadi auto
           maskSize: `${totalFrames * 100}% auto`,
           maskPosition: `${xPos}% center`,
           maskRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+          willChange: 'mask-position, -webkit-mask-position',
         }}
       />
     </div>
