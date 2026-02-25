@@ -1,38 +1,40 @@
 import Image from 'next/image';
 
 interface DynamicPartProps {
-  partName: string; // contoh: 'body', 'telinga', 'tali'
+  pov: string;
+  partName: string; 
   color: string;
-  pov : string;
+  texture: string; 
   zIndex: number;
 }
 
-export default function DynamicPart({ pov, partName, color, zIndex }: DynamicPartProps) {
-  console.log(partName);
+export default function DynamicPart({ pov, partName, color, texture, zIndex }: DynamicPartProps) {
+  const basePath = `/assets/TasKelalawar/${pov}`;
+
   return (
-    // Menggunakan absolute inset-0 agar gambar-gambar ini menumpuk dengan presisi
-    <div className="absolute inset-0" style={{ zIndex }}>
+
+    <div key={texture} className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
       
-      {/* Gambar Base Grayscale */}
+      {/* Gambar Base */}
       <Image
-        src={`/assets/TasKelalawar/${pov}/${partName}-base-grayscale.png`}
+        src={`${basePath}/${partName}-${texture}-grayscale.png`}
         alt={`${partName} Base`}
         fill
         className="object-contain"
         priority
       />
 
-      {/* Layer Masking CSS */}
+      {/* Layer Masking CSS - Animasi warna diperlambat jadi 500ms agar lebih elegan */}
       <div
-        className="absolute inset-0 pointer-events-none transition-colors duration-300"
+        className="absolute inset-0 pointer-events-none transition-colors duration-500 ease-in-out"
         style={{
           backgroundColor: color,
           mixBlendMode: 'multiply',
-          WebkitMaskImage: `url(/assets/TasKelalawar/${pov}/${partName}-mask.png)`,
+          WebkitMaskImage: `url(${basePath}/${partName}-mask.png)`,
           WebkitMaskSize: 'contain',
           WebkitMaskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
-          maskImage: `url(/assets/TasKelalawar/${pov}/${partName}-mask.png)`,
+          maskImage: `url(${basePath}/${partName}-mask.png)`,
           maskSize: 'contain',
           maskRepeat: 'no-repeat',
           maskPosition: 'center',
