@@ -1,6 +1,8 @@
 import Image from 'next/image';
 
+// Tambahkan productId ke interface
 interface DynamicPartProps {
+  productId: string; 
   pov: string;
   partName: string; 
   color: string;
@@ -8,23 +10,20 @@ interface DynamicPartProps {
   zIndex: number;
 }
 
-export default function DynamicPart({ pov, partName, color, texture, zIndex }: DynamicPartProps) {
-  const basePath = `/assets/TasKelalawar/${pov}`;
+// Pastikan ada kata 'export default'
+export default function DynamicPart({ productId, pov, partName, color, texture, zIndex }: DynamicPartProps) {
+  const basePath = `/assets/products/${productId}/${pov.toLowerCase()}`;
 
   return (
-    // Trik React: Memberikan 'key={texture}' memaksa komponen me-load ulang animasinya setiap kali material diganti
-    <div key={texture} className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
-      
-      {/* Gambar Base */}
+    <div className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
       <Image
-        src={`${basePath}/${partName}-${texture}-grayscale.png`}
+        src={`${basePath}/${partName}-${texture}-base.png`}
         alt={`${partName} Base`}
         fill
         className="object-contain"
         priority
       />
 
-      {/* Layer Masking CSS - Animasi warna diperlambat jadi 500ms agar lebih elegan */}
       <div
         className="absolute inset-0 pointer-events-none transition-colors duration-500 ease-in-out"
         style={{
