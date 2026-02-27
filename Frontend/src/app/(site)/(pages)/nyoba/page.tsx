@@ -102,7 +102,7 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* === KANAN: DETAIL PRODUK === */}
+        {/* === KANAN: DETAIL PRODUK === */} 
         <div className="flex flex-col pt-4">
           <h1 className="text-4xl font-extrabold tracking-tight mb-8">Custom Classic Messenger Bag</h1>
 
