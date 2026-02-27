@@ -34,7 +34,7 @@ export interface ProductPart {
   id: string;
   name: string;
   basePrice: number;
-  zIndex: number;
+  zIndex: number | Record<string, number>;
   // Tambahan: Part punya default warna dan teksturnya sendiri
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
@@ -127,6 +127,146 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+            ]
+          }
+        ]
+      },
+    ]
+  },
+  totebag: {
+    id: "totebag",
+    name: "Classic Tote Bag",
+    basePrice: 0,
+    parts: [
+      // --- PART 1: BODY ---
+      { 
+        id: "body", 
+        name: "BODY TAS", 
+        basePrice: 150000, 
+        zIndex: { Front: 40, Back: 40, Top: 10, "360": 20 }, // Posisi zIndex disesuaikan, misal body di tengah
+        colors: [
+          { name: "Black", hex: "#111111" },
+          { name: "Cream", hex: "#f5f5dc" },
+          { name: "Navy", hex: "#1e3a8a" },
+        ],
+        textures: [
+          { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
+          { id: "dino", name: "Dino Pattern", thumb: "/assets/products/totebag/textures/thumb-dino.jpg", price: 25000 },
+          { id: "leather", name: "Premium Leather", thumb: "/assets/products/totebag/textures/thumb-leather.jpg", price: 75000 },
+          { id: "leather2", name: "Glossy Leather", thumb: "/assets/products/totebag/textures/thumb-leather2.jpg", price: 85000 },
+          { id: "snake", name: "Snake Skin", thumb: "/assets/products/totebag/textures/thumb-snake.jpg", price: 100000 },
+        ]
+      },
+
+      // --- PART 2: INNER (BAGIAN DALAM) ---
+      { 
+        id: "inner", 
+        name: "KAIN DALAM (INNER)", 
+        basePrice: 40000, 
+        zIndex: { Front: 20, Back: 20, Top: 20, "360": 20 }, // Inner ditaruh di bawah body
+        colors: [
+          { name: "Black", hex: "#111111" },
+          { name: "Red", hex: "#dc2626" },
+        ],
+        textures: [
+          { id: "base", name: "Soft Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
+        ]
+      },
+
+      // --- PART 3: PITA ---
+      { 
+        id: "pita", 
+        name: "PITA AKSESORIS", 
+        basePrice: 20000, 
+        zIndex: { Front: 30, Back: 30, Top: 30, "360": 20 }, // Pita ditaruh di atas body
+        colors: [
+          { name: "Pink", hex: "#e8729a" },
+          { name: "Blue", hex: "#2563eb" },
+        ],
+        textures: [
+          { id: "base", name: "Satin Silk", thumb: "/assets/products/totebag/textures/thumb-satin.jpg", price: 0 },
+        ]
+      },
+
+      // --- PART 4: TALI KANAN ---
+      { 
+        id: "tali_kanan", 
+        name: "TALI KANAN",
+        basePrice: 30000,
+        zIndex: { Front: 50, Back: 10, Top: 40, "360": 20 }, // Tali di atas body
+        variants: [
+          { 
+            id: "tali_kanan", 
+            name: "Tali Standar", 
+            thumb: "/assets/thumb-tali-standar.jpg", 
+            price: 0, 
+            priceLabel: "",
+            colors: [
+              { name: "Black", hex: "#111111" },
+              { name: "Brown", hex: "#8b4513" },
+            ],
+            textures: [
+              { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
+              { id: "dino", name: "Dino Pattern", thumb: "/assets/products/totebag/textures/thumb-dino.jpg", price: 10000 },
+              { id: "leather", name: "Premium Leather", thumb: "/assets/products/totebag/textures/thumb-leather.jpg", price: 20000 },
+              { id: "leather2", name: "Glossy Leather", thumb: "/assets/products/totebag/textures/thumb-leather2.jpg", price: 25000 },
+              { id: "snake", name: "Snake Skin", thumb: "/assets/products/totebag/textures/thumb-snake.jpg", price: 30000 },
+            ]
+          },
+          { 
+            id: "tali_katun_kanan", 
+            name: "Tali Katun", 
+            thumb: "/assets/thumb-tali-katun.jpg", 
+            price: 15000, 
+            priceLabel: "+ Rp 15.000",
+            colors: [
+              { name: "White", hex: "#ffffff" },
+              { name: "Beige", hex: "#f5f5dc" },
+            ],
+            textures: [
+              { id: "base", name: "Woven Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
+            ]
+          }
+        ]
+      },
+
+      // --- PART 5: TALI KIRI ---
+      { 
+        id: "tali_kiri", 
+        name: "TALI KIRI",
+        basePrice: 30000,
+        zIndex: { Front: 10, Back: 50, Top: 50, "360": 20 }, // Tali di atas body
+        variants: [
+          { 
+            id: "tali_kiri", 
+            name: "Tali Standar", 
+            thumb: "/assets/thumb-tali-standar.jpg", 
+            price: 0, 
+            priceLabel: "",
+            colors: [
+              { name: "Black", hex: "#111111" },
+              { name: "Brown", hex: "#8b4513" },
+            ],
+            textures: [
+              { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
+              { id: "dino", name: "Dino Pattern", thumb: "/assets/products/totebag/textures/thumb-dino.jpg", price: 10000 },
+              { id: "leather", name: "Premium Leather", thumb: "/assets/products/totebag/textures/thumb-leather.jpg", price: 20000 },
+              { id: "leather2", name: "Glossy Leather", thumb: "/assets/products/totebag/textures/thumb-leather2.jpg", price: 25000 },
+              { id: "snake", name: "Snake Skin", thumb: "/assets/products/totebag/textures/thumb-snake.jpg", price: 30000 },
+            ]
+          },
+          { 
+            id: "tali_katun_kiri", 
+            name: "Tali Katun", 
+            thumb: "/assets/thumb-tali-katun.jpg", 
+            price: 15000, 
+            priceLabel: "+ Rp 15.000",
+            colors: [
+              { name: "White", hex: "#ffffff" },
+              { name: "Beige", hex: "#f5f5dc" },
+            ],
+            textures: [
+              { id: "base", name: "Woven Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
             ]
           }
         ]

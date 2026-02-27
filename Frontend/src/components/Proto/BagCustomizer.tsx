@@ -8,7 +8,7 @@ import SpritePart from "./SpritePart";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
 
 // --- KOMPONEN WRAPPER ---
-export default function BagCustomizer({ productId = "tas_kelalawar" }: { productId?: string }) {
+export default function BagCustomizer({ productId = "totebag" }: { productId?: string }) {
   const product = PRODUCTS_CONFIG[productId];
 
   if (!product) {
@@ -163,12 +163,17 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const activeColor = selections[part.id];
       const activeTexture = textureSelections[part.id];
 
+      const partZIndex = typeof part.zIndex === 'number' 
+        ? part.zIndex 
+        : (part.zIndex[pov] ?? part.zIndex["Front"] ?? 10);
+
       return (
-        <div key={`${pov}-${part.id}-${activeShape}`} className="absolute inset-0 pointer-events-none" style={{ zIndex: part.zIndex }}>
+        // 👇 Ubah part.zIndex menjadi partZIndex di style={{ zIndex: ... }}
+        <div key={`${pov}-${part.id}-${activeShape}`} className="absolute inset-0 pointer-events-none" style={{ zIndex: partZIndex }}>
           {pov === "360" ? (
-            <SpritePart productId={product.id} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={part.zIndex} currentFrame={frame360} totalFrames={TOTAL_FRAMES} />
+            <SpritePart productId={product.id} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={partZIndex} currentFrame={frame360} totalFrames={TOTAL_FRAMES} />
           ) : (
-            <DynamicPart productId={product.id} pov={pov} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={part.zIndex} />
+            <DynamicPart productId={product.id} pov={pov} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={partZIndex} />
           )}
 
           {pov === "Front" && part.staticOverlays?.map(overlay => (
