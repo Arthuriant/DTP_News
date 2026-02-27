@@ -6,9 +6,9 @@ import { FrontViewer, BackViewer, TopViewer } from "@/components/StaticViewers";
 import Breadcrumb from "../Common/Breadcrumb";
 
 const COLOR_PALETTE = [
-  { id: "badan", name: "Badan Tas", colors: ["#4B5563", "#60A5FA", "#F472B6"], canHide: false },
+  { id: "badan", name: "Badan Tas", canHide: false, colorsSolid: ["#4B5563", "#60A5FA", "#F472B6"], colorsLeather: ["#AC7434", "#88572B", "#612718", "#654321", "#954535", "#C4B289"] },
   { id: "tali", name: "Tali Bahu", colors: ["#000000", "#FFFFFF"], canHide: false },
-  { id: "telinga", name: "Telinga Tas", colors: ["#EF4444", "#A855F7", "#22C55E"], canHide: true },
+  { id: "telinga", name: "Telinga Tas", canHide: true, colorsSolid: ["#EF4444", "#A855F7", "#22C55E"], colorsLeather: ["#AC7434", "#88572B", "#612718", "#654321", "#954535", "#C4B289"] },
   { id: "sayap", name: "Sayap Tas", colors: ["#000000", "#4B5563", "#DC2626"], canHide: true },
   { id: "detail", name: "Detail (Mata & Taring)", colors: ["#FCD34D", "#FFFFFF", "#000000"], canHide: true },
 ];
@@ -20,17 +20,11 @@ const PREVIEW_VIEWS = [
   { id: "atas", label: "Atas", type: "image" },
 ];
 
-const PREMIUM_COLORS = [
-  "#60A5FA", "#F472B6", "#EF4444", "#A855F7", "#22C55E", "#DC2626", "#FCD34D",
-];
+const PREMIUM_COLORS = ["#60A5FA", "#F472B6", "#EF4444", "#A855F7", "#22C55E", "#DC2626", "#FCD34D"];
 
 export default function BagCustomizer3D() {
   const [colors, setColors] = useState<Record<string, string>>({
-    badan: "#F472B6",
-    tali: "#FFFFFF",
-    telinga: "#22C55E",
-    sayap: "#000000",
-    detail: "#FCD34D",
+    badan: "#F472B6", tali: "#FFFFFF", telinga: "#22C55E", sayap: "#000000", detail: "#FCD34D",
   });
 
   const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>({
@@ -39,8 +33,9 @@ export default function BagCustomizer3D() {
 
   const [activeView, setActiveView] = useState("360");
   
-  // STATE BARU: Menyimpan jenis material untuk badan (base atau leather)
+  // Dua State terpisah untuk Material
   const [bodyMaterial, setBodyMaterial] = useState("base");
+  const [telingaMaterial, setTelingaMaterial] = useState("base");
 
   const handleColorChange = (partId: string, colorHex: string) => {
     setColors((prev) => ({ ...prev, [partId]: colorHex }));
@@ -50,32 +45,40 @@ export default function BagCustomizer3D() {
     setVisibleParts((prev) => ({ ...prev, [partId]: !prev[partId] }));
   };
 
+  const handleMaterialChange = (partId: string, materialType: string) => {
+    if (partId === "badan") {
+      setBodyMaterial(materialType);
+      if (materialType === "base") setColors(prev => ({ ...prev, badan: "#F472B6" }));
+      else if (materialType === "leather") setColors(prev => ({ ...prev, badan: "#AC7434" }));
+    } else if (partId === "telinga") {
+      setTelingaMaterial(materialType);
+      if (materialType === "base") setColors(prev => ({ ...prev, telinga: "#22C55E" }));
+      else if (materialType === "leather") setColors(prev => ({ ...prev, telinga: "#654321" })); // Default Leather beda agar kontras
+    }
+  };
+
   const calculatePrice = () => {
     let total = 850000; 
-
-    if (visibleParts.telinga) total += 100000; 
+    if (visibleParts.telinga) {
+      total += 100000; 
+      // Tambah harga jika penutupnya dari Leather
+      if (telingaMaterial === "leather") total += 75000; 
+    }
     if (visibleParts.sayap) total += 200000;   
     if (visibleParts.detail) total += 50000;   
 
-    // Tambahan biaya jika memilih material kulit (leather)
-    if (bodyMaterial === "leather") {
-      total += 150000; // Bahan kulit tambah Rp 150.000
-    }
+    // Tambah harga jika badannya Leather
+    if (bodyMaterial === "leather") total += 150000; 
 
     Object.entries(colors).forEach(([part, hex]) => {
       const isPartActive = visibleParts[part] || part === "badan" || part === "tali";
-      if (isPartActive && PREMIUM_COLORS.includes(hex)) {
-        total += 25000; 
-      }
+      if (isPartActive && PREMIUM_COLORS.includes(hex)) total += 25000; 
     });
-
     return total;
   };
 
   const formatRupiah = (angka: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency", currency: "IDR", minimumFractionDigits: 0,
-    }).format(angka);
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
   };
 
   const currentPrice = calculatePrice();
@@ -88,19 +91,16 @@ export default function BagCustomizer3D() {
         <div className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden lg:h-[750px]">
             
-            {/* KIRI: PREVIEW AREA */}
             <div className="w-full lg:w-[55%] p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-gray-100 relative flex flex-col bg-[#f8f9fa] overflow-hidden">
               <div className="absolute w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.04)_0%,transparent_70%)] pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
 
               <div className="flex-grow flex flex-col items-center justify-center w-full relative z-10 pt-4">
-                {/* Kirim props bodyMaterial ke semua viewer */}
                 {activeView === "360" && <ProductViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
-                {activeView === "depan" && <FrontViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
-                {activeView === "belakang" && <BackViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
+                {activeView === "depan" && <FrontViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} telingaMaterial={telingaMaterial} />}
+                {activeView === "belakang" && <BackViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} telingaMaterial={telingaMaterial} />}
                 {activeView === "atas" && <TopViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
               </div>
 
-              {/* ... (Menu Navigasi Kamera tetap sama) ... */}
               <div className="mt-6 flex justify-center z-20 pb-2">
                 <div className="flex items-center gap-3 bg-[#f8f9fa] px-4 py-2.5 rounded-2xl border border-[#cbd5e1] shadow-sm">
                   {PREVIEW_VIEWS.map((view) => {
@@ -109,7 +109,6 @@ export default function BagCustomizer3D() {
                       <button key={view.id} onClick={() => setActiveView(view.id)} className={`relative w-[65px] h-[65px] rounded-xl flex flex-col items-center justify-center transition-all bg-[#f8f9fa] ${isActive ? "border-2 border-[#4154f1] ring-[3.5px] ring-[#e0e7ff] text-[#4154f1]" : "border border-[#cbd5e1] text-[#64748b] hover:border-[#94a3b8]"}`}>
                         {view.type === "icon" ? (
                           <div className="flex flex-col items-center">
-                            <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             <span className="text-[10px] font-bold tracking-widest">360°</span>
                           </div>
                         ) : (<div className="text-[10px] font-bold uppercase tracking-widest">{view.label}</div>)}
@@ -120,7 +119,6 @@ export default function BagCustomizer3D() {
               </div>
             </div>
 
-            {/* KANAN: CONTROL PANEL */}
             <div className="w-full lg:w-[45%] flex flex-col h-full bg-white">
                <div className="px-8 lg:px-12 pt-10 pb-6 border-b border-gray-100">
                 <h2 className="text-[32px] font-extrabold text-[#111827] mb-2 tracking-tight">Design Your Bag</h2>
@@ -130,6 +128,11 @@ export default function BagCustomizer3D() {
               <div className="flex-grow overflow-y-auto px-8 lg:px-12 py-6 flex flex-col gap-7 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                 {COLOR_PALETTE.map((part) => {
                   const isVisible = visibleParts[part.id];
+                  
+                  const activeMaterial = part.id === "badan" ? bodyMaterial : (part.id === "telinga" ? telingaMaterial : "base");
+                  const currentColorsToRender = (part.id === "badan" || part.id === "telinga") 
+                    ? (activeMaterial === "leather" ? part.colorsLeather : part.colorsSolid)
+                    : part.colors;
                   
                   return (
                     <div key={part.id} className="pb-7 border-b border-gray-100 last:border-0 last:pb-0">
@@ -147,13 +150,21 @@ export default function BagCustomizer3D() {
 
                       <div className={`transition-all duration-300 ${!isVisible ? "opacity-30 pointer-events-none grayscale" : "opacity-100"}`}>
                         <div className="flex flex-wrap gap-3.5 mb-5">
-                          {part.colors.map((color) => {
+                          {currentColorsToRender?.map((color) => {
                             const isActive = colors[part.id] === color;
                             const isLightColor = color === "#FFFFFF" || color === "#f2f2f2";
                             const isPremium = PREMIUM_COLORS.includes(color);
 
+                            let tooltipName = isPremium ? "+ Rp 25.000" : "Warna Standar";
+                            if (color === "#AC7434") tooltipName = "Leather (Standard)";
+                            if (color === "#88572B") tooltipName = "Brown Leather (Dulux)";
+                            if (color === "#612718") tooltipName = "Espresso Brown";
+                            if (color === "#654321") tooltipName = "Dark Brown (Klasik)";
+                            if (color === "#954535") tooltipName = "Chestnut (Kastanye)";
+                            if (color === "#C4B289") tooltipName = "Khaki (Kulit Bumi)";
+
                             return (
-                              <button key={`${part.id}-${color}`} onClick={() => handleColorChange(part.id, color)} className="group relative focus:outline-none" title={isPremium ? "+ Rp 25.000" : "Warna Standar"}>
+                              <button key={`${part.id}-${color}`} onClick={() => handleColorChange(part.id, color)} className="group relative focus:outline-none" title={tooltipName}>
                                 <div style={{ backgroundColor: color }} className={`w-10 h-10 rounded-full transition-all duration-200 ease-in-out ${isLightColor ? "border border-gray-300" : "border border-transparent"} ${isActive ? "ring-2 ring-[#4154f1] ring-offset-2 scale-110" : "hover:scale-105"}`} />
                                 {isPremium && <div className="absolute -top-1 -right-1 bg-yellow-400 w-3 h-3 rounded-full border border-white shadow-sm" />}
                               </button>
@@ -161,28 +172,16 @@ export default function BagCustomizer3D() {
                           })}
                         </div>
 
-                        {/* TAMBAHAN UI MATERIAL KHUSUS UNTUK BADAN TAS */}
-                        {part.id === "badan" && (
+                        {/* UI MATERIAL UNTUK BADAN DAN TELINGA */}
+                        {(part.id === "badan" || part.id === "telinga") && (
                           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-50">
                             <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider">Material:</span>
                             <div className="flex bg-[#f1f5f9] p-1 rounded-lg">
-                              <button 
-                                onClick={() => setBodyMaterial("base")}
-                                className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-all duration-200 ${bodyMaterial === "base" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`}
-                              >
-                                Solid
-                              </button>
-                              <button 
-                                onClick={() => setBodyMaterial("leather")}
-                                className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-all duration-200 ${bodyMaterial === "leather" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`}
-                                title="+ Rp 150.000"
-                              >
-                                Leather
-                              </button>
+                              <button onClick={() => handleMaterialChange(part.id, "base")} className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-all duration-200 ${activeMaterial === "base" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`}>Solid</button>
+                              <button onClick={() => handleMaterialChange(part.id, "leather")} className={`px-4 py-1.5 text-[12px] font-bold rounded-md transition-all duration-200 ${activeMaterial === "leather" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`} title={part.id === "badan" ? "+ Rp 150.000" : "+ Rp 75.000"}>Leather</button>
                             </div>
                           </div>
                         )}
-
                       </div>
                     </div>
                   );
