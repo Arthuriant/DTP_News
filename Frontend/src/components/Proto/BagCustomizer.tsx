@@ -8,7 +8,7 @@ import SpritePart from "./SpritePart";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
 
 // --- KOMPONEN WRAPPER ---
-export default function BagCustomizer({ productId = "totebag" }: { productId?: string }) {
+export default function BagCustomizer({ productId = "tas_kelalawar" }: { productId?: string }) {
   const product = PRODUCTS_CONFIG[productId];
 
   if (!product) {

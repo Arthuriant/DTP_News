@@ -72,6 +72,11 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         textures: [
           { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
           { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
+          { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
+          { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
+          { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
+          { id: "leather4", name: "Premium Leather 4", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 190000 },
+          { id: "leather5", name: "Premium Leather 5", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 200000 },
         ]
       },
 
@@ -85,9 +90,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         colors: [
           { name: "Black", hex: "#111111" },
           { name: "Charcoal", hex: "#3a3a3a" },
+           { name: "Pink", hex: "#e8729a" },
         ],
         textures: [
-           { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+          { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+          { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
+          { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
+          { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
+          { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
         ]
       },
 
@@ -111,11 +121,13 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
-              { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 50000 },
+              { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
+              { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
+              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
             ]
           },
           { 
-            id: "tali_rantai", 
+            id: "tali1",
             name: "Tali Rantai", 
             thumb: "/assets/thumb-bulat.jpg", 
             price: 20000, 
@@ -127,6 +139,9 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+              { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
+              { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
+              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
             ]
           }
         ]
