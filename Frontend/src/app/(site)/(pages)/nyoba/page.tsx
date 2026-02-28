@@ -2,11 +2,8 @@
 
 import React, { useState, useRef } from "react";
 
-// --- 1. DATA GAMBAR ---
+// --- 1. SETUP SPRITE SHEET ---
 const TOTAL_FRAMES = 32;
-const imageFrames = Array.from({ length: TOTAL_FRAMES }).map(
-  (_, i) => `/images/bag/frame-${i + 1}.png`
-);
 
 const sizes = [
   { id: "xs", label: "EXTRA SMALL", desc: "Fits an 11\" laptop" },
@@ -48,7 +45,7 @@ export default function ProductPage() {
     startXRef.current = "touches" in e ? e.touches[0].clientX : e.clientX;
   };
 
-const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDragging) return;
     const currentX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const deltaX = currentX - startXRef.current;
@@ -56,15 +53,16 @@ const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
 
     if (Math.abs(deltaX) > sensitivity) {
       if (deltaX > 0) {
-        // GESER KANAN: Frame mundur (-) agar putaran searah dengan kursor
+        // Geser Kanan -> Frame Mundur (Putaran searah kursor)
         setCurrentFrame((prev) => (prev === 0 ? TOTAL_FRAMES - 1 : prev - 1));
       } else {
-        // GESER KIRI: Frame maju (+) agar putaran searah dengan kursor
+        // Geser Kiri -> Frame Maju (Putaran searah kursor)
         setCurrentFrame((prev) => (prev === TOTAL_FRAMES - 1 ? 0 : prev + 1));
       }
       startXRef.current = currentX; 
     }
   };
+
   const handleMouseUp = () => setIsDragging(false);
 
   // --- 4. TAMPILAN UI ---
@@ -72,12 +70,12 @@ const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
     <div className="min-h-screen bg-white text-gray-900 font-sans">
       <main className="max-w-7xl mx-auto px-4 pt-[180px] pb-24 grid grid-cols-1 md:grid-cols-2 gap-12">
         
-      {/* === KIRI: IMAGE VIEWER === */}
+        {/* === KIRI: IMAGE VIEWER === */}
         <div className="flex flex-col space-y-4">
           
-          {/* UBAH WARNA BG DI SINI: Gunakan #b6b7b8 agar menyatu dengan fotomu */}
+          {/* Warna background diubah menjadi hitam pekat (#0a0a0a) menyesuaikan sprite sheet */}
           <div 
-            className="bg-[#b6b7b8] w-full aspect-[4/3] flex items-center justify-center cursor-ew-resize relative overflow-hidden rounded-md select-none shadow-sm"
+            className="bg-[#0a0a0a] w-full aspect-[4/3] flex items-center justify-center cursor-ew-resize relative overflow-hidden rounded-md select-none shadow-sm"
             onMouseDown={handleMouseDown} 
             onMouseMove={handleMouseMove} 
             onMouseUp={handleMouseUp}
@@ -90,11 +88,16 @@ const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
               ↔ Drag to rotate
             </div>
 
-            <img 
-              src={imageFrames[currentFrame]} 
-              alt={`Produk angle ${currentFrame + 1}`} 
-              className="w-full h-full object-contain pointer-events-none relative z-0"
-              draggable="false"
+           {/* DIV INI ADALAH KUNCI SPRITE SHEET-NYA */}
+            <div 
+              className="w-full h-full pointer-events-none"
+              style={{
+                // UBAH NAMA FILE DI SINI MENJADI bag.webp
+                backgroundImage: "url('/images/bag/bag.webp')", 
+                backgroundSize: `${TOTAL_FRAMES * 100}% 100%`, 
+                backgroundPosition: `${(currentFrame / (TOTAL_FRAMES - 1)) * 100}% center`, 
+                backgroundRepeat: "no-repeat",
+              }}
             />
           </div>
         </div>
