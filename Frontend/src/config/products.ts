@@ -160,9 +160,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         basePrice: 150000, 
         zIndex: { Front: 40, Back: 40, Top: 10, "360": 20 }, // Posisi zIndex disesuaikan, misal body di tengah
         colors: [
-          { name: "Black", hex: "#111111" },
-          { name: "Cream", hex: "#f5f5dc" },
-          { name: "Navy", hex: "#1e3a8a" },
+          { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+          { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+          { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+          { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+          { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+          { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+          { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+          { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
         ],
         textures: [
           { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
@@ -180,8 +185,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         basePrice: 40000, 
         zIndex: { Front: 20, Back: 20, Top: 20, "360": 20 }, // Inner ditaruh di bawah body
         colors: [
-          { name: "Black", hex: "#111111" },
-          { name: "Red", hex: "#dc2626" },
+          { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+          { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+          { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+          { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+          { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+          { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+          { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+          { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
         ],
         textures: [
           { id: "base", name: "Soft Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
@@ -195,8 +206,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         basePrice: 20000, 
         zIndex: { Front: 30, Back: 30, Top: 30, "360": 20 }, // Pita ditaruh di atas body
         colors: [
-          { name: "Pink", hex: "#e8729a" },
-          { name: "Blue", hex: "#2563eb" },
+          { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+          { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+          { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+          { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+          { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+          { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+          { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+          { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
         ],
         textures: [
           { id: "base", name: "Satin Silk", thumb: "/assets/products/totebag/textures/thumb-satin.jpg", price: 0 },
@@ -217,8 +234,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
-              { name: "Black", hex: "#111111" },
-              { name: "Brown", hex: "#8b4513" },
+              { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+              { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+              { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+              { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+              { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+              { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+              { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+              { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
@@ -235,8 +258,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 15000, 
             priceLabel: "+ Rp 15.000",
             colors: [
-              { name: "White", hex: "#ffffff" },
-              { name: "Beige", hex: "#f5f5dc" },
+              { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+              { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+              { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+              { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+              { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+              { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+              { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+              { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
             ],
             textures: [
               { id: "base", name: "Woven Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
@@ -259,8 +288,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
-              { name: "Black", hex: "#111111" },
-              { name: "Brown", hex: "#8b4513" },
+              { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+              { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+              { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+              { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+              { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+              { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+              { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+              { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
@@ -277,8 +312,14 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 15000, 
             priceLabel: "+ Rp 15.000",
             colors: [
-              { name: "White", hex: "#ffffff" },
-              { name: "Beige", hex: "#f5f5dc" },
+              { name: "Obsidian Black", hex: "#1A1A1A" },   // Hitam pekat mewah
+              { name: "Espresso", hex: "#3E2723" },        // Cokelat gelap klasik
+              { name: "Cognac Leather", hex: "#9A6338" },  // Warna kulit ikonik
+              { name: "Caramel Tan", hex: "#C68E5F" },     // Warna tan muda hangat
+              { name: "Terracotta", hex: "#A45A52" },      // Merah bata earthy
+              { name: "Sage Green", hex: "#7D8471" },      // Hijau olive kalem (tren mewah)
+              { name: "Deep Navy", hex: "#1E293B" },       // Biru dongker gelap
+              { name: "Creamy Bone", hex: "#F5F5DC" },     // Putih tulang/broken white
             ],
             textures: [
               { id: "base", name: "Woven Cotton", thumb: "/assets/products/totebag/textures/thumb-cotton.jpg", price: 0 },
