@@ -85,20 +85,45 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         name: "TELINGA TAS", 
         basePrice: 150000, 
         zIndex: 20,
-        // Telinga misalnya HANYA tersedia dalam bahan Leather dan warna gelap
-        colors: [
-          { name: "Black", hex: "#111111" },
-          { name: "Charcoal", hex: "#3a3a3a" },
-           { name: "Pink", hex: "#e8729a" },
-        ],
-        textures: [
-          { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
-          { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
-          { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
-          { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
-          { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
-        ]
+         variants: [
+          { 
+            id: "telinga", 
+            name: "telinga tas", 
+            thumb: "/assets/thumb-kotak.jpg", // Untuk pengembandgan selanjutnya
+            price: 0, 
+            priceLabel: "",
+            // Tali biasa ikut bahan tas (Leather/Canvas)
+               colors: [
+                    { name: "Black", hex: "#111111" },
+                    { name: "Charcoal", hex: "#3a3a3a" },
+                    { name: "Pink", hex: "#e8729a" },
+                  ],
+            textures: [
+              { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+              { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
+              { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
+              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
+              { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
+            ]
+          },
+          { 
+            id: "telinga1", 
+            name: "telinga Kucing", 
+            thumb: "/assets/thumb-kotak.jpg", // Untuk pengembandgan selanjutnya
+            price: 0, 
+            priceLabel: "",
+            // Tali biasa ikut bahan tas (Leather/Canvas)
+            colors: [
+              { name: "Black", hex: "#111111" },
+              { name: "Pink", hex: "#e8729a" },
+            ],
+            textures: [
+              { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
+            ]
+          },
+         ]
       },
+      
 
       // --- PART 3: TALI BAHU (Dengan Varian yang sangat berbeda) ---
       { 
