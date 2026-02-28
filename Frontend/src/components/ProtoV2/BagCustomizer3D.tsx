@@ -8,7 +8,8 @@ import Breadcrumb from "../Common/Breadcrumb";
 const COLOR_PALETTE = [
   { id: "badan", name: "Badan Tas", canHide: false, colorsSolid: ["#4B5563", "#60A5FA", "#F472B6"], colorsLeather: ["#AC7434", "#88572B", "#612718", "#654321", "#954535", "#C4B289"] },
   { id: "tali", name: "Tali Bahu", colors: ["#000000", "#FFFFFF"], canHide: false },
-  { id: "telinga", name: "Telinga Tas", canHide: true, colorsSolid: ["#EF4444", "#A855F7", "#22C55E"], colorsLeather: ["#AC7434", "#88572B", "#612718", "#654321", "#954535", "#C4B289"] },
+  { id: "tali2", name: "Tali Bahu", colors: ["#000000", "#FFFFFF"], canHide: false },
+  { id: "telinga", name: "Telinga Tas (Penutup)", canHide: true, colorsSolid: ["#EF4444", "#A855F7", "#22C55E"], colorsLeather: ["#AC7434", "#88572B", "#612718", "#654321", "#954535", "#C4B289"] },
   { id: "sayap", name: "Sayap Tas", colors: ["#000000", "#4B5563", "#DC2626"], canHide: true },
   { id: "detail", name: "Detail (Mata & Taring)", colors: ["#FCD34D", "#FFFFFF", "#000000"], canHide: true },
 ];
@@ -24,18 +25,19 @@ const PREMIUM_COLORS = ["#60A5FA", "#F472B6", "#EF4444", "#A855F7", "#22C55E", "
 
 export default function BagCustomizer3D() {
   const [colors, setColors] = useState<Record<string, string>>({
-    badan: "#F472B6", tali: "#FFFFFF", telinga: "#22C55E", sayap: "#000000", detail: "#FCD34D",
+    badan: "#F472B6", tali: "#FFFFFF",tali2: "#FFFFFF", telinga: "#22C55E", sayap: "#000000", detail: "#FCD34D",
   });
 
   const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>({
-    badan: true, tali: true, telinga: true, sayap: true, detail: true,
+    badan: true, tali: true,tali2: true, telinga: true, sayap: true, detail: true,
   });
 
-  const [activeView, setActiveView] = useState("360");
+  const [activeView, setActiveView] = useState("depan"); // Diubah ke "depan" untuk testing awal
   
-  // Dua State terpisah untuk Material
+  // STATE MATERIAL DAN KOMPARTEMEN
   const [bodyMaterial, setBodyMaterial] = useState("base");
   const [telingaMaterial, setTelingaMaterial] = useState("base");
+  const [kompartemen, setKompartemen] = useState("kancing"); // "kancing" atau "pengait"
 
   const handleColorChange = (partId: string, colorHex: string) => {
     setColors((prev) => ({ ...prev, [partId]: colorHex }));
@@ -53,27 +55,33 @@ export default function BagCustomizer3D() {
     } else if (partId === "telinga") {
       setTelingaMaterial(materialType);
       if (materialType === "base") setColors(prev => ({ ...prev, telinga: "#22C55E" }));
-      else if (materialType === "leather") setColors(prev => ({ ...prev, telinga: "#654321" })); // Default Leather beda agar kontras
+      else if (materialType === "leather") setColors(prev => ({ ...prev, telinga: "#654321" }));
     }
   };
 
   const calculatePrice = () => {
     let total = 850000; 
+    
+    // Biaya Tambahan Komponen
     if (visibleParts.telinga) {
       total += 100000; 
-      // Tambah harga jika penutupnya dari Leather
       if (telingaMaterial === "leather") total += 75000; 
     }
     if (visibleParts.sayap) total += 200000;   
     if (visibleParts.detail) total += 50000;   
 
-    // Tambah harga jika badannya Leather
+    // Biaya Tambahan Material Badan
     if (bodyMaterial === "leather") total += 150000; 
 
+    // Biaya Tambahan Pengait
+    if (kompartemen === "pengait") total += 50000; // Hardware pengait tambah Rp 50.000
+
+    // Biaya Warna Premium
     Object.entries(colors).forEach(([part, hex]) => {
-      const isPartActive = visibleParts[part] || part === "badan" || part === "tali";
+      const isPartActive = visibleParts[part] || part === "badan" || part === "tali"  || part === "tali2";
       if (isPartActive && PREMIUM_COLORS.includes(hex)) total += 25000; 
     });
+    
     return total;
   };
 
@@ -91,15 +99,16 @@ export default function BagCustomizer3D() {
         <div className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden lg:h-[750px]">
             
+            {/* KIRI: PREVIEW AREA */}
             <div className="w-full lg:w-[55%] p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-gray-100 relative flex flex-col bg-[#f8f9fa] overflow-hidden">
               <div className="absolute w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.04)_0%,transparent_70%)] pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
 
               <div className="flex-grow flex flex-col items-center justify-center w-full relative z-10 pt-4">
                 {activeView === "360" && <ProductViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
-                {activeView === "depan" && <FrontViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} telingaMaterial={telingaMaterial} />}
+                {/* PROPS KOMPARTEMEN DIKIRIM KE FRONTVIEWER */}
+                {activeView === "depan" && <FrontViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} telingaMaterial={telingaMaterial} kompartemen={kompartemen} />}
                 {activeView === "belakang" && <BackViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} telingaMaterial={telingaMaterial} />}
-                {activeView === "atas" && <TopViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} />}
-              </div>
+{activeView === "atas" && <TopViewer colors={colors} visibleParts={visibleParts} bodyMaterial={bodyMaterial} kompartemen={kompartemen} />}              </div>
 
               <div className="mt-6 flex justify-center z-20 pb-2">
                 <div className="flex items-center gap-3 bg-[#f8f9fa] px-4 py-2.5 rounded-2xl border border-[#cbd5e1] shadow-sm">
@@ -119,13 +128,40 @@ export default function BagCustomizer3D() {
               </div>
             </div>
 
+            {/* KANAN: CONTROL PANEL */}
             <div className="w-full lg:w-[45%] flex flex-col h-full bg-white">
                <div className="px-8 lg:px-12 pt-10 pb-6 border-b border-gray-100">
                 <h2 className="text-[32px] font-extrabold text-[#111827] mb-2 tracking-tight">Design Your Bag</h2>
-                <p className="text-[#6b7280] text-[15px] leading-relaxed">Sesuaikan warna dan material tas.</p>
+                <p className="text-[#6b7280] text-[15px] leading-relaxed">Sesuaikan warna, material, dan aksesoris tas.</p>
               </div>
 
               <div className="flex-grow overflow-y-auto px-8 lg:px-12 py-6 flex flex-col gap-7 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                
+                {/* TAMBAHAN UI: PILIHAN KOMPARTEMEN (KANCING/PENGAIT) */}
+                <div className="pb-7 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3 font-bold text-[#111827] text-[13px] uppercase tracking-wider">
+                      <span>Tipe Kompartemen</span>
+                    </div>
+                  </div>
+                  <div className="flex bg-[#f1f5f9] p-1 rounded-lg w-max">
+                    <button 
+                      onClick={() => setKompartemen("kancing")} 
+                      className={`px-6 py-2 text-[13px] font-bold rounded-md transition-all duration-200 ${kompartemen === "kancing" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`}
+                    >
+                      Kancing
+                    </button>
+                    <button 
+                      onClick={() => setKompartemen("pengait")} 
+                      className={`px-6 py-2 text-[13px] font-bold rounded-md transition-all duration-200 ${kompartemen === "pengait" ? "bg-white text-[#4154f1] shadow-sm" : "text-gray-500 hover:text-[#4154f1]"}`}
+                      title="+ Rp 50.000"
+                    >
+                      Pengait Sabuk
+                    </button>
+                  </div>
+                </div>
+
+                {/* LOOPING WARNA PALETTE */}
                 {COLOR_PALETTE.map((part) => {
                   const isVisible = visibleParts[part.id];
                   
