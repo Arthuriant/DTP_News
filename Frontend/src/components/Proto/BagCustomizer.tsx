@@ -8,7 +8,7 @@ import SpritePart from "./SpritePart";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
 
 // --- KOMPONEN WRAPPER ---
-export default function BagCustomizer({ productId = "tas_kelalawar" }: { productId?: string }) {
+export default function BagCustomizer({ productId = "totebag" }: { productId?: string }) {
   const product = PRODUCTS_CONFIG[productId];
 
   if (!product) {
@@ -300,29 +300,38 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       </div>
 
                       <div className={`transition-all duration-300 ${!isVisible ? "opacity-30 pointer-events-none grayscale" : "opacity-100"}`}>
-                        
+                        {/* PILIHAN Variant */}
                         {part.variants && (
-                          <div className="mb-5 flex flex-wrap gap-2 p-1 bg-gray-50 rounded-lg w-fit border border-gray-100">
-                            {part.variants.map((v) => {
-                              const isShapeActive = activeShapeId === v.id;
-                              return (
-                                <button 
-                                  key={v.id} 
-                                  onClick={() => handleShapeSelect(part.id, v.id)} 
-                                  className={`px-4 py-2 text-[12px] font-bold rounded-md transition-all duration-200 flex items-center gap-1.5
-                                    ${isShapeActive ? "bg-white text-[#4154f1] shadow-sm ring-1 ring-gray-200" : "text-gray-500 hover:text-gray-700 hover:bg-white/50"}
-                                  `}
-                                >
-                                  {v.name}
-                                  {/* Tampilkan label harga di sebelah nama jika ada */}
-                                  {v.priceLabel && (
-                                    <span className={`text-[10px] ${isShapeActive ? "text-[#4154f1]" : "text-gray-400"}`}>
-                                      ({v.priceLabel})
-                                    </span>
-                                  )}
-                                </button>
-                              );
-                            })}
+                          <div className="mb-6">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2.5">
+                              Model {part.name}:
+                            </span>
+                            
+                            <div className="flex flex-wrap gap-2.5">
+                              {part.variants.map((v) => {
+                                const isShapeActive = activeShapeId === v.id;
+                                return (
+                                  <button
+                                    key={v.id}
+                                    onClick={() => handleShapeSelect(part.id, v.id)}
+                                    className={`px-4 py-2.5 text-[12px] font-bold rounded-lg transition-all duration-200 flex items-center gap-1.5 border
+                                      ${isShapeActive 
+                                        ? "bg-[#eff2ff] border-[#4154f1] text-[#4154f1] shadow-[0_2px_10px_rgba(65,84,241,0.15)] ring-1 ring-[#4154f1]" // Biru terang saat aktif
+                                        : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-800 hover:bg-gray-50 shadow-sm" // Putih abu-abu saat tidak aktif
+                                      }
+                                    `}
+                                  >
+                                    <span>{v.name}</span>
+                                    
+                                    {v.priceLabel && (
+                                      <span className={`text-[10px] ${isShapeActive ? "text-[#4154f1]/80" : "text-gray-400 font-medium"}`}>
+                                        ({v.priceLabel})
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         )}
 
