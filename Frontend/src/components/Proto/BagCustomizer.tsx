@@ -58,8 +58,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   });
 
   const [activeView, setActiveView] = useState<string>("front");
-
-  const TOTAL_FRAMES = 16; 
+  
+  // LOGIKA 360 ROTATION
+  const TOTAL_FRAMES = 17; 
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);

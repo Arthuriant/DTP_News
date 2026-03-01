@@ -65,12 +65,16 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         zIndex: 30,
         // Palet warna pewarna kulit premium (Leather Dye)
         colors: [
-          { name: "Saddle Tan", hex: "#b87333" },       // Cokelat muda klasik tas kulit
-          { name: "Chestnut", hex: "#5c3a21" },         // Cokelat kemerahan
-          { name: "Espresso", hex: "#362511" },         // Pengganti hitam (Cokelat sangat tua, tekstur tetap terlihat)
-          { name: "Burgundy", hex: "#6a2e2a" },         // Merah marun elegan
-          { name: "Midnight Navy", hex: "#1f3050" },    // Biru dongker yang tidak mematikan tekstur
-          { name: "Olive Green", hex: "#4a543f" },      // Hijau tentara khas kanvas/kulit
+        { name: "Cream", hex: "#F3E9DC" },
+        { name: "Light Beige", hex: "#EAD7C0" },
+        { name: "Soft Yellow", hex: "#F2D16B" },
+        { name: "Sky Blue", hex: "#7FB7E6" },
+        { name: "Mint", hex: "#8ED1B2" },
+        { name: "Soft Lavender", hex: "#C6B7E2" },
+        { name: "Peach", hex: "#F4A688" },
+        { name: "Soft Coral", hex: "#F08080" },
+        { name: "Light Grey", hex: "#D3D3D3" },
+        { name: "Baby Pink", hex: "#F4B6C2" },
         ],
         textures: [
           { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -78,7 +82,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
           { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
           { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
-          { id: "leather5", name: "Premium Leather 5", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 200000 },
         ]
       },
 
@@ -95,11 +98,13 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             thumb: "/assets/thumb-kotak.jpg", 
             price: 0, 
             priceLabel: "",
-            colors: [
-              { name: "Espresso", hex: "#362511" },
-              { name: "Chestnut", hex: "#5c3a21" },
-              { name: "Burgundy", hex: "#6a2e2a" },
-            ],
+            // Tali biasa ikut bahan tas (Leather/Canvas)
+               colors: [
+                  { name: "Soft Yellow", hex: "#F2D16B" },
+                  { name: "Sky Blue", hex: "#7FB7E6" },
+                  { name: "Mint", hex: "#8ED1B2" },
+                  { name: "Soft Lavender", hex: "#C6B7E2" },
+                  ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
               { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
@@ -115,9 +120,13 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
-              { name: "Dusty Rose", hex: "#c28e8e" }, // Pengganti Pink ngejreng, lebih masuk ke tone kulit/suede
-              { name: "Taupe", hex: "#c9bca7" },      // Warna krem/abu-abu netral
-              { name: "Saddle Tan", hex: "#b87333" },
+              { name: "Sky Blue", hex: "#7FB7E6" },
+              { name: "Mint", hex: "#8ED1B2" },
+              { name: "Soft Lavender", hex: "#C6B7E2" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -126,7 +135,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         ]
       },
       
-      // --- PART 3: TALI BAHU ---
+      // --- PART 3: TALI BAHU (Dengan Varian yang sangat berbeda) ---
       { 
         id: "tali", 
         name: "TALI BAHU",
@@ -140,15 +149,16 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
-              { name: "Saddle Tan", hex: "#b87333" },
-              { name: "Dusty Rose", hex: "#c28e8e" },
-              { name: "Chestnut", hex: "#5c3a21" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
               { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
               { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
-              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
+              
             ]
           },
           { 
@@ -158,15 +168,15 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 20000, 
             priceLabel: "+ Rp 20.000",
             colors: [
-              { name: "Espresso", hex: "#362511" },
-              { name: "Midnight Navy", hex: "#1f3050" },
-              { name: "Olive Green", hex: "#4a543f" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
               { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
               { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
-              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
             ]
           },
           { 
@@ -176,10 +186,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 20000, 
             priceLabel: "+ Rp 20.000",
             colors: [
-              { name: "Gold", hex: "#d4af37" },           // Emas elegan
-              { name: "Silver", hex: "#b0b0b0" },         // Perak abu-abu
-              { name: "Rose Gold", hex: "#b76e79" },      // Emas merah muda
-              { name: "Antique Brass", hex: "#b5a642" },  // Kuningan antik (cokelat kehijauan logam)
+              { name: "Sky Blue", hex: "#7FB7E6" },
+              { name: "Mint", hex: "#8ED1B2" },
+              { name: "Soft Lavender", hex: "#C6B7E2" },
+              { name: "Peach", hex: "#F4A688" },
             ],
           }
         ]
