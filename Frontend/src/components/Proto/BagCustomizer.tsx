@@ -5,24 +5,22 @@ import DynamicPart from "./DynamicPart";
 import StaticPart from "./StaticPart";
 import Breadcrumb from "../Common/Breadcrumb";
 import SpritePart from "./SpritePart";
+import { useSearchParams } from "next/navigation";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
 
-// --- KOMPONEN WRAPPER ---
-export default function BagCustomizer({ productId = "totebag" }: { productId?: string }) {
-  const product = PRODUCTS_CONFIG[productId];
 
+export default function BagCustomizer(  ) {
+  const searchParams = useSearchParams();
+  const productId = searchParams.get("productId");
+  const product = PRODUCTS_CONFIG[productId];
   if (!product) {
     return <div className="p-20 text-center font-bold text-gray-500">Produk tidak ditemukan.</div>;
   }
-
-  // BEST PRACTICE: Gunakan key={product.id} 
-  // Agar ketika ganti produk, seluruh state (warna, harga, tekstur) otomatis ke-reset ke awal
   return <BagCustomizerInner key={product.id} product={product} />;
 }
 
-// --- KOMPONEN UTAMA ---
+
 function BagCustomizerInner({ product }: { product: ProductConfig }) {
-  // 1. Inisialisasi Shape (Bentuk/Varian)
   const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     product.parts.forEach(p => {
@@ -31,7 +29,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return init;
   });
 
-  // 2. Inisialisasi Warna berdasarkan Shape yang aktif
   const [selections, setSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     product.parts.forEach(p => {
@@ -43,7 +40,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return init;
   });
 
-  // 3. Inisialisasi Texture berdasarkan Shape yang aktif
   const [textureSelections, setTextureSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     product.parts.forEach(p => {
@@ -62,8 +58,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   });
 
   const [activeView, setActiveView] = useState<string>("front");
-  
-  // LOGIKA 360 ROTATION
+
   const TOTAL_FRAMES = 16; 
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -93,12 +88,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const handleDragEnd = () => setIsDragging(false);
 
-  // HANDLERS
   const handleColorSelect = (partId: string, hexColor: string) => setSelections(p => ({ ...p, [partId]: hexColor }));
   const handleTextureSelect = (partId: string, textureId: string) => setTextureSelections(p => ({ ...p, [partId]: textureId }));
   const handleVisibilityToggle = (partId: string) => setVisibleParts(p => ({ ...p, [partId]: !p[partId] }));
-  
-  // HANDLER GANTI SHAPE (AUTO-RESET LOGIC)
   const handleShapeSelect = (partId: string, shapeId: string) => {
     setShapeSelections(p => ({ ...p, [partId]: shapeId }));
 
@@ -108,7 +100,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const newColors = variant?.colors || part.colors || [];
       const newTextures = variant?.textures || part.textures || [];
 
-      // Reset warna jika warna saat ini tidak ada di varian baru
       setSelections(prev => {
         const currentColor = prev[partId];
         if (!newColors.find(c => c.hex === currentColor)) {
@@ -117,7 +108,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         return prev;
       });
 
-      // Reset tekstur jika tekstur saat ini tidak ada di varian baru
       setTextureSelections(prev => {
         const currentTexture = prev[partId];
         if (!newTextures.find(t => t.id === currentTexture)) {
@@ -128,23 +118,21 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   };
 
-  // --- FUNGSI KALKULASI HARGA DINAMIS MULTI-LAYER ---
+
   const calculateTotalPrice = () => {
-    let total = product.basePrice || 0; // 1. Harga Dasar Produk
+    let total = product.basePrice || 0; 
     
     product.parts.forEach((part) => {
       if (visibleParts[part.id]) {
-        total += part.basePrice || 0; // 2. Harga Dasar Part (Kompartemen)
+        total += part.basePrice || 0; 
         
         const activeShapeId = shapeSelections[part.id] || part.id;
         const variant = part.variants?.find(v => v.id === activeShapeId);
         
-        // 3. Harga Varian/Model (Misal: Tali Rantai +Rp20.000)
         if (variant) {
           total += variant.price || 0;
         }
         
-        // 4. Harga Material/Tekstur (Misal: Kulit Premium +Rp150.000)
         const currentTextures = variant?.textures || part.textures || [];
         const activeTexture = currentTextures.find(t => t.id === textureSelections[part.id]);
         if (activeTexture) {
@@ -168,7 +156,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         : (part.zIndex[pov] ?? part.zIndex["Front"] ?? 10);
 
       return (
-        // 👇 Ubah part.zIndex menjadi partZIndex di style={{ zIndex: ... }}
         <div key={`${pov}-${part.id}-${activeShape}`} className="absolute inset-0 pointer-events-none" style={{ zIndex: partZIndex }}>
           {pov === "360" ? (
             <SpritePart productId={product.id} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={partZIndex} currentFrame={frame360} totalFrames={TOTAL_FRAMES} />
@@ -211,7 +198,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         <div className="max-w-[1280px] w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden lg:h-[750px]">
             
-            {/* KIRI: PREVIEW AREA */}
             <div className="w-full lg:w-[55%] p-6 lg:p-10 border-b lg:border-b-0 lg:border-r border-gray-100 relative flex flex-col bg-[#f8f9fa] overflow-hidden">
               <div className="absolute w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.04)_0%,transparent_70%)] pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
               
@@ -346,7 +332,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                                   <button key={tex.id} onClick={() => handleTextureSelect(part.id, tex.id)} className="group relative focus:outline-none flex flex-col items-center gap-1.5" title={tex.name}>
                                     <div className={`w-12 h-12 rounded-full transition-all duration-200 ease-in-out bg-center shadow-sm border border-gray-200 ${isTextureActive ? "ring-2 ring-[#4154f1] ring-offset-2 scale-110" : "hover:scale-105 hover:shadow-md"}`} 
                                          style={{ backgroundImage: `url(${tex.thumb})`, backgroundColor: selections[part.id], backgroundBlendMode: 'multiply', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' }} />
-                                    {/* Opsi Tambahan: Tampilkan Label Harga Tekstur jika ada tambahan harga */}
                                     {tex.price > 0 && <span className="text-[9px] font-bold text-gray-400">+{(tex.price / 1000)}k</span>}
                                   </button>
                                 );
