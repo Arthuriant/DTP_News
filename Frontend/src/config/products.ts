@@ -489,7 +489,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "charm_kiri",
         name: "CHARM KIRI",
         basePrice: 0,
-        zIndex: { Front: 5, Back: 60, Top: 60, "360": 30 },
+        zIndex: { Front: 60, Back: 5, Top: 60, "360": 30 },
         variants: [
           {
             id: "charm_kiri",
