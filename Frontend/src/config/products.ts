@@ -65,9 +65,16 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         zIndex: 30,
         // Body punya banyak warna dan bisa Canvas/Leather
         colors: [
-          { name: "Black", hex: "#111111" },
-          { name: "Pink", hex: "#e8729a" },
-          { name: "Blue", hex: "#2563eb" },
+        { name: "Cream", hex: "#F3E9DC" },
+        { name: "Light Beige", hex: "#EAD7C0" },
+        { name: "Soft Yellow", hex: "#F2D16B" },
+        { name: "Sky Blue", hex: "#7FB7E6" },
+        { name: "Mint", hex: "#8ED1B2" },
+        { name: "Soft Lavender", hex: "#C6B7E2" },
+        { name: "Peach", hex: "#F4A688" },
+        { name: "Soft Coral", hex: "#F08080" },
+        { name: "Light Grey", hex: "#D3D3D3" },
+        { name: "Baby Pink", hex: "#F4B6C2" },
         ],
         textures: [
           { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -75,7 +82,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
           { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
           { id: "leather3", name: "Premium Leather 3", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 180000 },
-          { id: "leather5", name: "Premium Leather 5", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 200000 },
         ]
       },
 
@@ -94,9 +100,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "",
             // Tali biasa ikut bahan tas (Leather/Canvas)
                colors: [
-                    { name: "Black", hex: "#111111" },
-                    { name: "Charcoal", hex: "#3a3a3a" },
-                    { name: "Pink", hex: "#e8729a" },
+                  { name: "Soft Yellow", hex: "#F2D16B" },
+                  { name: "Sky Blue", hex: "#7FB7E6" },
+                  { name: "Mint", hex: "#8ED1B2" },
+                  { name: "Soft Lavender", hex: "#C6B7E2" },
                   ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -114,8 +121,13 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "",
             // Tali biasa ikut bahan tas (Leather/Canvas)
             colors: [
-              { name: "Black", hex: "#111111" },
-              { name: "Pink", hex: "#e8729a" },
+              { name: "Sky Blue", hex: "#7FB7E6" },
+              { name: "Mint", hex: "#8ED1B2" },
+              { name: "Soft Lavender", hex: "#C6B7E2" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -124,7 +136,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
          ]
       },
       
-
       // --- PART 3: TALI BAHU (Dengan Varian yang sangat berbeda) ---
       { 
         id: "tali", 
@@ -140,14 +151,16 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "",
             // Tali biasa ikut bahan tas (Leather/Canvas)
             colors: [
-              { name: "Black", hex: "#111111" },
-              { name: "Pink", hex: "#e8729a" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
               { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
               { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
-              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
+              
             ]
           },
           { 
@@ -158,14 +171,15 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "+ Rp 20.000",
             // Tali rantai SANGAT BERBEDA (Hanya Metal, warna Emas/Perak)
             colors: [
-              { name: "Gold", hex: "#ffd700" },
-              { name: "Silver", hex: "#c0c0c0" },
+              { name: "Peach", hex: "#F4A688" },
+              { name: "Soft Coral", hex: "#F08080" },
+              { name: "Light Grey", hex: "#D3D3D3" },
+              { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
               { id: "leather", name: "Premium Leather", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 150000 },
               { id: "leather1", name: "Premium Leather 1", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 160000 },
-              { id: "leather2", name: "Premium Leather 2", thumb: "/assets/products/tas_kelalawar/textures/thumb-leather.jpg", price: 170000 },
             ]
           },
            { 
@@ -176,9 +190,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "+ Rp 20.000",
             // Tali rantai SANGAT BERBEDA (Hanya Metal, warna Emas/Perak)
             colors: [
-              { name: "Black", hex: "#111111" },
-              { name: "Cream", hex: "#f5f5dc" },
-              { name: "Navy", hex: "#1e3a8a" },
+              { name: "Sky Blue", hex: "#7FB7E6" },
+              { name: "Mint", hex: "#8ED1B2" },
+              { name: "Soft Lavender", hex: "#C6B7E2" },
+              { name: "Peach", hex: "#F4A688" },
             ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
