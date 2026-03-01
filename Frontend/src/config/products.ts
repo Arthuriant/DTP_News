@@ -15,12 +15,14 @@ export interface ProductTexture {
 export interface ProductVariant {
   id: string;
   name: string;
-  thumb: string;
+  thumb?: string;
   price: number;
-  priceLabel: string;
+  priceLabel?: string;
   // Tambahan: Variant bisa punya warna dan tekstur sendiri (Mengesampingkan setingan part)
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
+  staticOverlays?: ProductStaticOverlay[];
+
 }
 
 export interface ProductStaticOverlay {
@@ -287,5 +289,155 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         ]
       },
     ]
-  }
+  },
+  tas_mini: {
+  id: "tas_mini",
+  name: "Tas Mini",
+  basePrice: 850000,
+  parts: [
+
+    // ======================
+    // 1. BODY
+    // ======================
+    {
+      id: "body",
+      name: "Badan Tas",
+      basePrice: 0,
+      zIndex: { Front: 10, Back: 10, Top: 20 },
+      colors: [
+        { name: "Gray", hex: "#4B5563" },
+        { name: "Blue", hex: "#60A5FA" },
+        { name: "Pink", hex: "#F472B6" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 150000 }
+      ]
+    },
+
+    // ======================
+    // 2. TRIM BADAN
+    // ======================
+    {
+      id: "trim-badan",
+      name: "Trim Badan",
+      basePrice: 0,
+      zIndex: { Front: 20, Back: 10, Top: 5 },
+      colors: [
+        { name: "White", hex: "#FFFFFF" },
+        { name: "Black", hex: "#000000" }
+      ]
+    },
+
+    // ======================
+    // 3. PENUTUP
+    // ======================
+    {
+      id: "penutup",
+      name: "Penutup",
+      basePrice: 100000,
+      zIndex: { Front: 30, Back: 20, Top: 30 },
+      colors: [
+        { name: "Red", hex: "#EF4444" },
+        { name: "Green", hex: "#22C55E" },
+        { name: "Purple", hex: "#A855F7" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 75000 }
+      ]
+    },
+
+    // ======================
+    // 4. TRIM PENUTUP
+    // ======================
+    {
+      id: "trim-penutup",
+      name: "Trim Penutup",
+      basePrice: 0,
+      zIndex: { Front: 40, Back: 40, Top: 40 },
+      colors: [
+        { name: "White", hex: "#FFFFFF" },
+        { name: "Black", hex: "#000000" }
+      ]
+    },
+
+    // ======================
+    // 5. PENGAIT 2 (DYNAMIC)
+    // ======================
+    {
+      id: "pengait2",
+      name: "Tali Pengait",
+      basePrice: 0,
+      zIndex: 55,
+      colors: [
+        { name: "Red", hex: "#EF4444" },
+        { name: "Green", hex: "#22C55E" },
+        { name: "Purple", hex: "#A855F7" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 75000 }
+      ]
+    },
+
+    // ======================
+    // 6. KOMPARTEMEN (STATIC ONLY)
+    // ======================
+    {
+      id: "kompartemen",
+      name: "Tipe Kompartemen",
+      basePrice: 0,
+      zIndex: 60,
+      variants: [
+        {
+          id: "kancing",
+          name: "Kancing",
+          price: 0,
+          priceLabel: "",
+          staticOverlays: [
+            {
+              id: "kancing1",
+              url: "/assets/products/tas_mini/front/kancing1-base.png",
+              zIndex: 50,
+              name: "Kancing 1"
+            },
+            {
+              id: "kancing2",
+              url: "/assets/products/tas_mini/front/kancing2-base.png",
+              zIndex: 50,
+              name: "Kancing 2"
+            },
+            {
+              id: "kancing3",
+              url: "/assets/products/tas_mini/front/kancing3-base.png",
+              zIndex: 50,
+              name: "Kancing 3"
+            }
+          ]
+        },
+        {
+          id: "pengait",
+          name: "Pengait",
+          price: 50000,
+          priceLabel: "+ Rp 50.000",
+          staticOverlays: [
+            {
+              id: "pengait1",
+              url: "/assets/products/tas_mini/front/pengait1-base.png",
+              zIndex: 50,
+              name: "Pengait 1"
+            },
+            {
+              id: "pengait3",
+              url: "/assets/products/tas_mini/front/pengait3-base-base.png",
+              zIndex: 60,
+              name: "Pengait 3"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 };
