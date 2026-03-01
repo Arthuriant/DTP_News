@@ -4,6 +4,7 @@ export type Product = {
   price: number;
   discountedPrice: number;
   id: number;
+  idProduct : string;
   imgs?: {
     thumbnails: string[];
     previews: string[];
