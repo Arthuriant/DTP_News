@@ -7,6 +7,7 @@ const shopData: Product[] = [
     price: 159.0,
     discountedPrice: 129.0,
     id: 1,
+    productId: "briefcase",
     imgs: {
       thumbnails: [
         "/images/products/product-1-sm-1.png",
@@ -24,6 +25,7 @@ const shopData: Product[] = [
     price: 249.0,
     discountedPrice: 199.0,
     id: 2,
+    productId: "tote-bag",
     imgs: {
       thumbnails: [
         "/images/products/product-2.png",
@@ -41,6 +43,7 @@ const shopData: Product[] = [
     price: 189.0,
     discountedPrice: 145.0,
     id: 3,
+    productId: "backpack",
     imgs: {
       thumbnails: [
         "/images/products/product-3.png",
@@ -58,6 +61,7 @@ const shopData: Product[] = [
     price: 129.0,
     discountedPrice: 99.0,
     id: 4,
+    productId: "messenger-bag",
     imgs: {
       thumbnails: [
         "/images/products/product-4.png",
@@ -75,6 +79,7 @@ const shopData: Product[] = [
     price: 350.0,
     discountedPrice: 289.0,
     id: 5,
+    productId: "weekender",
     imgs: {
       thumbnails: [
         "/images/products/product-5.png",
@@ -92,6 +97,7 @@ const shopData: Product[] = [
     price: 45.0,
     discountedPrice: 25.0,
     id: 6,
+    productId: "card-holder",
     imgs: {
       thumbnails: [
         "/images/products/product-6.png",
@@ -109,6 +115,7 @@ const shopData: Product[] = [
     price: 89.0,
     discountedPrice: 65.0,
     id: 7,
+    productId: "clutch",
     imgs: {
       thumbnails: [
         "/images/products/product-7.png",
@@ -126,6 +133,7 @@ const shopData: Product[] = [
     price: 115.0,
     discountedPrice: 89.0,
     id: 8,
+    productId: "crossbody",
     imgs: {
       thumbnails: [
         "/images/products/product-8.png",
@@ -134,6 +142,25 @@ const shopData: Product[] = [
       previews: [
         "/images/products/product-8.png",
         "/images/products/product-8.png",
+      ],
+    },
+  },
+  {
+    title: "Tas Kellalawar", 
+    reviews: 0,
+    price: 299.0,
+    discountedPrice: 249.0,
+    id: 9, 
+    productId: "tas_kelalawar",
+    customLink: "Proto",
+    imgs: {
+      thumbnails: [
+        "/images/products/3d-bag-thumbnail.png", 
+        "/images/products/3d-bag-thumbnail-2.png",
+      ],
+      previews: [
+        "/images/products/3d-bag-preview.png",
+        "/images/products/3d-bag-preview-2.png",
       ],
     },
   },
