@@ -3,6 +3,13 @@ import React, { useState } from "react";
 
 const SizeDropdown = () => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
+  
+  // 1. Tambahkan state untuk melacak ukuran yang aktif (default: "M")
+  const [activeSize, setActiveSize] = useState("M");
+
+  // Daftar ukuran untuk mempermudah perulangan (mapping)
+  const sizes = ["M", "L", "XL", "XXL"];
+
   return (
     <div className="bg-white shadow-1 rounded-lg">
       <div
@@ -11,10 +18,10 @@ const SizeDropdown = () => {
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Size</p>
+        <p className="text-dark">Ukuran</p>
         <button
           onClick={() => setToggleDropdown(!toggleDropdown)}
-          aria-label="button for size dropdown"
+          aria-label="tombol untuk dropdown ukuran"
           className={`text-dark ease-out duration-200 ${
             toggleDropdown && "rotate-180"
           }`}
@@ -37,59 +44,37 @@ const SizeDropdown = () => {
         </button>
       </div>
 
-      {/* // <!-- dropdown menu --> */}
+      {/* Dropdown menu */}
       <div
         className={`flex-wrap gap-2.5 p-6 ${
           toggleDropdown ? "flex" : "hidden"
         }`}
       >
-        <label
-          htmlFor="sizeM"
-          className="cursor-pointer select-none flex items-center rounded-md bg-blue text-white hover:bg-blue hover:text-white"
-        >
-          <div className="relative">
-            <input type="radio" name="size" id="sizeM" className="sr-only" />
-            <div className="text-custom-sm py-[5px] px-3.5 rounded-[5px]">
-              M
+        {/* 2. Gunakan mapping agar kode lebih bersih dan dinamis */}
+        {sizes.map((size) => (
+          <label
+            key={size}
+            htmlFor={`size${size}`}
+            className={`cursor-pointer select-none flex items-center rounded-md hover:bg-blue hover:text-white transition-colors duration-200
+              ${activeSize === size ? "bg-blue text-white" : "text-dark"}
+            `}
+          >
+            <div className="relative">
+              <input 
+                type="radio" 
+                name="size" 
+                id={`size${size}`} 
+                className="sr-only" 
+                // 3. Update state saat radio button dipilih
+                onChange={() => setActiveSize(size)}
+                checked={activeSize === size}
+              />
+              <div className="text-custom-sm py-[5px] px-3.5 rounded-[5px]">
+                {size}
+              </div>
             </div>
-          </div>
-        </label>
-
-        <label
-          htmlFor="sizeL"
-          className="cursor-pointer select-none flex items-center rounded-md hover:bg-blue hover:text-white"
-        >
-          <div className="relative">
-            <input type="radio" name="size" id="sizeL" className="sr-only" />
-            <div className="text-custom-sm py-[5px] px-3.5 rounded-[5px]">
-              L
-            </div>
-          </div>
-        </label>
-
-        <label
-          htmlFor="sizeXL"
-          className="cursor-pointer select-none flex items-center rounded-md hover:bg-blue hover:text-white"
-        >
-          <div className="relative">
-            <input type="radio" name="size" id="sizeXL" className="sr-only" />
-            <div className="text-custom-sm py-[5px] px-3.5 rounded-[5px]">
-              XL
-            </div>
-          </div>
-        </label>
-
-        <label
-          htmlFor="sizeXXL"
-          className="cursor-pointer select-none flex items-center rounded-md hover:bg-blue hover:text-white"
-        >
-          <div className="relative">
-            <input type="radio" name="size" id="sizeXXL" className="sr-only" />
-            <div className="text-custom-sm py-[5px] px-3.5 rounded-[5px]">
-              XXL
-            </div>
-          </div>
-        </label>
+          </label>
+        ))}
       </div>
     </div>
   );

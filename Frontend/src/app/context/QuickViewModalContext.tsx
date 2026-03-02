@@ -11,8 +11,9 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
 export const useModalContext = () => {
   const context = useContext(ModalContext);
+
   if (!context) {
-    throw new Error("useModalContext must be used within a ModalProvider");
+    throw new Error("useModalContext harus digunakan di dalam komponen ModalProvider");
   }
   return context;
 };
@@ -33,4 +34,4 @@ export const ModalProvider = ({ children }) => {
       {children}
     </ModalContext.Provider>
   );
-}; 
+};

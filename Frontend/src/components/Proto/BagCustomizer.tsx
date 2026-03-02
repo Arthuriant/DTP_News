@@ -174,9 +174,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const PREVIEW_VIEWS = [
     { id: "360", label: "360°", type: "icon" },
-    { id: "front", label: "Front", type: "image" },
-    { id: "back", label: "Back", type: "image" },
-    { id: "top", label: "Top", type: "image" },
+    { id: "front", label: "Depan", type: "image" },
+    { id: "back", label: "Belakang", type: "image" },
+    { id: "top", label: "Atas", type: "image" },
   ];
 
   const globalAnimationKey = `${activeView}-${JSON.stringify(selections)}-${JSON.stringify(textureSelections)}-${JSON.stringify(shapeSelections)}-${JSON.stringify(visibleParts)}`;
@@ -252,9 +252,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             {/* KANAN: CONTROL PANEL */}
             <div className="w-full lg:w-[45%] flex flex-col h-full bg-white">
               <div className="px-8 lg:px-12 pt-10 pb-6 border-b border-gray-100">
-                <h2 className="text-[32px] font-extrabold text-[#111827] mb-2 tracking-tight">Design Your {product.name}</h2>
+                <h2 className="text-[32px] font-extrabold text-[#111827] mb-2 tracking-tight">Kustomisasi {product.name} Anda</h2>
                 <p className="text-[#6b7280] text-[15px] leading-relaxed">
-                  Choose exclusive materials and match the colors.
+                  Pilih material terbaik dengan warna yang cocok
                 </p>
               </div>
 
