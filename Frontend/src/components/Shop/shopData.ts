@@ -38,20 +38,20 @@ const shopData: Product[] = [
     },
   },
   {
-    title: "Vintage Leather Backpack",
+    title: "thighBag",
     reviews: 5,
-    price: 189.0,
-    discountedPrice: 145.0,
+    price: 1250000,
+    discountedPrice: 950000,
     id: 3,
-    idProduct: "bayu",
+    idProduct: "tas_mini",
     imgs: {
       thumbnails: [
-        "/images/products/product-3.png",
-        "/images/products/product-3.png",
+        "/images/products/product-thighBag.png",
+        "/images/products/product-thighBag.png",
       ],
       previews: [
-        "/images/products/product-3.png",
-        "/images/products/product-3.png",
+        "/images/products/product-thighBag.png",
+        "/images/products/product-thighBag.png",
       ],
     },
   },
