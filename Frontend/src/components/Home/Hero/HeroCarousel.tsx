@@ -32,25 +32,25 @@ const HeroCarousal = () => {
                 30%
               </span>
               <span className="block text-dark text-sm sm:text-custom-1 sm:leading-[24px]">
-                Sale
+                Diskon
                 <br />
-                Off
+                
               </span>
             </div>
 
             <h1 className="font-semibold text-dark text-xl sm:text-3xl mb-3">
-              <a href="#">Premium Handcrafted Leather Messenger Bag</a>
+              <a href="#">Tas Selempang Kulit Buatan Tangan Premium</a>
             </h1>
 
             <p>
-              Experience the perfect blend of luxury and durability with our 100% genuine top-grain leather collection.
+             Rasakan perpaduan sempurna antara kemewahan dan daya tahan dengan koleksi kulit asli berkualitas tinggi 100% kami.
             </p>
 
             <a
               href="#"
               className="inline-flex font-medium text-white text-custom-sm rounded-md bg-dark py-3 px-9 ease-out duration-200 hover:bg-blue mt-10"
             >
-              Shop Now
+              Belanja Sekarang
             </a>
           </div>
 
@@ -75,25 +75,23 @@ const HeroCarousal = () => {
                 30%
               </span>
               <span className="block text-dark text-sm sm:text-custom-1 sm:leading-[24px]">
-                Sale
-                <br />
-                Off
+                Diskon
               </span>
             </div>
 
             <h1 className="font-semibold text-dark text-xl sm:text-3xl mb-3">
-              <a href="#">Classic Genuine Leather Business Briefcase</a>
+              <a href="#">Tas Kerja Klasik dari Kulit Asli</a>
             </h1>
 
             <p>
-              Professional, sleek, and timeless. Elevate your daily work commute with our signature vintage leather series.
+             Profesional, elegan, dan tak lekang oleh waktu. Tingkatkan gaya perjalanan kerja harian Anda dengan koleksi tas kulit vintage signature kami.
             </p>
 
             <a
               href="#"
               className="inline-flex font-medium text-white text-custom-sm rounded-md bg-dark py-3 px-9 ease-out duration-200 hover:bg-blue mt-10"
             >
-              Shop Now
+              Belanja Sekarang
             </a>
           </div>
 

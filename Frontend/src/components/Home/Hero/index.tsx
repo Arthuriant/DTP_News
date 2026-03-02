@@ -25,30 +25,32 @@ const Hero = () => {
 
           <div className="xl:max-w-[393px] w-full">
             <div className="flex flex-col sm:flex-row xl:flex-col gap-5">
+              
               {/* Card 1: Tote Bag */}
               <div className="w-full relative rounded-[10px] bg-white p-4 sm:p-7.5">
-                <div className="flex items-center gap-14">
-                  <div>
-                    <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-20">
-                      <a href="#"> Luxury Leather Bag </a>
+                <div className="flex items-center justify-between gap-4">
+                  
+                  <div className="flex-1">
+                    <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-10">
+                      <a href="#"> Tas Kulit Mewah </a>
                     </h2>
 
                     <div>
                       <p className="font-medium text-dark-4 text-custom-sm mb-1.5">
-                        limited time offer
+                        penawaran waktu terbatas
                       </p>
-                      <span className="flex items-center gap-3">
+                      <span className="flex flex-wrap items-center gap-3">
                         <span className="font-medium text-heading-5 text-red">
-                          $199
+                          Rp.1.000.000
                         </span>
-                        <span className="font-medium text-2xl text-dark-4 line-through">
-                          $299
+                        <span className="font-medium text-xl sm:text-2xl text-dark-4 line-through">
+                          Rp.2.000.000
                         </span>
                       </span>
                     </div>
                   </div>
 
-                  <div>
+                  <div className="flex-shrink-0">
                     <Image
                       src="/images/hero/hero-02.png" // Ganti dengan gambar tas tote
                       alt="leather tote bag"
@@ -62,28 +64,29 @@ const Hero = () => {
 
               {/* Card 2: Travel Bag */}
               <div className="w-full relative rounded-[10px] bg-white p-4 sm:p-7.5">
-                <div className="flex items-center gap-14">
-                  <div>
-                    <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-20">
-                      <a href="#"> Premium Travel Duffel </a>
+                <div className="flex items-center justify-between gap-4">
+                  
+                  <div className="flex-1">
+                    <h2 className="max-w-[153px] font-semibold text-dark text-xl mb-10">
+                      <a href="#"> Tas Travel Premium </a>
                     </h2>
 
                     <div>
                       <p className="font-medium text-dark-4 text-custom-sm mb-1.5">
-                        limited time offer
+                        penawaran waktu terbatas
                       </p>
-                      <span className="flex items-center gap-3">
+                      <span className="flex flex-wrap items-center gap-3">
                         <span className="font-medium text-heading-5 text-red">
-                          $349
+                          Rp.1.000.000
                         </span>
-                        <span className="font-medium text-2xl text-dark-4 line-through">
-                          $450
+                        <span className="font-medium text-xl sm:text-2xl text-dark-4 line-through">
+                          Rp.1.500.000
                         </span>
                       </span>
                     </div>
                   </div>
 
-                  <div>
+                  <div className="flex-shrink-0">
                     <Image
                       src="/images/hero/hero-01.png" // Ganti dengan gambar tas duffel
                       alt="leather duffel bag"
@@ -96,8 +99,9 @@ const Hero = () => {
               </div>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      
 
       {/* */}
       <HeroFeature />
