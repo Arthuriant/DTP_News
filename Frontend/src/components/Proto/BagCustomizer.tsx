@@ -327,12 +327,22 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                           <div className="mb-4">
                             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2.5">Material Kulit:</span>
                             <div className="flex flex-wrap gap-3.5">
-                              {currentTextures.map((tex) => {
+        
+                              {currentTextures.map((tex, index) => {
                                 const isTextureActive = textureSelections[part.id] === tex.id;
+                                const labelLetter = String.fromCharCode(65 + index);
+
                                 return (
                                   <button key={tex.id} onClick={() => handleTextureSelect(part.id, tex.id)} className="group relative focus:outline-none flex flex-col items-center gap-1.5" title={tex.name}>
-                                    <div className={`w-12 h-12 rounded-full transition-all duration-200 ease-in-out bg-center shadow-sm border border-gray-200 ${isTextureActive ? "ring-2 ring-[#4154f1] ring-offset-2 scale-110" : "hover:scale-105 hover:shadow-md"}`} 
-                                         style={{ backgroundImage: `url(${tex.thumb})`, backgroundColor: selections[part.id], backgroundBlendMode: 'multiply', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' }} />
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-200 ease-in-out shadow-sm border border-gray-200 
+                                      ${isTextureActive 
+                                        ? "ring-2 ring-[#4154f1] ring-offset-2 scale-110 bg-[#eff2ff] text-[#4154f1]" 
+                                        : "bg-gray-50 text-gray-600 hover:scale-105 hover:shadow-md"
+                                      }`} 
+                                    >
+                                      {labelLetter}
+                                    </div>
+
                                     {tex.price > 0 && <span className="text-[9px] font-bold text-gray-400">+{(tex.price / 1000)}k</span>}
                                   </button>
                                 );
