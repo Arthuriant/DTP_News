@@ -10,6 +10,7 @@ export interface ProductTexture {
   name: string;
   thumb: string;
   price: number;
+  colors?: ProductColor[];  
 }
 
 export interface ProductVariant {
@@ -592,13 +593,20 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       basePrice: 0,
       zIndex: { Front: 10, Back: 10, Top: 20 },
       colors: [
-        { name: "Gray", hex: "#4B5563" },
-        { name: "Blue", hex: "#60A5FA" },
-        { name: "Pink", hex: "#F472B6" }
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
       ],
       textures: [
         { id: "base", name: "Solid", thumb: "", price: 0 },
-        { id: "leather", name: "Leather", thumb: "", price: 150000 }
+        { id: "leather", name: "Leather", thumb: "", price: 150000},
+        { id: "leather1", name: "Leather", thumb: "", price: 150000},
+        { id: "leather2", name: "Leather", thumb: "", price: 150000},
+        { id: "leather3", name: "Leather", thumb: "", price: 150000},
+        { id: "leather4", name: "Leather", thumb: "", price: 150000}
       ]
     },
 
@@ -625,13 +633,20 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       basePrice: 100000,
       zIndex: { Front: 30, Back: 20, Top: 30 },
       colors: [
-        { name: "Red", hex: "#EF4444" },
-        { name: "Green", hex: "#22C55E" },
-        { name: "Purple", hex: "#A855F7" }
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
       ],
       textures: [
         { id: "base", name: "Solid", thumb: "", price: 0 },
-        { id: "leather", name: "Leather", thumb: "", price: 75000 }
+        { id: "leather", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather1", name: "Leather", thumb: "", price: 75000},
+        { id: "leather2", name: "Leather", thumb: "", price: 75000},
+        { id: "leather3", name: "Leather", thumb: "", price: 75000},
+        { id: "leather4", name: "Leather", thumb: "", price: 75000}
       ]
     },
 
@@ -658,13 +673,20 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       basePrice: 0,
       zIndex: 55,
       colors: [
-        { name: "Red", hex: "#EF4444" },
-        { name: "Green", hex: "#22C55E" },
-        { name: "Purple", hex: "#A855F7" }
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
       ],
       textures: [
         { id: "base", name: "Solid", thumb: "", price: 0 },
-        { id: "leather", name: "Leather", thumb: "", price: 75000 }
+        { id: "leather", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather1", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather2", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather3", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather4", name: "Leather", thumb: "", price: 75000 }
       ]
     },
 
@@ -717,7 +739,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             },
             {
               id: "pengait3",
-              url: "/assets/products/tas_mini/front/pengait3-base-base.png",
+              url: "/assets/products/tas_mini/front/pengait3-base.png",
               zIndex: 60,
               name: "Pengait 3"
             }
