@@ -65,7 +65,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const [activeView, setActiveView] = useState<string>("front");
   
   // LOGIKA 360 ROTATION
-  const TOTAL_FRAMES = 16; 
+  const TOTAL_FRAMES = 17; 
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -230,7 +230,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         texture={bodyTexture}
         zIndex={20}
         currentFrame={frame360}
-        totalFrames={16}
+        totalFrames={17}
       />
 
       {/* TRIM BADAN */}
@@ -241,7 +241,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         texture="base"
         zIndex={10}
         currentFrame={frame360}
-        totalFrames={16}
+        totalFrames={17}
       />
 
       {/* PENUTUP */}
@@ -253,7 +253,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           texture={penutupTexture}
           zIndex={25}
           currentFrame={frame360}
-          totalFrames={16}
+          totalFrames={17}
         />
       )}
 
@@ -266,7 +266,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           texture="base"
           zIndex={30}
           currentFrame={frame360}
-          totalFrames={16}
+          totalFrames={17}
         />
       )}
 
@@ -280,7 +280,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             imageUrl={`/assets/products/${product.id}/360/kancing3-base-sprite.png`}
             zIndex={50}
             currentFrame={frame360}
-            totalFrames={16}
+            totalFrames={17}
           />
 
           {/* kancing2 jika penutup ON */}
@@ -289,7 +289,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               imageUrl={`/assets/products/${product.id}/360/kancing2-base-sprite.png`}
               zIndex={55}
               currentFrame={frame360}
-              totalFrames={16}
+              totalFrames={17}
             />
           )}
 
@@ -299,7 +299,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               imageUrl={`/assets/products/${product.id}/360/kancing1-base-sprite.png`}
               zIndex={55}
               currentFrame={frame360}
-              totalFrames={16}
+              totalFrames={17}
             />
           )}
         </>
@@ -315,7 +315,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             imageUrl={`/assets/products/${product.id}/360/pengait1-base-sprite.png`}
             zIndex={50}
             currentFrame={frame360}
-            totalFrames={16}
+            totalFrames={17}
           />
 
           {/* pengait2 dynamic ikut penutup */}
@@ -327,7 +327,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               texture={penutupTexture}
               zIndex={55}
               currentFrame={frame360}
-              totalFrames={16}
+              totalFrames={17}
             />
           )}
 
@@ -337,7 +337,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               imageUrl={`/assets/products/${product.id}/360/pengait3-base-sprite.png`}
               zIndex={60}
               currentFrame={frame360}
-              totalFrames={16}
+              totalFrames={17}
             />
           )}
         </>
