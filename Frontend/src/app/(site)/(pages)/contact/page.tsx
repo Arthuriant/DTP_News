@@ -1,19 +1,17 @@
-// import BagCustomizer from "@/components/BagCustomizer";
-// import { Metadata } from "next";
 
-// export const metadata: Metadata = {
-//   title: "Customize Your Bag | NextCommerce Nextjs E-commerce template",
-//   description: "Customize the color of your 3D monster bag directly on NextCommerce.",
-//   // other metadata
-// };
+import { Metadata } from "next";
 
-// const CustomizePage = () => {
-//   return (
-//     <main>
-//       {/* Memanggil komponen interaktif utama */}
-//       <BagCustomizer />
-//     </main>
-//   );
-// };
+export const metadata: Metadata = {
+  title: "Customize Your Bag | NextCommerce Nextjs E-commerce template",
+  description: "Customize the color of your 3D monster bag directly on NextCommerce.",
+  // other metadata
+};
 
-// export default CustomizePage;
+const CustomizePage = () => {
+  return (
+    <main>
+    </main>
+  );
+};
+
+export default CustomizePage;

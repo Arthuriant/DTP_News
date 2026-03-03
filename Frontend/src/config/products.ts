@@ -10,17 +10,25 @@ export interface ProductTexture {
   name: string;
   thumb: string;
   price: number;
+  colors?: ProductColor[];  
 }
-
+export interface ProductSize {
+  id: string;
+  title: string;
+  desc: string;
+  price: number;
+}
 export interface ProductVariant {
   id: string;
   name: string;
-  thumb: string;
+  thumb?: string;
   price: number;
-  priceLabel: string;
+  priceLabel?: string;
   // Tambahan: Variant bisa punya warna dan tekstur sendiri (Mengesampingkan setingan part)
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
+  staticOverlays?: ProductStaticOverlay[];
+
 }
 
 export interface ProductStaticOverlay {
@@ -48,6 +56,7 @@ export interface ProductConfig {
   basePrice: number;
   // colors dan textures DIHAPUS dari sini karena sudah dipindah ke bawah
   parts: ProductPart[];
+  sizes?: ProductSize[];
 }
 
 // 2. DATA KONFIGURASI
@@ -56,6 +65,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "tas_kelalawar",
     name: "Bat Bag",
     basePrice: 0,
+    sizes: [
+      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat laptop 13 inci", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat laptop 15 inci", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat laptop 17 inci", price: 150000 },
+    ],
     parts: [
       // --- PART 1: BODY ---
       { 
@@ -100,10 +115,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             priceLabel: "",
             // Tali biasa ikut bahan tas (Leather/Canvas)
                colors: [
+                  { name: "Soft Lavender", hex: "#C6B7E2" },
                   { name: "Soft Yellow", hex: "#F2D16B" },
                   { name: "Sky Blue", hex: "#7FB7E6" },
                   { name: "Mint", hex: "#8ED1B2" },
-                  { name: "Soft Lavender", hex: "#C6B7E2" },
                   ],
             textures: [
               { id: "base", name: "Solid Canvas", thumb: "/assets/products/tas_kelalawar/textures/thumb-canvas.jpg", price: 0 },
@@ -149,9 +164,9 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Light Grey", hex: "#D3D3D3" },
               { name: "Peach", hex: "#F4A688" },
               { name: "Soft Coral", hex: "#F08080" },
-              { name: "Light Grey", hex: "#D3D3D3" },
               { name: "Baby Pink", hex: "#F4B6C2" },
             ],
             textures: [
@@ -196,19 +211,26 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       },
     ]
   },
-  // 👇 UPDATE PRODUK TOTEBAG 👇
+
   totebag: {
     id: "totebag",
     name: "Classic Tote Bag",
     basePrice: 0,
+    sizes: [
+      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat tablet 13 inci", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat tablet 15 inci", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat tablet 17 inci", price: 150000 },
+    ],
     parts: [
       // --- PART 1: BODY ---
       { 
         id: "body", 
         name: "BODY TAS", 
         basePrice: 150000, 
-        zIndex: { Front: 40, Back: 40, Top: 10, "360": 20 },
+        zIndex: { Front: 40, Back: 40, Top: 10, "360": 40 },
         colors: [
+          { name: "Creamy Bone", hex: "#F5F5DC" },
           { name: "Obsidian Black", hex: "#1A1A1A" },
           { name: "Espresso", hex: "#3E2723" },
           { name: "Cognac Leather", hex: "#9A6338" },
@@ -216,7 +238,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { name: "Terracotta", hex: "#A45A52" },
           { name: "Sage Green", hex: "#7D8471" },
           { name: "Deep Navy", hex: "#1E293B" },
-          { name: "Creamy Bone", hex: "#F5F5DC" },
         ],
         textures: [
           { id: "base", name: "Solid Canvas", thumb: "/assets/products/totebag/textures/thumb-canvas.jpg", price: 0 },
@@ -253,7 +274,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "pita", 
         name: "PITA AKSESORIS", 
         basePrice: 20000, 
-        zIndex: { Front: 30, Back: 30, Top: 30, "360": 20 },
+        zIndex: { Front: 30, Back: 30, Top: 30, "360": 30 },
         variants: [
           {
             id: "pita_tipis",
@@ -262,9 +283,9 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0,
             priceLabel: "",
             colors: [
+              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
-              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
               { name: "Sage Green", hex: "#7D8471" },
@@ -282,9 +303,9 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0,
             priceLabel: "",
             colors: [
+              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
-              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
               { name: "Sage Green", hex: "#7D8471" },
@@ -302,9 +323,9 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0,
             priceLabel: "",
             colors: [
+              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
-              { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
               { name: "Sage Green", hex: "#7D8471" },
@@ -323,7 +344,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "tali_kanan", 
         name: "TALI KANAN",
         basePrice: 30000,
-        zIndex: { Front: 50, Back: 10, Top: 40, "360": 20 },
+        zIndex: { Front: 50, Back: 10, Top: 40, "360": 50 },
         variants: [
           { 
             id: "tali_kanan", 
@@ -332,12 +353,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -356,12 +377,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 15000, 
             priceLabel: "+ Rp 15.000",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -376,12 +397,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -400,12 +421,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -425,7 +446,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "tali_kiri", 
         name: "TALI KIRI",
         basePrice: 30000,
-        zIndex: { Front: 10, Back: 50, Top: 50, "360": 20 },
+        zIndex: { Front: 10, Back: 50, Top: 50, "360": 10 },
         variants: [
           { 
             id: "tali_kiri", 
@@ -434,12 +455,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -458,12 +479,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 15000, 
             priceLabel: "+ Rp 15.000",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -478,12 +499,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -502,12 +523,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             price: 0, 
             priceLabel: "",
             colors: [
+              { name: "Sage Green", hex: "#7D8471" },
               { name: "Obsidian Black", hex: "#1A1A1A" },
               { name: "Espresso", hex: "#3E2723" },
               { name: "Cognac Leather", hex: "#9A6338" },
               { name: "Caramel Tan", hex: "#C68E5F" },
               { name: "Terracotta", hex: "#A45A52" },
-              { name: "Sage Green", hex: "#7D8471" },
               { name: "Deep Navy", hex: "#1E293B" },
               { name: "Creamy Bone", hex: "#F5F5DC" },
             ],
@@ -527,7 +548,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "charm_kanan",
         name: "CHARM KANAN",
         basePrice: 0,
-        zIndex: { Front: 60, Back: 5, Top: 60, "360": 30 },
+        zIndex: { Front: 60, Back: 5, Top: 60, "360": 60 },
         variants: [
           {
             id: "charm_kanan",
@@ -553,7 +574,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "charm_kiri",
         name: "CHARM KIRI",
         basePrice: 0,
-        zIndex: { Front: 60, Back: 5, Top: 60, "360": 30 },
+        zIndex: { Front: 60, Back: 5, Top: 60, "360": 60 },
         variants: [
           {
             id: "charm_kiri",
@@ -574,5 +595,208 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         ]
       }
     ]
-  }
+  },
+  tas_mini: {
+  id: "tas_mini",
+  name: "Tas Mini",
+  basePrice: 850000,
+  sizes: [
+      { id: "S", title: "Small", desc: "Muat handphone Realme", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat handphone Xiaomi", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat handphone Iphone", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat handphone Huawei", price: 150000 },
+  ],
+  parts: [
+
+    // ======================
+    // 1. BODY
+    // ======================
+    {
+      id: "body",
+      name: "Badan Tas",
+      basePrice: 0,
+      zIndex: { Front: 10, Back: 10, Top: 20 },
+      colors: [
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 150000},
+        { id: "leather1", name: "Leather", thumb: "", price: 150000},
+        { id: "leather2", name: "Leather", thumb: "", price: 150000},
+        { id: "leather3", name: "Leather", thumb: "", price: 150000},
+        { id: "leather4", name: "Leather", thumb: "", price: 150000}
+      ]
+    },
+
+    // ======================
+    // 2. TRIM BADAN
+    // ======================
+    {
+      id: "trim-badan",
+      name: "Trim Badan",
+      basePrice: 0,
+      zIndex: { Front: 20, Back: 10, Top: 5 },
+      colors: [
+        { name: "White", hex: "#FFFFFF" },
+        { name: "Black", hex: "#000000" }
+      ]
+    },
+
+    // ======================
+    // 3. PENUTUP
+    // ======================
+    {
+      id: "penutup",
+      name: "Penutup",
+      basePrice: 100000,
+      zIndex: { Front: 30, Back: 20, Top: 30 },
+      colors: [
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather1", name: "Leather", thumb: "", price: 75000},
+        { id: "leather2", name: "Leather", thumb: "", price: 75000},
+        { id: "leather3", name: "Leather", thumb: "", price: 75000},
+        { id: "leather4", name: "Leather", thumb: "", price: 75000}
+      ]
+    },
+
+    // ======================
+    // 4. TRIM PENUTUP
+    // ======================
+    {
+      id: "trim-penutup",
+      name: "Trim Penutup",
+      basePrice: 0,
+      zIndex: { Front: 40, Back: 40, Top: 40 },
+      colors: [
+        { name: "White", hex: "#FFFFFF" },
+        { name: "Black", hex: "#000000" }
+      ]
+    },
+
+    // ======================
+    // 5. PENGAIT 2 (DYNAMIC)
+    // ======================
+    {
+      id: "pengait2",
+      name: "Tali Pengait",
+      basePrice: 0,
+      zIndex: 55,
+      colors: [
+        { name: "Leather (Standard)", hex: "#AC7434" },
+        { name: "Brown Leather (Dulux)", hex: "#88572B" },
+        { name: "Espresso Brown", hex: "#612718" },
+        { name: "Dark Brown (Klasik)", hex: "#654321" },
+        { name: "Chestnut (Kastanye)", hex: "#954535" },
+        { name: "Khaki (Kulit Bumi)", hex: "#C4B289" }
+      ],
+      textures: [
+        { id: "base", name: "Solid", thumb: "", price: 0 },
+        { id: "leather", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather1", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather2", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather3", name: "Leather", thumb: "", price: 75000 },
+        { id: "leather4", name: "Leather", thumb: "", price: 75000 }
+      ]
+    },
+
+    // ======================
+    // 6. KOMPARTEMEN (STATIC ONLY)
+    // ======================
+    {
+      id: "kompartemen",
+      name: "Tipe Kompartemen",
+      basePrice: 0,
+      zIndex: 60,
+      variants: [
+        {
+          id: "kancing",
+          name: "Kancing",
+          price: 0,
+          priceLabel: "",
+          staticOverlays: [
+            {
+              id: "kancing1",
+              url: "/assets/products/tas_mini/front/kancing1-base.png",
+              zIndex: 50,
+              name: "Kancing 1"
+            },
+            {
+              id: "kancing2",
+              url: "/assets/products/tas_mini/front/kancing2-base.png",
+              zIndex: 50,
+              name: "Kancing 2"
+            },
+            {
+              id: "kancing3",
+              url: "/assets/products/tas_mini/front/kancing3-base.png",
+              zIndex: 50,
+              name: "Kancing 3"
+            }
+          ]
+        },
+        {
+          id: "pengait",
+          name: "Pengait",
+          price: 50000,
+          priceLabel: "+ Rp 50.000",
+          staticOverlays: [
+            {
+              id: "pengait1",
+              url: "/assets/products/tas_mini/front/pengait1-base.png",
+              zIndex: 50,
+              name: "Pengait 1"
+            },
+            {
+              id: "pengait3",
+              url: "/assets/products/tas_mini/front/pengait3-base.png",
+              zIndex: 60,
+              name: "Pengait 3"
+            }
+          ]
+        }
+        
+      ]
+    },
+    {
+  id: "tali",
+  name: "Tali",
+  basePrice: 0,
+  zIndex: {
+    Front: 5,
+    Back: 30,
+    Top: 10,
+    "360": 50
+  },
+  staticOverlays: [
+    {
+      id: "tali-back",
+      url: "/assets/products/tas_mini/back/tali-base.png",
+      zIndex: 30,
+      name: "Tali Back"
+    },
+    {
+      id: "tali-top",
+      url: "/assets/products/tas_mini/top/tali-base.png",
+      zIndex: 10,
+      name: "Tali Top"
+    }
+  ]
+}
+  ]
+}
 };

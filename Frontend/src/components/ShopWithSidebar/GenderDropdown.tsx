@@ -59,10 +59,10 @@ const GenderDropdown = ({ genders }) => {
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Gender</p>
+        <p className="text-dark">Jenis Kelamin</p>
         <button
           onClick={() => setToggleDropdown(!toggleDropdown)}
-          aria-label="button for gender dropdown"
+          aria-label="tombol untuk dropdown jenis kelamin"
           className={`text-dark ease-out duration-200 ${
             toggleDropdown && "rotate-180"
           }`}
@@ -85,7 +85,7 @@ const GenderDropdown = ({ genders }) => {
         </button>
       </div>
 
-      {/* <!-- dropdown menu --> */}
+      {/* */}
       <div
         className={`flex-col gap-3 py-6 pl-6 pr-5.5 ${
           toggleDropdown ? "flex" : "hidden"

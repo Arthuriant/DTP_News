@@ -25,41 +25,41 @@ const ShopWithSidebar = () => {
   };
 
   const options = [
-    { label: "Latest Collection", value: "0" },
-    { label: "Best Selling", value: "1" },
-    { label: "Price: Low to High", value: "2" },
-    { label: "Price: High to Low", value: "3" },
+    { label: "Koleksi Terbaru", value: "0" },
+    { label: "Terlaris", value: "1" },
+    { label: "Harga: Rendah ke Tinggi", value: "2" },
+    { label: "Harga: Tinggi ke Rendah", value: "3" },
   ];
 
   // Konten kategori disesuaikan dengan jenis tas kulit
   const categories = [
     {
-      name: "Briefcases",
+      name: "Tas Kerja",
       products: 12,
       isRefined: true,
     },
     {
-      name: "Backpacks",
+      name: "Ransel",
       products: 15,
       isRefined: false,
     },
     {
-      name: "Messenger Bags",
+      name: "Tas Selempang",
       products: 8,
       isRefined: false,
     },
     {
-      name: "Tote Bags",
+      name: "Tote Bag",
       products: 20,
       isRefined: false,
     },
     {
-      name: "Travel & Weekenders",
+      name: "Tas Travel & Liburan",
       products: 5,
       isRefined: false,
     },
     {
-      name: "Wallets & Clutch",
+      name: "Dompet & Clutch",
       products: 18,
       isRefined: false,
     },
@@ -67,15 +67,15 @@ const ShopWithSidebar = () => {
 
   const genders = [
     {
-      name: "Men",
+      name: "Pria",
       products: 24,
     },
     {
-      name: "Women",
+      name: "Wanita",
       products: 32,
     },
     {
-      name: "Unisex",
+      name: "Uniseks",
       products: 14,
     },
   ];
@@ -102,8 +102,8 @@ const ShopWithSidebar = () => {
   return (
     <>
       <Breadcrumb
-        title={"Shop Our Leather Collection"}
-        pages={["Home", "/", "Shop"]}
+        title={"Belanja Koleksi Kulit Kami"}
+        pages={["Beranda", "/", "Belanja"]}
       />
       <section className="overflow-hidden relative pb-20 pt-5 lg:pt-20 xl:pt-28 bg-[#f3f4f6]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
@@ -154,8 +154,8 @@ const ShopWithSidebar = () => {
                   {/* */}
                   <div className="bg-white shadow-1 rounded-lg py-4 px-5">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-dark">Filters:</p>
-                      <button type="reset" className="text-blue text-sm hover:underline">Clean All</button>
+                      <p className="font-medium text-dark">Filter:</p>
+                      <button type="reset" className="text-blue text-sm hover:underline">Hapus Semua</button>
                     </div>
                   </div>
 
@@ -176,8 +176,8 @@ const ShopWithSidebar = () => {
                   <div className="flex flex-wrap items-center gap-4">
                     <CustomSelect options={options} />
                     <p className="text-sm">
-                      Showing <span className="text-dark">8 of 78</span>{" "}
-                      Bags
+                      Menampilkan <span className="text-dark">8 dari 78</span>{" "}
+                      Tas
                     </p>
                   </div>
 
@@ -190,12 +190,15 @@ const ShopWithSidebar = () => {
                           : "text-dark bg-gray-1 border-gray-3"
                       } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
-                      {/* Grid Icon SVG */}
-                      <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18">
-                         <path d="M4.836 1.3125... (stay original)"/>
+                      <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="2" width="6" height="6" rx="1" />
+                        <rect x="10" y="2" width="6" height="6" rx="1" />
+                        <rect x="2" y="10" width="6" height="6" rx="1" />
+                        <rect x="10" y="10" width="6" height="6" rx="1" />
                       </svg>
                     </button>
 
+                    {/* Tombol List View */}
                     <button
                       onClick={() => setProductStyle("list")}
                       className={`${
@@ -204,9 +207,13 @@ const ShopWithSidebar = () => {
                           : "text-dark bg-gray-1 border-gray-3"
                       } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
-                      {/* List Icon SVG */}
-                      <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18">
-                         <path d="M4.4234 0.899903... (stay original)"/>
+                      <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="3" width="4" height="3" rx="0.5" />
+                        <rect x="7" y="3" width="9" height="3" rx="0.5" />
+                        <rect x="2" y="8" width="4" height="3" rx="0.5" />
+                        <rect x="7" y="8" width="9" height="3" rx="0.5" />
+                        <rect x="2" y="13" width="4" height="3" rx="0.5" />
+                        <rect x="7" y="13" width="9" height="3" rx="0.5" />
                       </svg>
                     </button>
                   </div>
@@ -242,4 +249,4 @@ const ShopWithSidebar = () => {
   );
 };
 
-export default ShopWithSidebar;
+export default ShopWithSidebar; 

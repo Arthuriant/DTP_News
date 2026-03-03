@@ -5,6 +5,7 @@ const ColorsDropdwon = () => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
   const [activeColor, setActiveColor] = useState("blue");
 
+  // Nilai ini dibiarkan dalam bahasa Inggris karena digunakan langsung untuk CSS background/border color
   const colors = ["red", "blue", "orange", "pink", "purple"];
 
   return (
@@ -15,9 +16,9 @@ const ColorsDropdwon = () => {
           toggleDropdown && "shadow-filter"
         }`}
       >
-        <p className="text-dark">Colors</p>
+        <p className="text-dark">Warna</p>
         <button
-          aria-label="button for colors dropdown"
+          aria-label="tombol untuk dropdown warna"
           className={`text-dark ease-out duration-200 ${
             toggleDropdown && "rotate-180"
           }`}
@@ -40,7 +41,7 @@ const ColorsDropdwon = () => {
         </button>
       </div>
 
-      {/* <!-- dropdown menu --> */}
+      {/* */}
       <div
         className={`flex-wrap gap-2.5 p-6 ${
           toggleDropdown ? "flex" : "hidden"
