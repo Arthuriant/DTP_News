@@ -3,7 +3,7 @@ const path = require('path');
 const sharp = require('sharp');
 
 // 👇 Sesuaikan path-nya jika perlu
-const inputFolder = './public/assets/products/tas_kelalawar/360'; 
+const inputFolder = './public/assets/products/tas_mini/360'; 
 
 // Batas aman maksimal WebP adalah 16383. Kita pakai 16000 agar aman.
 const MAX_WEBP_DIMENSION = 16000; 
