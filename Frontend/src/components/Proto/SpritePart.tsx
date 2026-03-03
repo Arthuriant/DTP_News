@@ -22,7 +22,7 @@ export default function SpritePart({ productId, partName, color, texture, zIndex
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${basePath}/${partName}-${texture}-base-sprite.png)`, // Pastikan nama file Anda sesuai
+          backgroundImage: `url(${basePath}/${partName}-${texture}-base-sprite.webp)`, // Pastikan nama file Anda sesuai
           backgroundSize: `${totalFrames * 100}% auto`,
           backgroundPosition: `${xPos}% center`,
           backgroundRepeat: 'no-repeat',
@@ -37,11 +37,11 @@ export default function SpritePart({ productId, partName, color, texture, zIndex
         style={{
           backgroundColor: color,
           mixBlendMode: 'multiply',
-          WebkitMaskImage: `url(${basePath}/${partName}-mask-sprite.png)`, // Pastikan nama file Anda sesuai
+          WebkitMaskImage: `url(${basePath}/${partName}-mask-sprite.webp)`, // Pastikan nama file Anda sesuai
           WebkitMaskSize: `${totalFrames * 100}% auto`,
           WebkitMaskPosition: `${xPos}% center`,
           WebkitMaskRepeat: 'no-repeat',
-          maskImage: `url(${basePath}/${partName}-mask-sprite.png)`,
+          maskImage: `url(${basePath}/${partName}-mask-sprite.webp)`,
           maskSize: `${totalFrames * 100}% auto`,
           maskPosition: `${xPos}% center`,
           maskRepeat: 'no-repeat',
