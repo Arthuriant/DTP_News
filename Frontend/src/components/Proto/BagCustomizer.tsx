@@ -5,6 +5,7 @@ import DynamicPart from "./DynamicPart";
 import StaticPart from "./StaticPart";
 import Breadcrumb from "../Common/Breadcrumb";
 import SpritePart from "./SpritePart";
+import StaticSpritePart from "./StaticSpritePart";
 import { useSearchParams } from "next/navigation";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
 
@@ -179,28 +180,43 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           : (part.zIndex[pov] ?? part.zIndex["Front"] ?? 10);
 
       if (part.variants?.some((v) => v.staticOverlays)) {
-        const activeVariant = part.variants?.find((v) => v.id === activeShape);
-        const isPenutupVisible = visibleParts["penutup"] !== false;
+  const activeVariant = part.variants?.find((v) => v.id === activeShape);
 
+  return (
+    <div
+      key={`${pov}-${part.id}`}
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: partZIndex }}
+    >
+      {/* ===================== */}
+      {/* FRONT (PNG BIASA)     */}
+      {/* ===================== */}
+      {pov === "Front" &&
+        activeVariant?.staticOverlays?.map((overlay) => (
+          <StaticPart
+            key={overlay.id}
+            imageUrl={overlay.url}
+            zIndex={overlay.zIndex}
+            altText={overlay.name}
+          />
+        ))}
 
-        return (
-          <div
-            key={`${pov}-${part.id}`}
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: partZIndex }}
-          >
-            {pov === "Front" &&
-              activeVariant?.staticOverlays?.map((overlay) => (
-                <StaticPart
-                  key={overlay.id}
-                  imageUrl={overlay.url}
-                  zIndex={overlay.zIndex}
-                  altText={overlay.name}
-                />
-              ))}
-          </div>
-        );
-      }
+      {/* ===================== */}
+      {/* 360 (SPRITE)         */}
+      {/* ===================== */}
+      {pov === "360" &&
+        activeVariant?.staticOverlays?.map((overlay) => (
+          <StaticSpritePart
+            key={overlay.id}
+            imageUrl={`/assets/products/${product.id}/360/${overlay.id}-base-sprite.png`}
+            zIndex={overlay.zIndex}
+            currentFrame={frame360}
+            totalFrames={TOTAL_FRAMES}
+          />
+        ))}
+    </div>
+  );
+}
 
       return (
         <div
