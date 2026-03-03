@@ -228,7 +228,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "body", 
         name: "BODY TAS", 
         basePrice: 150000, 
-        zIndex: { Front: 40, Back: 40, Top: 10, "360": 20 },
+        zIndex: { Front: 40, Back: 40, Top: 10, "360": 40 },
         colors: [
           { name: "Creamy Bone", hex: "#F5F5DC" },
           { name: "Obsidian Black", hex: "#1A1A1A" },
@@ -274,7 +274,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "pita", 
         name: "PITA AKSESORIS", 
         basePrice: 20000, 
-        zIndex: { Front: 30, Back: 30, Top: 30, "360": 20 },
+        zIndex: { Front: 30, Back: 30, Top: 30, "360": 30 },
         variants: [
           {
             id: "pita_tipis",
@@ -344,7 +344,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "tali_kanan", 
         name: "TALI KANAN",
         basePrice: 30000,
-        zIndex: { Front: 50, Back: 10, Top: 40, "360": 20 },
+        zIndex: { Front: 50, Back: 10, Top: 40, "360": 50 },
         variants: [
           { 
             id: "tali_kanan", 
@@ -446,7 +446,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "tali_kiri", 
         name: "TALI KIRI",
         basePrice: 30000,
-        zIndex: { Front: 10, Back: 50, Top: 50, "360": 20 },
+        zIndex: { Front: 10, Back: 50, Top: 50, "360": 10 },
         variants: [
           { 
             id: "tali_kiri", 
@@ -548,7 +548,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "charm_kanan",
         name: "CHARM KANAN",
         basePrice: 0,
-        zIndex: { Front: 60, Back: 5, Top: 60, "360": 30 },
+        zIndex: { Front: 60, Back: 5, Top: 60, "360": 60 },
         variants: [
           {
             id: "charm_kanan",
@@ -574,7 +574,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         id: "charm_kiri",
         name: "CHARM KIRI",
         basePrice: 0,
-        zIndex: { Front: 60, Back: 5, Top: 60, "360": 30 },
+        zIndex: { Front: 60, Back: 5, Top: 60, "360": 60 },
         variants: [
           {
             id: "charm_kiri",
