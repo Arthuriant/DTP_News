@@ -148,7 +148,7 @@ const Header = () => {
                   Hubungi
                 </span>
                 <p className="font-medium text-custom-sm text-dark">
-                  (+965) 7492-3477
+                  (+62) 878-1276-6865
                 </p>
               </div>
             </div>
