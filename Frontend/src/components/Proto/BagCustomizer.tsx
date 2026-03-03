@@ -23,6 +23,10 @@ export default function BagCustomizer() {
 }
 
 function BagCustomizerInner({ product }: { product: ProductConfig }) {
+  const bagSizes = product.sizes || [];
+  const [activeSize, setActiveSize] = useState<string>(
+    bagSizes.length > 0 ? bagSizes[0].id : ""
+  );
   const [shapeSelections, setShapeSelections] = useState<
     Record<string, string>
   >(() => {
@@ -359,6 +363,36 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               </div>
 
               <div className="flex-grow overflow-y-auto px-8 lg:px-12 py-6 flex flex-col gap-8 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                {bagSizes.length > 0 && (
+                  <div className="pb-8 border-b border-gray-100">
+                    <div className="flex items-center gap-3 font-bold text-[#111827] text-[13px] uppercase tracking-wider mb-4">
+                      <span>Pilih Ukuran</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {bagSizes.map((size) => {
+                        const isActive = activeSize === size.id;
+                        return (
+                          <button
+                            key={size.id}
+                            onClick={() => setActiveSize(size.id)}
+                            className={`flex flex-col items-center justify-center p-3 rounded-md border transition-all duration-200 focus:outline-none
+                              ${isActive
+                                ? "border-[#4154f1] ring-1 ring-[#4154f1] bg-[#eff2ff]"
+                                : "border-gray-300 bg-white hover:border-[#4154f1]"
+                              }`}
+                          >
+                            <span className={`text-[15px] font-bold mb-0.5 ${isActive ? "text-[#4154f1]" : "text-gray-900"}`}>
+                              {size.title}
+                            </span>
+                            <span className={`text-[12px] ${isActive ? "text-[#4154f1]/80" : "text-gray-500"}`}>
+                              {size.desc}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 {product.parts.map((part) => {
                   const isVisible = visibleParts[part.id];
 

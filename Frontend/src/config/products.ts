@@ -12,7 +12,12 @@ export interface ProductTexture {
   price: number;
   colors?: ProductColor[];  
 }
-
+export interface ProductSize {
+  id: string;
+  title: string;
+  desc: string;
+  price: number;
+}
 export interface ProductVariant {
   id: string;
   name: string;
@@ -51,6 +56,7 @@ export interface ProductConfig {
   basePrice: number;
   // colors dan textures DIHAPUS dari sini karena sudah dipindah ke bawah
   parts: ProductPart[];
+  sizes?: ProductSize[];
 }
 
 // 2. DATA KONFIGURASI
@@ -59,6 +65,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "tas_kelalawar",
     name: "Bat Bag",
     basePrice: 0,
+    sizes: [
+      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat laptop 13 inci", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat laptop 15 inci", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat laptop 17 inci", price: 150000 },
+    ],
     parts: [
       // --- PART 1: BODY ---
       { 
@@ -199,11 +211,17 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       },
     ]
   },
-  // 👇 UPDATE PRODUK TOTEBAG 👇
+
   totebag: {
     id: "totebag",
     name: "Classic Tote Bag",
     basePrice: 0,
+    sizes: [
+      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat tablet 13 inci", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat tablet 15 inci", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat tablet 17 inci", price: 150000 },
+    ],
     parts: [
       // --- PART 1: BODY ---
       { 
@@ -582,6 +600,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
   id: "tas_mini",
   name: "Tas Mini",
   basePrice: 850000,
+  sizes: [
+      { id: "S", title: "Small", desc: "Muat handphone Realme", price: 0 },
+      { id: "M", title: "Medium", desc: "Muat handphone Xiaomi", price: 50000 },
+      { id: "L", title: "Large", desc: "Muat handphone Iphone", price: 100000 },
+      { id: "XL", title: "X-Large", desc: "Muat handphone Huawei", price: 150000 },
+  ],
   parts: [
 
     // ======================
