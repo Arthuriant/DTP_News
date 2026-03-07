@@ -102,8 +102,8 @@ const ShopWithSidebar = () => {
   return (
     <>
       <Breadcrumb
-        title={"Belanja Koleksi Kulit Kami"}
-        pages={["Beranda", "/", "Belanja"]}
+        title={"Telusuri Semua Produk"}
+        pages={["Belanja"]}
       />
       <section className="overflow-hidden relative pb-20 pt-5 lg:pt-20 xl:pt-28 bg-[#f3f4f6]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">

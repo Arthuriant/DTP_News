@@ -1,5 +1,3 @@
-// src/config/products.ts
-
 export interface ProductColor {
   name: string;
   hex: string;
@@ -24,11 +22,15 @@ export interface ProductVariant {
   thumb?: string;
   price: number;
   priceLabel?: string;
-  // Tambahan: Variant bisa punya warna dan tekstur sendiri (Mengesampingkan setingan part)
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
   staticOverlays?: ProductStaticOverlay[];
 
+}
+
+export interface ProductSpecification {
+  label: string;
+  value: string;
 }
 
 export interface ProductStaticOverlay {
@@ -43,21 +45,45 @@ export interface ProductPart {
   name: string;
   basePrice: number;
   zIndex: number | Record<string, number>;
-  // Tambahan: Part punya default warna dan teksturnya sendiri
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
   variants?: ProductVariant[];
   staticOverlays?: ProductStaticOverlay[];
 }
 
+export interface MarketingBlock {
+  layout: "image-left" | "image-right";
+  hasPattern?: boolean;
+  badge?: string;
+  subtitle?: string;
+  title: string;
+  titleHighlight?: string;
+  titleHighlightStyle?: "gradient" | "amber";
+  description: string;
+  image: string;
+  imageQuote?: string;
+  featureStyle: "cards" | "bullets";
+  features: MarketingFeature[];
+}
+
 export interface ProductConfig {
   id: string;
   name: string;
   basePrice: number;
-  // colors dan textures DIHAPUS dari sini karena sudah dipindah ke bawah
   parts: ProductPart[];
   sizes?: ProductSize[];
+  gallery?: string[];
+  marketingBlocks?: MarketingBlock[];
+  dimensionsImage?: string;
+  specifications?: ProductSpecification[];
 }
+
+export interface MarketingFeature {
+  title: string;
+  icon?: string; 
+}
+
+
 
 // 2. DATA KONFIGURASI
 export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
@@ -65,6 +91,58 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "tas_kelalawar",
     name: "Bat Bag",
     basePrice: 0,
+
+    gallery: [
+      "/assets/products/tas_kelalawar/gallery/gallery-1.jpeg",
+      "/assets/products/tas_kelalawar/gallery/gallery-2.jpeg",
+      "/assets/products/tas_kelalawar/gallery/gallery-3.jpeg",
+      "/assets/products/tas_kelalawar/gallery/gallery-4.jpeg",
+    ],
+
+    dimensionsImage: "/assets/products/tas_kelalawar/dimension/dimension.png",
+    specifications: [
+      { label: "Product Style", value: "Bat Bag" },
+      { label: "Total Volume (liters)", value: "16.00 L" },
+      { label: "Weight (lbs)", value: "2.2 lb" },
+      { label: "Avg. Laptop Fit (in)", value: '16"' },
+    ],
+
+    marketingBlocks: [
+      {
+        layout: "image-left",
+        hasPattern: true, 
+        badge: "Iconic Series",
+        subtitle: "Modern Aesthetic",
+        title: "Desain Elegan",
+        titleHighlight: "& Fungsional",
+        titleHighlightStyle: "gradient",
+        description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
+        image: "/assets/products/tas_kelalawar/marketing/marketing-1.jpeg",
+        featureStyle: "cards",
+        features: [
+          { title: "Smart Storage", icon: "M3 7h18M3 12h18M3 17h18" },
+          { title: "Water Proof", icon: "M20 16.24V19a2 2 0 01-2 2h-12a2 2 0 01-2-2v-2.76a2 2 0 01.44-1.24L8 10l.56-2.24A2 2 0 0110.51 6h2.98a2 2 0 011.95 1.76L16 10l3.56 5a2 2 0 01.44 1.24z" }
+        ]
+      },
+      {
+        layout: "image-right",
+        hasPattern: false,
+        badge: "Authentic Material",
+        title: "Material Premium",
+        titleHighlight: "& Nyaman",
+        titleHighlightStyle: "amber",
+        description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
+        image: "/assets/products/tas_kelalawar/marketing/marketing-2.jpeg",
+        imageQuote: "The texture of perfection",
+        featureStyle: "bullets",
+        features: [
+          { title: "Kulit sapi pilihan grade A" },
+          { title: "Lapisan dalam polyester lembut" },
+          { title: "Resleting YKK anti karat" }
+        ]
+      }
+    ],
+    
     sizes: [
       { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
       { id: "M", title: "Medium", desc: "Muat laptop 13 inci", price: 50000 },
