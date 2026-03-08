@@ -1062,31 +1062,31 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         
       ]
     },
-    {
-  id: "tali",
-  name: "Tali",
-  basePrice: 0,
-  zIndex: {
-    Front: 5,
-    Back: 30,
-    Top: 10,
-    "360": 50
-  },
-  staticOverlays: [
-    {
-      id: "tali-back",
-      url: "/assets/products/tas_mini/back/tali-base.png",
-      zIndex: 30,
-      name: "Tali Back"
-    },
-    {
-      id: "tali-top",
-      url: "/assets/products/tas_mini/top/tali-base.png",
-      zIndex: 10,
-      name: "Tali Top"
-    }
-  ]
-}
+  //   {
+  //   id: "tali",
+  //   name: "Tali",
+  //   basePrice: 0,
+  //   zIndex: {
+  //     Front: 5,
+  //     Back: 30,
+  //     Top: 10,
+  //     "360": 50
+  //   },
+  //   staticOverlays: [
+  //     {
+  //       id: "tali-back",
+  //       url: "/assets/products/tas_mini/back/tali-base.png",
+  //       zIndex: 30,
+  //       name: "Tali Back"
+  //     },
+  //     {
+  //       id: "tali-top",
+  //       url: "/assets/products/tas_mini/top/tali-base.png",
+  //       zIndex: 10,
+  //       name: "Tali Top"
+  //     }
+  //   ]
+  // }
   ]
 }
 };
