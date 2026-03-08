@@ -551,67 +551,143 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       <RecentlyViewdItems />
       <Newsletter />
 
-      {/* ================= MODALS ================= */}
+      {/* ================= MODALS ================= */}      
+
+      {/* 1. MODAL PANDUAN UKURAN (SIZE GUIDE) */}
       {showSizeGuideModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSizeGuideModal(false)}>
-          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Panduan Ukuran</h3>
-              <button onClick={() => setShowSizeGuideModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"
+          onClick={() => setShowSizeGuideModal(false)}
+        >
+          {/* Card Popup dengan Ambient Shadow Berlapis (Tanpa Border) */}
+          <div 
+            className="bg-white rounded-[2.5rem] max-w-7xl w-full max-h-[85vh] flex flex-col scale-in-center shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25),0_30px_60px_-30px_rgba(0,0,0,0.3)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header - Tetap Di Atas (Fixed) */}
+            <div className="px-10 py-8 flex justify-between items-center bg-white rounded-t-[2.5rem] z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-1.5 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
+                <div>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">Tote Size Guide</h3>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Sesuaikan dengan ukuran Laptop-mu</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowSizeGuideModal(false)}
+                className="group p-3 bg-slate-50 hover:bg-slate-900 rounded-full transition-all duration-300 shadow-sm"
+              >
+                <svg className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bagSizes.map((size) => (
-                <div key={size.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-200 hover:shadow-lg transition">
-                  <div className="w-full h-32 bg-white rounded-xl mb-3 flex items-center justify-center text-gray-400">
-                    <svg className="w-20 h-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="4" y="7" width="16" height="14" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+
+            <div className="flex-1 overflow-y-auto p-10 pt-2 custom-scrollbar bg-slate-50/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-4">
+                {bagSizes.map((size) => (
+                  <div key={size.id} className="group flex flex-col bg-white rounded-3xl p-5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1">
+
+                    <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-slate-100 mb-6">
+                      {size.image ? (
+                        <img 
+                          src={size.image} 
+                          alt={size.title} 
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[2s]" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 italic text-slate-300">No Image</div>
+                      )}
+                      <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-sm">
+                        {size.id} Edition
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1 mb-5 flex-grow">
+                      <h4 className="text-xl font-bold text-slate-900">{size.title}</h4>
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-tighter">{size.desc}</p>
+                      <p className="text-sm text-slate-500 leading-relaxed font-medium opacity-80 pt-2">{size.description}</p>
+                    </div>
+                    
+                    {size.dimensions && (
+                      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100">
+                        {['width', 'height', 'depth'].map((dim) => (
+                          <div key={dim} className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
+                            <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">{dim}</span>
+                            <span className="text-xs font-black text-slate-800">{size.dimensions[dim]}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <h4 className="font-bold text-lg text-gray-800">{size.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{'Fits up to 11" tablet'}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* 2. MODAL PANDUAN BAHAN (FABRIC GUIDE) */}
       {showFabricGuideModal && selectedFabricPartId && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowFabricGuideModal(false)}>
-          <div className="bg-white rounded-[2rem] max-w-2xl w-full max-h-[85vh] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20" onClick={(e) => e.stopPropagation()}>
-            <div className="relative flex justify-between items-center p-8 border-b border-gray-50">
-              <div className="absolute top-0 left-8 h-1 w-16 bg-slate-900 rounded-b-full"></div>
-              <div>
-                <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">Panduan Bahan</h3>
-                <p className="text-sm text-gray-500 mt-1">Pilih karakter bahan yang sesuai dengan gayamu</p>
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-lg animate-in fade-in duration-300"
+          onClick={() => setShowFabricGuideModal(false)}
+        >
+          <div 
+            className="bg-white rounded-[3rem] max-w-3xl w-full max-h-[80vh] flex flex-col scale-in-center shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-10 pb-6 flex items-center justify-between bg-white rounded-t-[3rem] z-10">
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-xl shadow-lg rotate-3 italic">M</div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight italic uppercase">Material Library</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Texture & Feel</p>
+                </div>
               </div>
-              <button onClick={() => setShowFabricGuideModal(false)} className="group p-2 bg-gray-50 hover:bg-red-50 rounded-xl transition-colors">
-                <svg className="w-6 h-6 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => setShowFabricGuideModal(false)} className="text-slate-300 hover:text-slate-900 transition-colors p-2 rounded-full hover:bg-slate-50">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="overflow-y-auto max-h-[calc(85vh-120px)] p-8 space-y-4 custom-scrollbar">
-              {(() => {
-                const part = product.parts.find((p) => p.id === selectedFabricPartId);
-                if (!part) return null;
-                const activeShapeId = shapeSelections[part.id] || part.id;
-                const variant = part.variants?.find((v) => v.id === activeShapeId);
-                const textures = variant?.textures || part.textures || [];
-                
-                return textures.map((tex) => (
-                  <div key={tex.id} className="group flex flex-col md:flex-row gap-6 p-5 bg-white border border-gray-100 rounded-3xl hover:border-slate-300 hover:shadow-lg transition-all cursor-default">
-                    <div className="relative w-full md:w-40 h-40 shrink-0 bg-slate-50 rounded-2xl flex items-center justify-center border shadow-inner">
-                      <svg className="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                    </div>
-                    <div className="flex flex-col justify-center flex-1">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-bold text-xl text-gray-800">{tex.name}</h4>
-                        {tex.price > 0 && <span className="bg-slate-100 text-slate-800 px-3 py-1 rounded-full text-xs font-bold">+ Rp {tex.price.toLocaleString('id-ID')}</span>}
+
+            <div className="flex-1 overflow-y-auto p-10 pt-0 custom-scrollbar bg-slate-50/20">
+              <div className="space-y-6 pb-6 pt-4">
+                {(() => {
+                  const part = product.parts.find((p) => p.id === selectedFabricPartId);
+                  if (!part) return null;
+                  const textures = part.variants?.find((v) => v.id === (shapeSelections[part.id] || part.id))?.textures || part.textures || [];
+                  
+                  return textures.map((tex) => (
+                    <div key={tex.id} className="flex flex-col md:flex-row gap-8 group items-center bg-white p-6 rounded-[2.5rem] shadow-[0_10px_25px_-10px_rgba(0,0,0,0.05)] transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
+                      
+                      <div className="relative w-40 h-40 shrink-0 rounded-[2rem] overflow-hidden shadow-md border-4 border-white">
+                        {tex.thumb ? (
+                          <img 
+                            src={tex.thumb} 
+                            alt={tex.name} 
+                            className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-[2.5s]" 
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center italic text-slate-300">Texture</div>
+                        )}
+
+                        {tex.price > 0 && (
+                          <div className="absolute top-2 right-2 bg-slate-900/90 text-white px-3 py-1 rounded-full text-[9px] font-black backdrop-blur-sm">
+                            +Rp {tex.price.toLocaleString('id-ID')}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-gray-500 mt-3 text-sm leading-relaxed">{'Karakteristik bahan yang lembut, tahan lama, dan memberikan kenyamanan maksimal.'}</p>
+                      
+                      <div className="flex flex-col justify-center flex-1 space-y-3">
+                        <h4 className="text-2xl font-bold text-slate-900">{tex.name}</h4>
+                        <p className="text-slate-500 text-sm leading-loose font-medium opacity-80 border-l-2 border-slate-100 pl-5">
+                          {tex.description || "The epitome of durability meeting luxury. Carefully selected to age beautifully with use, this material embodies durable craftsmanship."}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ));
-              })()}
+                  ));
+                })()}
+              </div>
             </div>
           </div>
         </div>

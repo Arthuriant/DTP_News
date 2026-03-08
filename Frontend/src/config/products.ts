@@ -7,6 +7,8 @@ export interface ProductTexture {
   id: string;
   name: string;
   thumb: string;
+  image?: string;
+  description?: string;
   price: number;
   colors?: ProductColor[];  
 }
@@ -15,6 +17,14 @@ export interface ProductSize {
   title: string;
   desc: string;
   price: number;
+  image?: string;
+  dimensions?: {
+    width: number;
+    height: number;
+    depth: number;
+    unit?: string;       // default 'cm'
+  };
+  description?: string;  // deskripsi panjang (opsional)
 }
 export interface ProductVariant {
   id: string;
@@ -144,10 +154,43 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     ],
     
     sizes: [
-      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
-      { id: "M", title: "Medium", desc: "Muat laptop 13 inci", price: 50000 },
-      { id: "L", title: "Large", desc: "Muat laptop 15 inci", price: 100000 },
-      { id: "XL", title: "X-Large", desc: "Muat laptop 17 inci", price: 150000 },
+      { 
+        id: "S",
+        title: "Small",
+        desc: "Compact Essentials",
+        price: 0,
+        image: "/assets/products/tas_kelalawar/size-guide/small.png",
+        dimensions: { width: 18, height: 12, depth: 6, unit: 'cm' },
+        description: "Ukuran terkecil, pas untuk smartphone, lipstik, dan dompet kartu"
+      },
+      { 
+        id: "M",
+        title: "Medium",
+        desc: "Daily Essentials",
+        price: 50000,
+        image: "/assets/products/tas_kelalawar/size-guide/medium.png",
+        dimensions: { width: 22, height: 15, depth: 8, unit: 'cm' },
+        description: "Bisa memuat dompet lipat, smartphone, powerbank, dan makeup pouch kecil."
+      },
+      { 
+        id: "L",
+        title: "Large",
+        desc: "Maximum Capacity",
+        price: 550000,
+        image: "/assets/products/tas_kelalawar/size-guide/large.png",
+        dimensions: { width: 26, height: 18, depth: 10, unit: 'cm' },
+        description: "Lebih lega, sanggup memuat tablet mini (8 inci) atau payung lipat kecil."
+      },
+      { 
+        id: "XL",
+        title: "Extra Large",
+        desc: "Tablet Friendly",
+        price: 120000,
+        image: "/assets/products/tas_kelalawar/size-guide/xlarge.png",
+        dimensions: { width: 30, height: 22, depth: 12, unit: 'cm' },
+        description: "Varian terbesar untuk kategori minibag. Muat untuk tablet 11 inci"
+      },
+      
     ],
     parts: [
       // --- PART 1: BODY ---
@@ -294,12 +337,97 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "totebag",
     name: "Classic Tote Bag",
     basePrice: 0,
-    sizes: [
-      { id: "S", title: "Small", desc: "Muat tablet 11 inci", price: 0 },
-      { id: "M", title: "Medium", desc: "Muat tablet 13 inci", price: 50000 },
-      { id: "L", title: "Large", desc: "Muat tablet 15 inci", price: 100000 },
-      { id: "XL", title: "X-Large", desc: "Muat tablet 17 inci", price: 150000 },
+
+        gallery: [
+      "/assets/products/totebag/gallery/gallery-1.png",
+      "/assets/products/totebag/gallery/gallery-3.jpg",
+      "/assets/products/totebag/gallery/gallery-2.png", 
+      "/assets/products/totebag/gallery/gallery-4.jpg",
     ],
+
+    dimensionsImage: "/assets/products/totebag/dimension/dimension.png",
+    specifications: [
+      { label: "Product Style", value: "Bat Bag" },
+      { label: "Total Volume (liters)", value: "16.00 L" },
+      { label: "Weight (lbs)", value: "2.2 lb" },
+      { label: "Avg. Laptop Fit (in)", value: '16"' },
+    ],
+
+    marketingBlocks: [
+      {
+        layout: "image-left",
+        hasPattern: true, 
+        badge: "Iconic Series",
+        subtitle: "Modern Aesthetic",
+        title: "Desain Elegan",
+        titleHighlight: "& Fungsional",
+        titleHighlightStyle: "gradient",
+        description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
+        image: "/assets/products/totebag/marketing/marketing-1.png",
+        featureStyle: "cards",
+        features: [
+          { title: "Smart Storage", icon: "M3 7h18M3 12h18M3 17h18" },
+          { title: "Water Proof", icon: "M20 16.24V19a2 2 0 01-2 2h-12a2 2 0 01-2-2v-2.76a2 2 0 01.44-1.24L8 10l.56-2.24A2 2 0 0110.51 6h2.98a2 2 0 011.95 1.76L16 10l3.56 5a2 2 0 01.44 1.24z" }
+        ]
+      },
+      {
+        layout: "image-right",
+        hasPattern: false,
+        badge: "Authentic Material",
+        title: "Material Premium",
+        titleHighlight: "& Nyaman",
+        titleHighlightStyle: "amber",
+        description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
+        image: "/assets/products/totebag/marketing/marketing-2.png",
+        imageQuote: "The texture of perfection",
+        featureStyle: "bullets",
+        features: [
+          { title: "Kulit sapi pilihan grade A" },
+          { title: "Lapisan dalam polyester lembut" },
+          { title: "Resleting YKK anti karat" }
+        ]
+      }
+    ],
+    
+    sizes: [
+      { 
+        id: "S",
+        title: "Compact (S)",
+        desc: "Tablet & Essentials",
+        price: 0,
+        image: "/assets/products/totebag/size-guide/small.png",
+        dimensions: { width: 28, height: 22, depth: 8, unit: 'cm' },
+        description: "tablet 11 inci (iPad Air/Pro)."
+      },
+      { 
+        id: "M",
+        title: "Standard (M)",
+        desc: "Laptop 13\" Friendly",
+        price: 50000,
+        image: "/assets/products/totebag/size-guide/medium.png",
+        dimensions: { width: 34, height: 26, depth: 10, unit: 'cm' },
+        description: "MacBook Air atau laptop 13 inci, dokumen A4."
+      },
+      { 
+        id: "L",
+        title: "Pro (L)",
+        desc: "Laptop 14-15\" Capacity",
+        price: 85000,
+        image: "/assets/products/totebag/size-guide/large.png",
+        dimensions: { width: 38, height: 30, depth: 12, unit: 'cm' },
+        description: "laptop 14-15 inci. Dapat memuat binder besar, botol minum, dan payung lipat."
+      },
+      { 
+        id: "XL",
+        title: "Grand (XL)",
+        desc: "Workstation Mobile",
+        price: 125000,
+        image: "/assets/products/totebag/size-guide/xlarge.png",
+        dimensions: { width: 42, height: 34, depth: 14, unit: 'cm' },
+        description: "laptop 16 inci dan perlengkapan gym atau baju ganti."
+      },
+    ],
+
     parts: [
       // --- PART 1: BODY ---
       { 
@@ -678,12 +806,96 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
   id: "tas_mini",
   name: "Tas Mini",
   basePrice: 850000,
-  sizes: [
-      { id: "S", title: "Small", desc: "Muat handphone Realme", price: 0 },
-      { id: "M", title: "Medium", desc: "Muat handphone Xiaomi", price: 50000 },
-      { id: "L", title: "Large", desc: "Muat handphone Iphone", price: 100000 },
-      { id: "XL", title: "X-Large", desc: "Muat handphone Huawei", price: 150000 },
-  ],
+
+      gallery: [
+      "/assets/products/tas_mini/gallery/gallery-1.png",
+      "/assets/products/tas_mini/gallery/gallery-2.png",
+      "/assets/products/tas_mini/gallery/gallery-3.png",
+      "/assets/products/tas_mini/gallery/gallery-4.png",
+    ],
+
+    dimensionsImage: "/assets/products/tas_mini/dimension/dimension.png",
+    specifications: [
+      { label: "Product Style", value: "Bat Bag" },
+      { label: "Total Volume (liters)", value: "16.00 L" },
+      { label: "Weight (lbs)", value: "2.2 lb" },
+      { label: "Avg. Laptop Fit (in)", value: '16"' },
+    ],
+
+    marketingBlocks: [
+      {
+        layout: "image-left",
+        hasPattern: true, 
+        badge: "Iconic Series",
+        subtitle: "Modern Aesthetic",
+        title: "Desain Elegan",
+        titleHighlight: "& Fungsional",
+        titleHighlightStyle: "gradient",
+        description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
+        image: "/assets/products/tas_mini/marketing/marketing-1.png",
+        featureStyle: "cards",
+        features: [
+          { title: "Smart Storage", icon: "M3 7h18M3 12h18M3 17h18" },
+          { title: "Water Proof", icon: "M20 16.24V19a2 2 0 01-2 2h-12a2 2 0 01-2-2v-2.76a2 2 0 01.44-1.24L8 10l.56-2.24A2 2 0 0110.51 6h2.98a2 2 0 011.95 1.76L16 10l3.56 5a2 2 0 01.44 1.24z" }
+        ]
+      },
+      {
+        layout: "image-right",
+        hasPattern: false,
+        badge: "Authentic Material",
+        title: "Material Premium",
+        titleHighlight: "& Nyaman",
+        titleHighlightStyle: "amber",
+        description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
+        image: "/assets/products/tas_mini/marketing/marketing-2.png",
+        imageQuote: "The texture of perfection",
+        featureStyle: "bullets",
+        features: [
+          { title: "Kulit sapi pilihan grade A" },
+          { title: "Lapisan dalam polyester lembut" },
+          { title: "Resleting YKK anti karat" }
+        ]
+      }
+    ],
+
+    sizes: [
+      { 
+        id: "S",
+        title: "Small",
+        desc: "Arm & Belt Gear",
+        price: 0,
+        image: "/assets/products/tas_mini/size-guide/small.png",
+        dimensions: { width: 10, height: 16, depth: 4, unit: 'cm' },
+        description: "smartphone, kunci, dan earbuds."
+      },
+      { 
+        id: "M",
+        title: "Medium",
+        desc: "Leg & Waist Pack",
+        price: 35000,
+        image: "/assets/products/tas_mini/size-guide/medium.png",
+        dimensions: { width: 14, height: 20, depth: 6, unit: 'cm' },
+        description: "smartphone besar, powerbank, dan dompet."
+      },
+      { 
+        id: "L",
+        title: "Large",
+        desc: "Extended Capacity",
+        price: 65000,
+        image: "/assets/products/tas_mini/size-guide/large.png",
+        dimensions: { width: 18, height: 24, depth: 8, unit: 'cm' },
+        description: "tablet 7-8 inci, toolkit kecil, atau sarung tangan motor."
+      },
+      { 
+        id: "XL",
+        title: "Extra Large",
+        desc: "Max Field Gear",
+        price: 95000,
+        image: "/assets/products/tas_mini/size-guide/xlarge.png",
+        dimensions: { width: 22, height: 28, depth: 10, unit: 'cm' },
+        description: "Muat iPad Mini, botol minum kecil, dan EDC gear lengkap."
+      },
+    ],
   parts: [
 
     // ======================
