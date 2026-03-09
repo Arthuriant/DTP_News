@@ -929,7 +929,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     // ======================
     {
       id: "trim-badan",
-      name: "Trim Badan",
+      name: "Jahitan Badan",
       basePrice: 0,
       zIndex: { Front: 20, Back: 10, Top: 5 },
       colors: [
@@ -969,7 +969,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     // ======================
     {
       id: "trim-penutup",
-      name: "Trim Penutup",
+      name: "Jahitan Penutup",
       basePrice: 0,
       zIndex: { Front: 40, Back: 40, Top: 40 },
       colors: [
@@ -1019,12 +1019,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           price: 0,
           priceLabel: "",
           staticOverlays: [
-            {
-              id: "kancing1",
-              url: "/assets/products/tas_mini/front/kancing1-base.png",
-              zIndex: 50,
-              name: "Kancing 1"
-            },
+            // {
+            //   id: "kancing1",
+            //   url: "/assets/products/tas_mini/front/kancing1-base.png",
+            //   zIndex: 50,
+            //   name: "Kancing 1"
+            // },
             {
               id: "kancing2",
               url: "/assets/products/tas_mini/front/kancing2-base.png",

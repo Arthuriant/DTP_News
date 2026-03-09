@@ -175,6 +175,11 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
+      const activeKompartemen = shapeSelections["kompartemen"];
+
+      if (part.id === "pengait2" && activeKompartemen !== "pengait") {
+  return null;
+}
       const activeShape = shapeSelections[part.id] || part.id;
       const activeColor = selections[part.id];
       const activeTexture = textureSelections[part.id];
@@ -203,7 +208,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               activeVariant?.staticOverlays?.map((overlay) => (
                 <StaticSpritePart
                   key={overlay.id}
-                  imageUrl={`/assets/products/${product.id}/360/${overlay.id}-base-sprite.png`}
+                  imageUrl={`/assets/products/${product.id}/360/${overlay.id}-base-sprite.webp`}
                   zIndex={overlay.zIndex}
                   currentFrame={frame360}
                   totalFrames={TOTAL_FRAMES}
@@ -409,6 +414,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             const currentColors = variant?.colors || part.colors || [];
             const currentTextures = variant?.textures || part.textures || [];
             const isOpen = openSections[part.id];
+            
 
             return (
               <div key={part.id} 
