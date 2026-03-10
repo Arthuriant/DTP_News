@@ -11,6 +11,7 @@ export interface ProductTexture {
   description?: string;
   price: number;
   colors?: ProductColor[];  
+  colorable?: boolean;
 }
 export interface ProductSize {
   id: string;
@@ -35,6 +36,7 @@ export interface ProductVariant {
   colors?: ProductColor[];     
   textures?: ProductTexture[]; 
   staticOverlays?: ProductStaticOverlay[];
+  colorable?: boolean;
 
 }
 
@@ -59,6 +61,7 @@ export interface ProductPart {
   textures?: ProductTexture[]; 
   variants?: ProductVariant[];
   staticOverlays?: ProductStaticOverlay[];
+  colorable?: boolean;
 }
 
 export interface MarketingBlock {
@@ -1062,31 +1065,31 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         
       ]
     },
-  //   {
-  //   id: "tali",
-  //   name: "Tali",
-  //   basePrice: 0,
-  //   zIndex: {
-  //     Front: 5,
-  //     Back: 30,
-  //     Top: 10,
-  //     "360": 50
-  //   },
-  //   staticOverlays: [
-  //     {
-  //       id: "tali-back",
-  //       url: "/assets/products/tas_mini/back/tali-base.png",
-  //       zIndex: 30,
-  //       name: "Tali Back"
-  //     },
-  //     {
-  //       id: "tali-top",
-  //       url: "/assets/products/tas_mini/top/tali-base.png",
-  //       zIndex: 10,
-  //       name: "Tali Top"
-  //     }
-  //   ]
-  // }
+    {
+    id: "tali",
+    name: "Tali",
+    basePrice: 0,
+    zIndex: {
+      Front: 5,
+      Back: 30,
+      Top: 10,
+      "360": 50
+    },
+    staticOverlays: [
+      {
+        id: "tali-back",
+        url: "/assets/products/tas_mini/back/tali-base.png",
+        zIndex: 30,
+        name: "Tali Back"
+      },
+      {
+        id: "tali-top",
+        url: "/assets/products/tas_mini/top/tali-base.png",
+        zIndex: 10,
+        name: "Tali Top"
+      }
+    ]
+  }
   ]
 }
 };
