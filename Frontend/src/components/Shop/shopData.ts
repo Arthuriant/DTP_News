@@ -55,6 +55,24 @@ const shopData: Product[] = [
       ],
     },
   },
+  {
+    title: "Top Handle Bag",
+    reviews: 5,
+    price: 1250000,
+    discountedPrice: 725000,
+    id: 3,
+    idProduct: "top_handle_bag",
+    imgs: {
+      thumbnails: [
+        "/images/products/product-topHandleBag.png",
+        "/images/products/product-topHandleBag.png",
+      ],
+      previews: [
+        "/images/products/product-topHandleBag.png",
+        "/images/products/product-topHandleBag.png",
+      ],
+    },
+  },
 ];
 
 export default shopData;

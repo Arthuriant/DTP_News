@@ -629,25 +629,96 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "top_handle_bag", 
     name: "Top Handle Bag",
     basePrice: 650000,
-    gallery: [],
+     gallery: [
+      "/assets/products/top_handle_bag/gallery/gallery-1.jpeg",
+      "/assets/products/top_handle_bag/gallery/gallery-2.jpeg",
+      "/assets/products/top_handle_bag/gallery/gallery-3.jpeg",
+      "/assets/products/top_handle_bag/gallery/gallery-4.jpeg",
+    ],
     dimensionsImage: "",
     specifications: [
       { label: "Product Style", value: "Top Handle Mini" },
       { label: "Material", value: "Premium Canvas & Leather" }
     ],
-    marketingBlocks: [],
+    marketingBlocks: [
+      {
+        "layout": "image-left",
+        "hasPattern": true, 
+        "badge": "Keahlian Tangan", 
+        "subtitle": "Tekstur yang Menyihir", 
+        "title": "Detail Kepangan", 
+        "titleHighlight": "& Keahlian", 
+        "titleHighlightStyle": "gradient",
+        "description": "Rasakan sentuhan kulit berkerikil yang halus yang dipadukan dengan detail kepangan kulit cokelat yang kaya, dibuat dengan tangan oleh pengrajin ahli kami untuk keunikan yang tak tertandingi.", // Deskripsi baru yang lebih spesifik
+        "image": "/assets/products/top_handle_bag/marketing/marketing-2.jpeg",
+        "featureStyle": "cards",
+        "features": [
+          { "title": "Anyaman Tangan", "icon": "M10 10l5 5M10 20l10-10M5 5l5 5" }, 
+          { "title": "Tekstur Mewah", "icon": "M4 4h16v16H4V4z M10 10l4 4" } 
+        ]
+      },
+      {
+        "layout": "image-right",
+        "hasPattern": false,
+        "badge": "Penyimpanan Cerdas", 
+        "title": "Navigasi Internal", 
+        "titleHighlight": "& Mewah",
+        "titleHighlightStyle": "amber",
+        "description": "Lapisan dalam burgundy yang kaya menampung kompartemen ganda berritsleting dan saku slip untuk menjaga barang berharga Anda tetap terorganisir, aman, dan mudah diakses sepanjang hari.", // Deskripsi baru yang mendetailkan interior
+        "image": "/assets/products/top_handle_bag/marketing/marketing-1.jpeg", 
+        "imageQuote": "Keindahan yang tersembunyi", 
+        "featureStyle": "bullets",
+        "features": [
+          { "title": "Lapisan burgundy lembut" },
+          { "title": "Kompartemen berritsleting ganda" }, 
+          { "title": "Ritsleting emas berlogo" } 
+        ]
+      }
+    ],
     sizes: [],
     parts: [
       {
         id: "badan", name: "Badan Tas", basePrice: 0, zIndex: { Front: 10, Back: 20, Top: 10 },
         textures: [
-          { id: "base", name: "Original Canvas", thumb: "", price: 0 } // Tidak ada colors = TextureOnlyPart
+          { id: "base", name: "Original", thumb: "", price: 0 },
+          { id: "leather1", name: "Classic Black", thumb: "", price: 1000000 },
+          { id: "leather2", name: "Chestnut Brown", thumb: "", price: 2000000 },
+          { id: "leather3", name: "Espresso Brown", thumb: "", price: 3000000 },
+          { id: "leather4", name: "Midnight Croc", thumb: "", price: 4000000 },
+          { id: "leather5", name: "Caramel Tan", thumb: "", price: 5000000 },
         ]
       },
+
       {
-        id: "kunci", name: "Kunci", basePrice: 0, zIndex: { Front: 50, Back: 50, Top: 50 },
-        textures: [
-          { id: "base", name: "Gold Hardware", thumb: "", price: 0 } // Tidak ada colors = TextureOnlyPart
+        id: 'tali_kunci', name : 'Tali LKunci', basePrice : 0 , zIndex: {Front: 50, Back:50, Top:50}
+      },
+      {
+        id: "kunci", name: "Kunci", basePrice: 0, zIndex: { Front: 60, Back: 60, Top: 60 },
+        variants: [
+          {
+            id: "kunci", 
+            name: "Classic Leather Buckle", 
+            price: 0, 
+            priceLabel: "",
+          },
+          {
+            id: "kunci1", 
+            name: "Vintage Emblem Lock", 
+            price: 35000, 
+            priceLabel: "+ Rp 35.000",
+          },
+          {
+            id: "kunci2", 
+            name: "Interlocking Gold Clasp", 
+            price: 50000, 
+            priceLabel: "+ Rp 50.000",
+          },
+          {
+            id: "kunci3", 
+            name: "Minimalist Silver Lock", 
+            price: 25000, 
+            priceLabel: "+ Rp 25.000",
+          },
         ]
       },
       {
@@ -656,7 +727,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { 
             id: "base", name: "Premium Leather", thumb: "", price: 0,
             colors: [
-              { name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Navy Blue", hex: "#1E293B" }, { name: "Maroon", hex: "#800000" }, { name: "Black", hex: "#1A1A1A" },
+              { name: "Navy Blue", hex: "#1E293B" },{ name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Maroon", hex: "#800000" }, { name: "Black", hex: "#1A1A1A" },
             ] // Ada colors = DynamicPart
           }
         ]
@@ -667,7 +738,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { 
             id: "base", name: "Premium Leather", thumb: "", price: 0,
             colors: [
-              { name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Navy Blue", hex: "#1E293B" }, { name: "Maroon", hex: "#800000" }, { name: "Black", hex: "#1A1A1A" },
+              { name: "Navy Blue", hex: "#1E293B" },{ name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Maroon", hex: "#800000" }, { name: "Black", hex: "#1A1A1A" },
             ]
           }
         ]
@@ -678,7 +749,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { 
             id: "base", name: "Premium Leather", thumb: "", price: 0,
             colors: [
-              { name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Navy Blue", hex: "#1E293B" }, { name: "Maroon", hex: "#800000" }, { name: "Black", hex: "#1A1A1A" },
+               { name: "Maroon", hex: "#800000" }, { name: "Cream", hex: "#F3E9DC" }, { name: "Soft Beige", hex: "#EAD7C0" }, { name: "Navy Blue", hex: "#1E293B" }, { name: "Black", hex: "#1A1A1A" },
             ]
           }
         ]
