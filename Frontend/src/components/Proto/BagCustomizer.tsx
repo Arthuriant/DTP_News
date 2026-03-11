@@ -14,6 +14,7 @@ import ProductMarketing from "./ProductMarketing";
 import ProductDimensions from "./ProductDimensions";
 import RecentlyViewdItems from "../ShopDetails/RecentlyViewd";
 import Newsletter from "../Common/Newsletter";
+import TextureOnlyPart from "./TextureOnlyPart";
 
 export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -48,15 +49,20 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   });
 
   const [selections, setSelections] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const colors = variant?.colors || p.colors || [];
-      init[p.id] = colors[0]?.hex || "#000";
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        
+        // Mengambil tekstur pertama sebagai default
+        const textures = variant?.textures || p.textures || [];
+        const defaultTexture = textures[0];
+        const colors = defaultTexture?.colors || [];
+
+        init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
+      });
+      return init;
     });
-    return init;
-  });
 
   const [textureSelections, setTextureSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -121,26 +127,18 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   // --- HANDLERS ---
   const handleColorSelect = (partId: string, hexColor: string) =>
     setSelections((p) => ({ ...p, [partId]: hexColor }));
-  const handleTextureSelect = (partId: string, textureId: string) =>
-    setTextureSelections((p) => ({ ...p, [partId]: textureId }));
   const handleVisibilityToggle = (partId: string) =>
     setVisibleParts((p) => ({ ...p, [partId]: !p[partId] }));
+
   const handleShapeSelect = (partId: string, shapeId: string) => {
     setShapeSelections((p) => ({ ...p, [partId]: shapeId }));
 
     const part = product.parts.find((p) => p.id === partId);
     if (part) {
       const variant = part.variants?.find((v) => v.id === shapeId);
-      const newColors = variant?.colors || part.colors || [];
       const newTextures = variant?.textures || part.textures || [];
-
-      setSelections((prev) => {
-        const currentColor = prev[partId];
-        if (!newColors.find((c) => c.hex === currentColor)) {
-          return { ...prev, [partId]: newColors[0]?.hex || "#000" };
-        }
-        return prev;
-      });
+      const defaultTexture = newTextures[0];
+      const newColors = defaultTexture?.colors || [];
 
       setTextureSelections((prev) => {
         const currentTexture = prev[partId];
@@ -149,8 +147,43 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         }
         return prev;
       });
+
+      setSelections((prev) => {
+        const currentColor = prev[partId];
+        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) {
+          return { ...prev, [partId]: newColors[0].hex };
+        }
+        return prev;
+      });
     }
   };
+
+  // Menggantikan handleTextureSelect lama yang hanya sebaris
+  const handleTextureSelect = (partId: string, textureId: string) => {
+    setTextureSelections((p) => ({ ...p, [partId]: textureId }));
+
+    const part = product.parts.find((p) => p.id === partId);
+    if (part) {
+      const activeShapeId = shapeSelections[partId] || partId;
+      const variant = part.variants?.find((v) => v.id === activeShapeId);
+      const textures = variant?.textures || part.textures || [];
+      
+      // Cari tekstur yang baru saja dipilih
+      const selectedTextureObj = textures.find((t) => t.id === textureId);
+      const newColors = selectedTextureObj?.colors || [];
+
+      // Perbarui pilihan warna jika tekstur baru ini punya array warnanya sendiri
+      setSelections((prev) => {
+        const currentColor = prev[partId];
+        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) {
+          return { ...prev, [partId]: newColors[0].hex };
+        }
+        return prev;
+      });
+    }
+  };
+
+  
 
   const calculateTotalPrice = () => {
     let total = product.basePrice || 0;
@@ -171,29 +204,37 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   // --- RENDERER ---
+  // --- RENDERER ---
   const renderProductParts = (pov: string) => {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
       const activeKompartemen = shapeSelections["kompartemen"];
-
       if (part.id === "pengait2" && activeKompartemen !== "pengait") {
-  return null;
-}
+        return null;
+      }
+
       const activeShape = shapeSelections[part.id] || part.id;
-      const activeColor = selections[part.id];
+      const activeVariant = part.variants?.find((v) => v.id === activeShape);
+      
+      // 1. Ambil objek tekstur yang sedang aktif
+      const currentTextures = activeVariant?.textures || part.textures || [];
+      const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+
+      // 2. LOGIKA DATA-DRIVEN: Cek apakah objek tekstur ini memiliki properti 'colors'?
+      const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
+
+      const activeColor = isColorable ? selections[part.id] : "#FFFFFF";
       const activeTexture = textureSelections[part.id];
 
-      const partZIndex =
-        typeof part.zIndex === "number"
-          ? part.zIndex
-          : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
-
+      const partZIndex = typeof part.zIndex === "number" ? part.zIndex : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
       const isHighlighted = highlightedPartId === part.id;
       const isOtherPartHighlighted = highlightedPartId !== null && highlightedPartId !== part.id;
 
+      // ========================================================
+      // BLOK 1: KHUSUS PART STATIS (Misal: Kancing, Pengait fix)
+      // ========================================================
       if (part.variants?.some((v) => v.staticOverlays)) {
-        const activeVariant = part.variants?.find((v) => v.id === activeShape);
         return (
           <div
             key={`${pov}-${part.id}`}
@@ -218,14 +259,17 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         );
       }
 
+      // ========================================================
+      // BLOK 2: PART DINAMIS & TEXTURE (Body, Lidah, Pita, Tali)
+      // ========================================================
       return (
-           <div
-            key={`${pov}-${part.id}-${activeShape}`}
-            className={`absolute inset-0 pointer-events-none transition-all duration-500 ease-in-out ${
-              isHighlighted ? "scale-[1.02] drop-shadow-2xl brightness-110 z-50" : ""
-            } ${isOtherPartHighlighted ? "opacity-50 grayscale-[30%]" : "opacity-100"}`}
-            style={{ zIndex: isHighlighted ? 999 : partZIndex }} 
-          >
+        <div
+          key={`${pov}-${part.id}-${activeShape}`}
+          className={`absolute inset-0 pointer-events-none transition-all duration-500 ease-in-out ${
+            isHighlighted ? "scale-[1.02] drop-shadow-2xl brightness-110 z-50" : ""
+          } ${isOtherPartHighlighted ? "opacity-50 grayscale-[30%]" : "opacity-100"}`}
+          style={{ zIndex: isHighlighted ? 999 : partZIndex }} 
+        >
           {pov === "360" ? (
             <SpritePart
               productId={product.id}
@@ -236,7 +280,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               currentFrame={frame360}
               totalFrames={TOTAL_FRAMES}
             />
-          ) : (
+          ) : isColorable ? (
+            // JIKA ADA WARNA -> Panggil DynamicPart (Butuh base-base & mask)
             <DynamicPart
               productId={product.id}
               pov={pov}
@@ -245,11 +290,16 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               texture={activeTexture}
               zIndex={partZIndex}
             />
+          ) : (
+            // JIKA TIDAK ADA WARNA -> Panggil TextureOnlyPart (Hanya butuh -base biasa)
+            <TextureOnlyPart
+              productId={product.id}
+              pov={pov}
+              partName={activeShape}
+              texture={activeTexture}
+              zIndex={partZIndex}
+            />
           )}
-          {pov === "Front" &&
-            part.staticOverlays?.map((overlay) => (
-              <StaticPart key={overlay.id} imageUrl={overlay.url} zIndex={overlay.zIndex} altText={overlay.name} />
-            ))}
         </div>
       );
     });
@@ -411,9 +461,14 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             const stepNumber = hasSizes ? index + 2 : index + 1;
             const activeShapeId = shapeSelections[part.id] || part.id;
             const variant = part.variants?.find((v) => v.id === activeShapeId);
-            const currentColors = variant?.colors || part.colors || [];
             const currentTextures = variant?.textures || part.textures || [];
             const isOpen = openSections[part.id];
+            
+            // --- 1. TAMBAHKAN LOGIKA INI ---
+            const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
+            const activeTextureObj = currentTextures.find(t => t.id === activeTextureId) || currentTextures[0];
+            const currentColors = activeTextureObj?.colors || [];
+            const isColorable = currentColors.length > 0;
             
 
             return (
@@ -511,29 +566,41 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       <div>
                         <p className="text-xs font-semibold text-slate-500 mb-3 uppercase">Pilih Warna</p>
                         <div className="flex flex-wrap gap-3">
-                          {currentColors.map((color) => {
-                            const isSelected = selections[part.id] === color.hex;
-                            return (
-                              <button
-                                key={color.hex}
-                                onClick={() => handleColorSelect(part.id, color.hex)}
-                                className="group flex flex-col items-center gap-1.5"
-                                title={color.name}
-                              >
-                                <div
-                                  style={{ backgroundColor: color.hex }}
-                                  className={`w-10 h-10 rounded-full border border-slate-300 transition-all ${
-                                    isSelected
-                                      ? "ring-2 ring-slate-900 ring-offset-2 scale-110 shadow-md"
-                                      : "hover:scale-105"
-                                  }`}
-                                />
-                                <span className="text-[9px] font-medium text-slate-500 text-center max-w-[50px] truncate">
-                                  {color.name}
-                                </span>
-                              </button>
-                            );
-                          })}
+                          {isColorable ? (
+                            <div className="flex flex-wrap gap-3">
+                              {currentColors.map((color) => {
+                                const isSelected = selections[part.id] === color.hex;
+                                return (
+                                  <button
+                                    key={color.hex}
+                                    onClick={() => handleColorSelect(part.id, color.hex)}
+                                    className="group flex flex-col items-center gap-1.5"
+                                    title={color.name}
+                                  >
+                                    <div
+                                      style={{ backgroundColor: color.hex }}
+                                      className={`w-10 h-10 rounded-full border border-slate-300 transition-all ${
+                                        isSelected
+                                          ? "ring-2 ring-slate-900 ring-offset-2 scale-110 shadow-md"
+                                          : "hover:scale-105"
+                                      }`}
+                                    />
+                                    <span className="text-[9px] font-medium text-slate-500 text-center max-w-[50px] truncate">
+                                      {color.name}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            // Tampilkan pesan elegan jika material ini tidak punya warna
+                            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3 text-slate-600 text-sm">
+                              <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Material <strong>{activeTextureObj?.name}</strong> memiliki corak/warna natural bawaan yang tidak dapat diubah.</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
