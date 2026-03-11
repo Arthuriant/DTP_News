@@ -340,7 +340,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           
           <div className="mb-8">
             <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Custom {product.name}
+              Kustom {product.name}
             </h1>
             <p className="text-slate-500 mb-4">Didesain oleh Anda, dibuat khusus untuk Anda.</p>
             <div className="text-2xl font-semibold text-slate-900">
@@ -359,7 +359,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               >
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest flex items-center gap-3">
                   <span className="bg-blue text-white min-w-[24px] h-6 rounded-full flex items-center justify-center text-[11px] font-bold shadow-md shadow-blue-600/30">1</span>
-                  Choose Your Size
+                  Pilih Ukuran
                 </h2>
                 <div className="flex items-center gap-4">
                   <button
@@ -369,7 +369,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     }}
                     className="text-xs text-blue-600 underline hover:text-blue-800"
                   >
-                    Size guide
+                    Panduan Ukuran
                   </button>
                   <svg 
                     className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${openSections['size'] ? 'rotate-180' : ''}`} 
@@ -429,7 +429,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     <span className="bg-blue text-white min-w-[24px] h-6 rounded-full flex items-center justify-center text-[11px] font-bold shadow-md shadow-blue-600/30">
                       {stepNumber}
                     </span>
-                    Customize {part.name}
+                    Kustom {part.name}
                   </h2>
                   <div className="flex items-center gap-4">
                      {currentTextures.length > 0 && (
@@ -441,7 +441,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                           }}
                           className="text-xs text-blue-600 underline hover:text-blue-800"
                         >
-                          Fabric guide
+                          Panduan Bahan
                         </button>
                      )}
                     <svg 
@@ -481,7 +481,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       </div>
                     )}
 
-                    {/* Textures / Material - REVISI 1: Kontras sangat tinggi */}
+                    {/* Textures / Material */}
                     {currentTextures.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-slate-500 mb-3 uppercase">Pilih Material</p>
@@ -559,24 +559,23 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
       {/* ================= MODALS ================= */}      
 
-      {/* 1. MODAL PANDUAN UKURAN (SIZE GUIDE) */}
+      {/* 1. MODAL PANDUAN UKURAN */}
       {showSizeGuideModal && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"
           onClick={() => setShowSizeGuideModal(false)}
         >
-          {/* Card Popup dengan Ambient Shadow Berlapis (Tanpa Border) */}
           <div 
             className="bg-white rounded-[2.5rem] max-w-7xl w-full max-h-[85vh] flex flex-col scale-in-center shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25),0_30px_60px_-30px_rgba(0,0,0,0.3)]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header - Tetap Di Atas (Fixed) */}
+            {/* Header */}
             <div className="px-10 py-8 flex justify-between items-center bg-white rounded-t-[2.5rem] z-10">
               <div className="flex items-center gap-4">
                 <div className="w-1.5 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
                 <div>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">Tote Size Guide</h3>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Sesuaikan dengan ukuran Laptop-mu</p>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">Panduan Ukuran</h3>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Sesuaikan dengan kebutuhan Anda</p>
                 </div>
               </div>
               <button 
@@ -602,7 +601,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[2s]" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-100 italic text-slate-300">No Image</div>
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 italic text-slate-300">Tidak Ada Gambar</div>
                       )}
                       <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-sm">
                         {size.id} Edition
@@ -617,12 +616,18 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     
                     {size.dimensions && (
                       <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100">
-                        {['width', 'height', 'depth'].map((dim) => (
-                          <div key={dim} className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
-                            <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">{dim}</span>
-                            <span className="text-xs font-black text-slate-800">{size.dimensions[dim]}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
-                          </div>
-                        ))}
+                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
+                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Lebar</span>
+                          <span className="text-xs font-black text-slate-800">{size.dimensions.width}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
+                        </div>
+                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
+                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Tinggi</span>
+                          <span className="text-xs font-black text-slate-800">{size.dimensions.height}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
+                        </div>
+                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
+                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Kedalaman</span>
+                          <span className="text-xs font-black text-slate-800">{size.dimensions.depth}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -633,7 +638,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         </div>
       )}
 
-      {/* 2. MODAL PANDUAN BAHAN (FABRIC GUIDE) */}
+      {/* 2. MODAL PANDUAN BAHAN */}
       {showFabricGuideModal && selectedFabricPartId && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-lg animate-in fade-in duration-300"
@@ -647,8 +652,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               <div className="flex items-center gap-5">
                 <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-xl shadow-lg rotate-3 italic">M</div>
                 <div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight italic uppercase">Material Library</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Texture & Feel</p>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tight italic uppercase">Pustaka Bahan</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Tekstur & Sentuhan</p>
                 </div>
               </div>
               <button onClick={() => setShowFabricGuideModal(false)} className="text-slate-300 hover:text-slate-900 transition-colors p-2 rounded-full hover:bg-slate-50">
@@ -674,7 +679,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                             className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-[2.5s]" 
                           />
                         ) : (
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center italic text-slate-300">Texture</div>
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center italic text-slate-300">Tekstur</div>
                         )}
 
                         {tex.price > 0 && (
@@ -687,7 +692,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       <div className="flex flex-col justify-center flex-1 space-y-3">
                         <h4 className="text-2xl font-bold text-slate-900">{tex.name}</h4>
                         <p className="text-slate-500 text-sm leading-loose font-medium opacity-80 border-l-2 border-slate-100 pl-5">
-                          {tex.description || "The epitome of durability meeting luxury. Carefully selected to age beautifully with use, this material embodies durable craftsmanship."}
+                          {tex.description || "Perpaduan sempurna antara ketahanan dan kemewahan. Dipilih secara khusus untuk menua dengan indah seiring pemakaian, material ini mewujudkan keahlian yang tahan lama."}
                         </p>
                       </div>
                     </div>
