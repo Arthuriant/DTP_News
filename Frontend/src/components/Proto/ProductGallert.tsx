@@ -19,7 +19,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
 
   return (
     <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
-      <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Preview</h3>
+      <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Pratinjau</h3>
       
       {/* Grid akan otomatis menyesuaikan jika jumlah gambar 2, 3, atau 4 */}
       <div className={`grid grid-cols-1 md:grid-cols-2 gap-4`}>

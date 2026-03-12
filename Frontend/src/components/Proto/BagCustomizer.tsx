@@ -321,7 +321,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   return (
     <>
-      <Breadcrumb title={`Kustomisasi Produk`} pages={["customizer"]} />
+      <Breadcrumb title={`Kustomisasi Produk`} pages={["Kustomisasi"]} />
 
       {/* ================= 1. MAIN LAYOUT CUSTOMIZER ================= */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">

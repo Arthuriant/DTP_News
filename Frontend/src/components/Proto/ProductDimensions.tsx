@@ -17,7 +17,7 @@ export default function ProductDimensions({ productName, image, specifications }
 
   return (
     <section className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 ">
-      <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Dimensions</h3>
+      <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Dimensi</h3>
       <div className="bg-[#f4f4f4] rounded-xl p-8 lg:p-16">
         
         {/* Area Ilustrasi Gambar Dimensi */}
