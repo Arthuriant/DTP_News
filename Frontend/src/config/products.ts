@@ -727,7 +727,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       },
 
       {
-        id: 'tali_kunci', name : 'Tali Kunci', basePrice : 0 , zIndex: {Front: 50, Back:50, Top:50}
+        id: 'tali_kunci', name : 'Tali Kunci', basePrice : 0 , zIndex: {Front: 50, Back:50, Top:50},
+        textures: [
+          { id: "base", name: "Original", thumb: "", price: 0 },
+        ]
       },
       {
         id: "kunci", name: "Kunci", basePrice: 0, zIndex: { Front: 60, Back: 60, Top: 60 },
