@@ -635,10 +635,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       "/assets/products/top_handle_bag/gallery/gallery-3.jpeg",
       "/assets/products/top_handle_bag/gallery/gallery-4.jpeg",
     ],
-    dimensionsImage: "/assets/products/top_handle_bag/dimension/dimension.png",
+    dimensionsImage: "/assets/products/top_handle_bag/dimensions/dimension.png",
     specifications: [
-      { label: "Gaya Produk", value: "Tas Jinjing Mini" },
-      { label: "Material", value: "Kanvas & Kulit Premium" }
+      { label: "Gaya Produk", value: "Tas Jinjing" },
+      { label: "Total Volume (liter)", value: "16.00 L" },
+      { label: "Berat (lbs)", value: "2.2 lb" },
+      { label: "Kecocokan Laptop Rata-rata (inci)", value: '16"' },
     ],
     marketingBlocks: [
       {
@@ -795,9 +797,32 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         ]
       },
       {
-        id: "pita", name: "Pita Aksesoris", basePrice: 25000, zIndex: { Front: 60, Back: 10, Top: 60 },
-        textures: [
-          { id: "base", name: "Pita Original", thumb: "", price: 0 } 
+        id: "pita", name: "Pita Aksesoris", basePrice: 25000, zIndex: { Front: 20, Back: 10, Top: 60 },
+        variants: [
+          {
+            id: "pita", 
+            name: "Gesper Kulit Klasik", 
+            price: 0, 
+            priceLabel: "",
+          },
+          {
+            id: "pita1", 
+            name: "Kunci Emblem Vintage", 
+            price: 35000, 
+            priceLabel: "+ Rp 35.000",
+          },
+          {
+            id: "pita2", 
+            name: "Kunci Emas Menyilang", 
+            price: 50000, 
+            priceLabel: "+ Rp 50.000",
+          },
+          {
+            id: "pita3", 
+            name: "Kunci Perak Minimalis", 
+            price: 25000, 
+            priceLabel: "+ Rp 25.000",
+          },
         ]
       },
       {
