@@ -27,77 +27,132 @@ const CounDown = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // URL Batik untuk tekstur latar dalam kotak
+  const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
+
   return (
-    <section className="overflow-hidden py-20">
-      <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
-        <div className="relative overflow-hidden z-1 rounded-lg bg-[#D0E9F3] p-4 sm:p-7.5 lg:p-10 xl:p-15">
-          <div className="max-w-[422px] w-full">
-            <span className="block font-medium text-custom-1 text-blue mb-2.5">
-              Jangan Lewatkan!!
+    <section className="relative overflow-hidden py-20 bg-[#F8F3E9]">
+      
+      {/* ================= ORNAMEN BACKGROUND LUAR ================= */}
+      {/* Siluet Gunungan Pudar di Kanan */}
+      <div 
+        className="absolute right-[-5%] top-[-10%] w-[500px] h-[800px] pointer-events-none z-0 opacity-[0.04] mix-blend-multiply grayscale contrast-125"
+        style={{ 
+          backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png')`, 
+          backgroundSize: 'contain', 
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right center'
+        }}
+      ></div>
+      {/* Siluet Wayang Pudar di Kiri */}
+      <div 
+        className="absolute left-[-5%] bottom-[-10%] w-[400px] h-[700px] pointer-events-none z-0 opacity-[0.03] mix-blend-multiply grayscale contrast-125"
+        style={{ 
+          backgroundImage: `url('https://www.shutterstock.com/shutterstock/photos/1411052360/display_1500/stock-photo-puppet-or-wayang-kulit-one-of-the-traditional-art-of-java-indonesia-mahabharata-and-ramayana-1411052360.jpg')`, 
+          backgroundSize: 'contain', 
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'left center'
+        }}
+      ></div>
+
+      <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-0 relative z-10">
+        
+        {/* Kotak Utama - Dark Mode Mewah */}
+        <div className="relative overflow-hidden z-1 rounded-[2rem] bg-[#2D1A11] p-6 sm:p-10 lg:p-14 xl:p-16 shadow-2xl border border-[#C5A059]/30 group">
+
+          {/* Background Batik Transparan Full Card (Sangat Samar: opacity 3%) */}
+          <div 
+            className="absolute inset-0 z-0 opacity-[0.03] mix-blend-screen pointer-events-none"
+            style={{
+              backgroundImage: `url('${brownBatikUrl}')`,
+              backgroundSize: '250px',
+              backgroundRepeat: 'repeat'
+            }}
+          ></div>
+
+          {/* Aksen Sudut Emas */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#C5A059]/10 to-transparent pointer-events-none"></div>
+          <div className="absolute top-6 left-6 w-8 h-8 border-t border-l border-[#C5A059]/40 pointer-events-none"></div>
+          <div className="absolute bottom-6 right-6 w-8 h-8 border-b border-r border-[#C5A059]/40 pointer-events-none"></div>
+
+          <div className="max-w-[500px] w-full relative z-10">
+            <span className="block font-sans font-bold tracking-[0.3em] text-[#C5A059] text-[10px] uppercase mb-4">
+              Penawaran Terbatas
             </span>
 
-            <h2 className="font-bold text-dark text-xl lg:text-heading-4 xl:text-heading-3 mb-3">
+            <h2 className="font-serif font-normal text-[#F8F3E9] text-3xl lg:text-4xl xl:text-5xl mb-5 leading-tight">
               Sempurnakan Penampilan Anda dengan Produk Kulit Premium
             </h2>
 
-            <p>Tas kulit buatan tangan kami dirancang untuk ketahanan dan keanggunan.</p>
+            <p className="font-sans text-[#E5D7C1] text-sm leading-relaxed mb-8">
+              Tas kulit buatan tangan kami dirancang untuk ketahanan dan keanggunan. Pesan sekarang sebelum kehabisan mahakarya eksklusif ini.
+            </p>
 
-            <div className="flex flex-wrap gap-6 mt-6">
-              <div>
-                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+            {/* Area Countdown Timer */}
+            <div className="flex flex-wrap gap-4 sm:gap-6 mt-6">
+              
+              <div className="flex flex-col items-center">
+                <span className="w-16 h-16 sm:w-[72px] sm:h-[72px] font-serif font-medium text-2xl sm:text-3xl text-[#2D1A11] rounded-2xl flex items-center justify-center bg-[#F8F3E9] shadow-[inset_0_0_15px_rgba(197,160,89,0.2)] border border-[#C5A059]/40 mb-3">
                   {days < 10 ? "0" + days : days}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">Hari</span>
+                <span className="block font-sans text-[10px] font-bold uppercase tracking-widest text-[#C5A059]">Hari</span>
               </div>
 
-              <div>
-                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+              <div className="flex flex-col items-center">
+                <span className="w-16 h-16 sm:w-[72px] sm:h-[72px] font-serif font-medium text-2xl sm:text-3xl text-[#2D1A11] rounded-2xl flex items-center justify-center bg-[#F8F3E9] shadow-[inset_0_0_15px_rgba(197,160,89,0.2)] border border-[#C5A059]/40 mb-3">
                   {hours < 10 ? "0" + hours : hours}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">Jam</span>
+                <span className="block font-sans text-[10px] font-bold uppercase tracking-widest text-[#C5A059]">Jam</span>
               </div>
 
-              <div>
-                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+              <div className="flex flex-col items-center">
+                <span className="w-16 h-16 sm:w-[72px] sm:h-[72px] font-serif font-medium text-2xl sm:text-3xl text-[#2D1A11] rounded-2xl flex items-center justify-center bg-[#F8F3E9] shadow-[inset_0_0_15px_rgba(197,160,89,0.2)] border border-[#C5A059]/40 mb-3">
                   {minutes < 10 ? "0" + minutes : minutes}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">Menit</span>
+                <span className="block font-sans text-[10px] font-bold uppercase tracking-widest text-[#C5A059]">Menit</span>
               </div>
 
-              <div>
-                <span className="min-w-[64px] h-14.5 font-semibold text-xl lg:text-3xl text-dark rounded-lg flex items-center justify-center bg-white shadow-2 px-4 mb-2">
+              <div className="flex flex-col items-center">
+                <span className="w-16 h-16 sm:w-[72px] sm:h-[72px] font-serif font-medium text-2xl sm:text-3xl text-[#2D1A11] rounded-2xl flex items-center justify-center bg-[#F8F3E9] shadow-[inset_0_0_15px_rgba(197,160,89,0.2)] border border-[#C5A059]/40 mb-3">
                   {seconds < 10 ? "0" + seconds : seconds}
                 </span>
-                <span className="block text-custom-sm text-dark text-center">Detik</span>
+                <span className="block font-sans text-[10px] font-bold uppercase tracking-widest text-[#C5A059]">Detik</span>
               </div>
+
             </div>
 
+            {/* Tombol Mewah */}
             <a
               href="#"
-              className="inline-flex font-medium text-custom-sm text-white bg-blue py-3 px-9.5 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5"
+              className="inline-flex font-bold text-[10px] tracking-[0.2em] uppercase text-[#2D1A11] rounded-full bg-[#C5A059] py-4 px-10 ease-out duration-300 hover:bg-[#F8F3E9] shadow-lg border border-transparent hover:border-[#C5A059] mt-10"
             >
-              Lihat Sekarang!
+              Lihat Sekarang
             </a>
           </div>
 
+          {/* Gambar Ornamen Bawaan (Diubah transparansinya agar membaur) */}
           <Image
             src="/images/countdown/countdown-bg.png"
             alt="bg shapes"
-            className="hidden sm:block absolute right-0 bottom-0 -z-1"
+            className="hidden sm:block absolute right-0 bottom-0 -z-1 opacity-[0.15] mix-blend-screen"
             width={737}
             height={482}
           />
 
-          {/* Bagian yang diubah agar gambar di tengah secara vertikal */}
-          <div className="hidden lg:flex absolute right-4 xl:right-20 top-0 bottom-0 items-center -z-1">
+          {/* Gambar Produk Tas */}
+          <div className="hidden lg:flex absolute right-4 xl:right-16 top-0 bottom-0 items-center justify-center -z-1 w-[450px]">
+            {/* Efek Cahaya Halus di Belakang Tas */}
+            <div className="absolute bg-[#C5A059] blur-[80px] opacity-[0.15] rounded-full w-[350px] h-[350px] z-0 pointer-events-none"></div>
+            
             <Image
               src="/images/countdown/countdown-01.png"
               alt="leather bag product"
               width={411}
               height={376}
-              className="object-contain"
+              className="object-contain relative z-10 drop-shadow-[0_25px_35px_rgba(0,0,0,0.6)] transform group-hover:scale-105 transition-transform duration-700"
             />
           </div>
+
         </div>
       </div>
     </section>
