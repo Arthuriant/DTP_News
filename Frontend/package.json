@@ -24,6 +24,7 @@
     "react-hot-toast": "^2.4.1",
     "react-range-slider-input": "^3.0.7",
     "react-redux": "^9.2.0",
+    "react-router-dom": "^7.13.1",
     "sanity": "^4.18.0",
     "sharp": "^0.34.5",
     "swiper": "^10.2.0",
