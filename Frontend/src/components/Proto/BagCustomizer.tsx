@@ -8,11 +8,9 @@ import SpritePart from "./SpritePart";
 import StaticSpritePart from "./StaticSpritePart";
 import { useSearchParams } from "next/navigation";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
-
-// Pastikan import komponen bawah ini sesuai dengan path di folder kamu
-import ProductGallery from "./ProductGallery"; // Sesuaikan nama file kalau beda
+import ProductGallery from "./ProductGallery"; 
 import ProductMarketing from "./ProductMarketing";
-import ProductDimensions from "./ProductDimensions"; // Sesuaikan nama file kalau beda
+import ProductDimensions from "./ProductDimensions"; 
 import RecentlyViewdItems from "../ShopDetails/RecentlyViewd";
 import Newsletter from "../Common/Newsletter";
 import TextureOnlyPart from "./TextureOnlyPart";
@@ -25,7 +23,6 @@ export default function BagCustomizer() {
   if (!product) {
     return (
       <div className="p-20 text-center font-serif text-3xl text-[#2D1A11] bg-[#F8F3E9] h-screen flex items-center justify-center relative overflow-hidden">
-        {/* Latar Belakang Wayang/Batik Halus */}
         <div 
           className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none mix-blend-color-dodge"
           style={{ 
@@ -106,6 +103,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
   const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
 
+  // TAMBAHAN: State full preview
+  const [showFullPreview, setShowFullPreview] = useState(false);
+
   // Effect to auto-highlight part when changing step
   useEffect(() => {
     if (currentStep && currentStep.type === 'part') {
@@ -115,7 +115,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   }, [activeStepIndex, currentStep]);
 
-  // LOGIKA 360 ROTATION
+  // 360 ROTATION
   const TOTAL_FRAMES = 17;
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -241,8 +241,11 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const activeTexture = textureSelections[part.id];
 
       const partZIndex = typeof part.zIndex === "number" ? part.zIndex : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
-      const isHighlighted = highlightedPartId === part.id;
-      const isOtherPartHighlighted = highlightedPartId !== null && highlightedPartId !== part.id;
+      
+      // TAMBAHAN: Logika Highlight Baru yang dipengaruhi showFullPreview
+      const activeHighlight = showFullPreview ? null : highlightedPartId;
+      const isHighlighted = activeHighlight === part.id;
+      const isOtherPartHighlighted = activeHighlight !== null && activeHighlight !== part.id;
 
       if (part.variants?.some((v) => v.staticOverlays)) {
         return (
@@ -353,6 +356,29 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                   <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#C5A059]/60"></div>
                   <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#C5A059]/60"></div>
 
+                  {/* TAMBAHAN: Tombol Shortcut Fokus Detail / Keseluruhan */}
+                  <button
+                    onClick={() => setShowFullPreview(!showFullPreview)}
+                    className={`absolute top-6 right-6 z-[100] px-4 py-2.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 shadow-xl border backdrop-blur-md flex items-center gap-2 ${
+                      showFullPreview 
+                        ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059]" 
+                        : "bg-[#2D1A11]/90 text-[#C5A059] border-[#C5A059]/50 hover:bg-[#2D1A11] hover:scale-105"
+                    }`}
+                    style={{ fontFamily: "sans-serif" }}
+                  >
+                    {showFullPreview ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
+                        Fokus Detail
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Lihat Keseluruhan
+                      </>
+                    )}
+                  </button>
+
                   <div className="w-full h-[380px] sm:h-[450px] lg:h-[500px] flex items-center justify-center relative z-10">
                     {activeView !== "360" ? (
                       <div key={globalAnimationKey} className="animate-soft-fade w-full h-full max-w-[500px] flex items-center justify-center relative drop-shadow-[0_35px_35px_rgba(0,0,0,0.4)]">
@@ -391,10 +417,11 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       <button
                         key={view.id}
                         onClick={() => setActiveView(view.id)}
-                        className={`px-6 py-2.5 rounded-full text-[11px] tracking-widest transition-all duration-500 uppercase border ${
+                        // TAMBAHAN: Update class name untuk mempertegas kontras tombol view saat inaktif
+                        className={`px-6 py-2.5 rounded-full text-[11px] tracking-widest transition-all duration-300 uppercase border backdrop-blur-sm ${
                           activeView === view.id
-                            ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059] font-bold shadow-lg"
-                            : "bg-transparent text-[#F8F3E9]/70 border-[#F8F3E9]/20 hover:border-[#C5A059] hover:text-[#F8F3E9]"
+                            ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059] font-bold shadow-[0_0_15px_rgba(197,160,89,0.4)]"
+                            : "bg-white/10 text-white border-white/20 hover:bg-white/20 hover:border-[#C5A059] hover:text-[#C5A059] shadow-sm"
                         }`}
                         style={{ fontFamily: "sans-serif" }}
                       >
