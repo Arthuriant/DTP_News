@@ -1,6 +1,15 @@
+"use client";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React from "react";
+
+const handleGoogleLogin = () => {
+  const currentUrl = window.location.href;
+
+  window.location.href =
+    "http://127.0.0.1:8000/auth/google?redirect=" +
+    encodeURIComponent(currentUrl);
+};
 
 const Signup = () => {
   return (
@@ -17,7 +26,9 @@ const Signup = () => {
             </div>
 
             <div className="flex flex-col gap-4.5">
-              <button className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
+              <button 
+              onClick={handleGoogleLogin}
+              className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
                 <svg
                   width="20"
                   height="20"

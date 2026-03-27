@@ -1,8 +1,46 @@
+"use client";
+
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React from "react";
+import { useEffect } from "react";
+
+const handleGoogleLogin = () => {
+  const currentUrl = window.location.href;
+
+  window.location.href =
+    "http://127.0.0.1:8000/auth/google?redirect=" +
+    encodeURIComponent(currentUrl);
+};
+
+const handleLogout = async () => {
+  await fetch("http://127.0.0.1:8000/logout", {
+    method: "POST",
+    credentials: "include",
+  });
+  window.location.href = "/signin";
+};
 
 const Signin = () => {
+  useEffect(() => {
+    const checkLogin = async () => {
+      const res = await fetch("http://127.0.0.1:8000/user", {
+        credentials: "include",
+      });
+
+      // Di dalam checkLogin
+      if (res.ok) {
+        const data = await res.json();
+        // Harus ada pengecekan ini:
+        if (data && data.name) {
+          window.location.href = "/";
+        }
+      }
+    };
+
+    checkLogin();
+  }, []);
+
   return (
     <>
       <Breadcrumb title={"Signin"} pages={["Signin"]} />
@@ -67,7 +105,11 @@ const Signin = () => {
                 </span>
 
                 <div className="flex flex-col gap-4.5 mt-4.5">
-                  <button className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2"
+                  >
                     <svg
                       width="20"
                       height="20"
@@ -114,7 +156,11 @@ const Signin = () => {
                     Sign In with Google
                   </button>
 
-                  <button className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex justify-center items-center gap-3.5 rounded-lg border border-gray-3 bg-gray-1 p-3 ease-out duration-200 hover:bg-gray-2"
+                  >
                     <svg
                       width="22"
                       height="22"
@@ -127,7 +173,7 @@ const Signin = () => {
                         fill="#15171A"
                       />
                     </svg>
-                    Sign Up with Github
+                    Logout
                   </button>
                 </div>
 

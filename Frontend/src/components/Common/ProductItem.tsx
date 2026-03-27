@@ -22,14 +22,36 @@ const ProductItem = ({ item }: { item: Product }) => {
   };
 
   // add to cart
-  const handleAddToCart = () => {
-    dispatch(
-      addItemToCart({
-        ...item,
-        quantity: 1,
-      })
-    );
-  };
+  const handleAddToCart = async () => {
+  const res = await fetch("http://127.0.0.1:8000/api/cart", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      product_id: item.id,
+    }),
+  });
+
+  // 🔴 kalau belum login
+  if (res.status === 401) {
+    window.location.href = "/signin";
+    return;
+  }
+
+  // ✅ kalau berhasil
+  const data = await res.json();
+
+  dispatch(
+    addItemToCart({
+      ...item,
+      quantity: 1,
+    })
+  );
+
+  alert(data.message);
+};
 
   const handleItemToWishList = () => {
     dispatch(
