@@ -133,45 +133,49 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-[9999] transition-all duration-300 ${
+      className={`fixed left-0 top-0 w-full z-[9999] transition-all duration-500 border-b ${
         stickyMenu 
-          ? "bg-white/90 backdrop-blur-md shadow-md" 
-          : "bg-white"
+          ? "bg-[#F8F3E9]/95 backdrop-blur-md shadow-[0_10px_30px_rgba(45,26,17,0.08)] border-[#C5A059]/30" 
+          : "bg-[#F8F3E9] border-transparent"
       }`}
     >
-      <div className="max-w-[1170px] mx-auto px-4 sm:px-7.5 xl:px-0">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-7.5 xl:px-0">
+        {/* --- Header Top Section --- */}
         <div
-          className={`flex flex-col lg:flex-row gap-4 items-end lg:items-center justify-between transition-all duration-300 ${
-            stickyMenu ? "py-2 lg:py-3" : "py-5 lg:py-7"
+          className={`flex flex-col lg:flex-row gap-4 items-end lg:items-center justify-between transition-all duration-500 ${
+            stickyMenu ? "py-3 lg:py-4" : "py-5 lg:py-8"
           }`}
         >
           {/* Logo & Search Container */}
-          <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-5 lg:gap-10">
-            <Link className="flex-shrink-0 transition-transform duration-300" href="/">
+          <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-6 lg:gap-12">
+            <Link className="flex-shrink-0 transition-transform duration-500 hover:scale-105" href="/">
               <Image
-                src="/images/logo/logo.svg"
+                src="/images/logo/logo1.png"
                 alt="Logo"
-                width={stickyMenu ? 160 : 219}
+                width={stickyMenu ? 160 : 210} 
                 height={36}
-                className="w-auto h-auto"
+                className="w-120 h-auto transition-all duration-500"
               />
             </Link>
 
-            {/* Search Bar */}
-            <div className={`max-w-[475px] w-full transition-all duration-300 ${stickyMenu ? 'scale-95 origin-left' : ''}`}>
+            {/* Search Bar - Gaya Eksklusif */}
+            <div className={`max-w-[500px] w-full transition-all duration-500 ${stickyMenu ? 'scale-95 origin-left' : ''}`}>
               <form>
-                <div className="flex items-center">
-                  <CustomSelect options={options} />
+                <div className="flex items-center shadow-sm rounded-[5px] hover:shadow-md transition-shadow duration-300">
+                  <div className="bg-white rounded-l-[5px] border border-r-0 border-[#C5A059]/30">
+                     <CustomSelect options={options} />
+                  </div>
                   <div className="relative w-full">
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 inline-block w-px h-5 bg-gray-4"></span>
+                    {/* Garis pemisah krem emas */}
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 inline-block w-px h-6 bg-[#C5A059]/30 z-10"></span>
                     <input
                       onChange={(e) => setSearchQuery(e.target.value)}
                       value={searchQuery}
                       type="search"
-                      placeholder="I am shopping for..."
-                      className="w-full rounded-r-[5px] bg-gray-1 border border-l-0 border-gray-3 py-2 pl-4 pr-10 outline-none focus:border-blue transition-colors"
+                      placeholder="Cari mahakarya..."
+                      className="w-full rounded-r-[5px] bg-white border border-l-0 border-[#C5A059]/30 py-2.5 pl-5 pr-10 outline-none focus:border-[#C5A059] transition-colors text-[#2D1A11] placeholder:text-[#2D1A11]/40 font-serif tracking-wide"
                     />
-                    <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-blue transition-colors">
+                    <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-[#2D1A11]/50 hover:text-[#C5A059] transition-colors duration-300">
                       <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18">
                         <path d="M17.2687 15.6656L12.6281 11.8969C14.5406 9.28123 14.3437 5.5406 11.9531 3.1781C10.6875 1.91248 8.99995 1.20935 7.19995 1.20935C5.39995 1.20935 3.71245 1.91248 2.44683 3.1781C-0.168799 5.79373 -0.168799 10.0687 2.44683 12.6844C3.71245 13.95 5.39995 14.6531 7.19995 14.6531C8.91558 14.6531 10.5187 14.0062 11.7843 12.8531L16.4812 16.65C16.5937 16.7344 16.7343 16.7906 16.875 16.7906C17.0718 16.7906 17.2406 16.7062 17.3531 16.5656C17.5781 16.2844 17.55 15.8906 17.2687 15.6656ZM7.19995 13.3875C5.73745 13.3875 4.38745 12.825 3.34683 11.7844C1.20933 9.64685 1.20933 6.18748 3.34683 4.0781C4.38745 3.03748 5.73745 2.47498 7.19995 2.47498C8.66245 2.47498 10.0125 3.03748 11.0531 4.0781C13.1906 6.2156 13.1906 9.67498 11.0531 11.7844C10.0406 12.825 8.66245 13.3875 7.19995 13.3875Z" />
                       </svg>
@@ -183,83 +187,91 @@ const Header = () => {
           </div>
 
           {/* Action Icons (Support, Account, Cart) */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 lg:gap-8">
+            
+            {/* Support - Disembunyikan saat scroll */}
             {!stickyMenu && (
-              <div className="hidden xl:flex items-center gap-3 transition-opacity duration-300">
-                <div className="p-2 bg-gray-1 rounded-full text-blue">
-                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.7 3.1C5.9 1.8 8 2 9 3.5l1.2 1.8c.8 1.1.7 2.7-.3 3.7l-.2.3c-.4.4-.3.9-.1 1.4 1.4 1.5 2.3 1.9 2.7 2 .4.1.6-.1.6-.2l.4-.4c.9-.9 2.2-1.1 3.3-.5l1.9 1.1c1.6.9 2 3.2.7 4.6l-1.4 1.5c-.4.5-1 .9-1.7 1-1.8.2-6 0-10.4-4.7C3.1 12.6 2.3 8.8 2.2 7l.7-.1c-.1-.9.3-1.7.9-2.2l1.6-1.6z"/></svg>
+              <div className="hidden xl:flex items-center gap-3 transition-opacity duration-300 group cursor-pointer">
+                <div className="p-2.5 bg-[#C5A059]/10 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-300 shadow-sm border border-[#C5A059]/20">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.7 3.1C5.9 1.8 8 2 9 3.5l1.2 1.8c.8 1.1.7 2.7-.3 3.7l-.2.3c-.4.4-.3.9-.1 1.4 1.4 1.5 2.3 1.9 2.7 2 .4.1.6-.1.6-.2l.4-.4c.9-.9 2.2-1.1 3.3-.5l1.9 1.1c1.6.9 2 3.2.7 4.6l-1.4 1.5c-.4.5-1 .9-1.7 1-1.8.2-6 0-10.4-4.7C3.1 12.6 2.3 8.8 2.2 7l.7-.1c-.1-.9.3-1.7.9-2.2l1.6-1.6z"/></svg>
                 </div>
                 <div>
-                  <span className="block text-[10px] text-dark-4 leading-none">SUPPORT</span>
-                  <p className="font-bold text-xs text-dark tracking-tight">7492-3477</p>
+                  <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">BANTUAN</span>
+                  <p className="font-serif font-semibold text-sm text-[#2D1A11] tracking-wide">(+62) 2500241</p>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center gap-5">
+<div className="flex items-center gap-6">
               
-              {/* 4. PERUBAHAN AREA ACCOUNT / LOGIN */}
+              {/* AREA ACCOUNT / LOGIN (Gabungan Logika Bayu & Desain Main) */}
               {userData ? (
-                // Jika sudah login: Tampilkan Nama & Dropdown
-                <div className="relative group">
-                  <div className="flex items-center gap-2 cursor-pointer pb-2 pt-2">
-                    <div className="text-blue group-hover:scale-110 transition-transform">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                // JIKA SUDAH LOGIN: Tampilkan Nama & Dropdown dengan style baru
+                <div className="relative group z-50">
+                  <div className="flex items-center gap-3 cursor-pointer">
+                    <div className="text-[#2D1A11] group-hover:text-[#C5A059] group-hover:scale-110 transition-all duration-300">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
-                    <div className={stickyMenu ? 'hidden lg:block' : ''}>
-                      <span className="block text-[10px] text-dark-4 uppercase leading-none">Hello,</span>
-                      <p className="font-semibold text-xs max-w-[100px] truncate">{userData.name}</p>
+                    <div className={stickyMenu ? 'hidden lg:block' : 'hidden sm:block'}>
+                      <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">AKUN</span>
+                      <p className="font-serif font-medium text-sm text-[#2D1A11] group-hover:text-[#C5A059] transition-colors max-w-[100px] truncate">
+                        {userData.name}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Kotak Dropdown (Muncul saat di-hover) */}
-                  <div className="absolute right-0 top-full w-32 bg-white shadow-md rounded-md border border-gray-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:-translate-y-1 transition-all duration-300 z-50">
-                    <Link href="/profile" className="block px-4 py-2 text-sm text-dark hover:bg-gray-1 hover:text-blue transition-colors rounded-t-md">
+                  {/* Kotak Dropdown */}
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white shadow-lg rounded-md border border-[#C5A059]/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:-translate-y-1 transition-all duration-300">
+                    <Link href="/profile" className="block px-4 py-2 text-sm text-[#2D1A11] hover:bg-[#C5A059]/10 hover:text-[#C5A059] transition-colors rounded-t-md">
                       Profile
                     </Link>
                     <button 
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-1 transition-colors rounded-b-md"
+                      className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors rounded-b-md"
                     >
                       Logout
                     </button>
                   </div>
                 </div>
               ) : (
-                // Jika belum login: Tampilkan link Sign In biasa
-                <Link href="/signin" className="group flex items-center gap-2 pb-2 pt-2">
-                  <div className="text-blue group-hover:scale-110 transition-transform">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                // JIKA BELUM LOGIN: Tampilkan link Sign In murni desain dari main
+                <Link href="/signin" className="group flex items-center gap-3">
+                  <div className="text-[#2D1A11] group-hover:text-[#C5A059] group-hover:scale-110 transition-all duration-300">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   </div>
-                  <div className={stickyMenu ? 'hidden lg:block' : ''}>
-                    <span className="block text-[10px] text-dark-4 uppercase leading-none">Account</span>
-                    <p className="font-semibold text-xs">Sign In</p>
+                  <div className={stickyMenu ? 'hidden lg:block' : 'hidden sm:block'}>
+                    <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">AKUN</span>
+                    <p className="font-serif font-medium text-sm text-[#2D1A11] group-hover:text-[#C5A059] transition-colors">Sign In</p>
                   </div>
                 </Link>
               )}
               {/* AKHIR PERUBAHAN AREA ACCOUNT */}
-
-              <button onClick={handleOpenCartModal} className="group flex items-center gap-2">
-                <div className="relative text-blue group-hover:scale-110 transition-transform">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                  <span className="flex items-center justify-center absolute -right-2 -top-2 bg-blue w-4.5 h-4.5 rounded-full text-white text-[10px] font-bold">
+              
+              {/* Cart Button */}
+              <button onClick={handleOpenCartModal} className="group flex items-center gap-3">
+                <div className="relative text-[#2D1A11] group-hover:text-[#C5A059] group-hover:scale-110 transition-all duration-300">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                  
+                  {/* Cart Badge Emas */}
+                  <span className="flex items-center justify-center absolute -right-2 -top-2 bg-[#D4AF37] w-4.5 h-4.5 rounded-full text-[#1E110A] text-[10px] font-extrabold shadow-sm border border-white">
                     {product.length}
                   </span>
                 </div>
-                <div className={stickyMenu ? 'hidden lg:block' : ''}>
-                  <span className="block text-[10px] text-dark-4 uppercase leading-none">Cart</span>
-                  <p className="font-semibold text-xs">${totalPrice}</p>
+                <div className={stickyMenu ? 'hidden lg:block' : 'hidden sm:block'}>
+                  <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">KERANJANG</span>
+                  <p className="font-serif font-medium text-sm text-[#2D1A11] group-hover:text-[#C5A059] transition-colors">Rp {totalPrice.toLocaleString('id-ID')}</p>
                 </div>
               </button>
 
+              {/* Mobile Menu Toggle */}
               <button
-                className="lg:hidden p-2 text-dark"
+                className="lg:hidden p-2 text-[#2D1A11] hover:text-[#C5A059] transition-colors"
                 onClick={() => setNavigationOpen(!navigationOpen)}
               >
                 <div className="w-6 flex flex-col gap-1.5">
-                  <span className={`h-0.5 w-full bg-current transition-all ${navigationOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                  <span className={`h-0.5 w-full bg-current transition-all ${navigationOpen ? 'opacity-0' : ''}`}></span>
-                  <span className={`h-0.5 w-full bg-current transition-all ${navigationOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+                  <span className={`h-[2px] w-full bg-current transition-all duration-300 ${navigationOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+                  <span className={`h-[2px] w-full bg-current transition-all duration-300 ${navigationOpen ? 'opacity-0' : ''}`}></span>
+                  <span className={`h-[2px] w-full bg-current transition-all duration-300 ${navigationOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
                 </div>
               </button>
             </div>
@@ -268,14 +280,14 @@ const Header = () => {
       </div>
 
       {/* --- Main Navigation Section --- */}
-      <div className={`border-t border-gray-3 transition-all duration-300 ${stickyMenu ? 'bg-gray-50/80 backdrop-blur-sm' : ''}`}>
-        <div className="max-w-[1170px] mx-auto px-4 sm:px-7.5 xl:px-0">
+      <div className={`border-t transition-all duration-500 ${stickyMenu ? 'border-transparent' : 'border-[#C5A059]/20'}`}>
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-7.5 xl:px-0">
           <div className="flex items-center justify-between">
             <nav className={`
-              absolute right-4 top-full xl:static bg-white xl:bg-transparent shadow-xl xl:shadow-none rounded-b-lg xl:rounded-none overflow-hidden transition-all duration-300
-              ${navigationOpen ? 'max-h-[500px] border xl:border-0' : 'max-h-0 xl:max-h-none'}
+              absolute right-4 top-full xl:static bg-[#F8F3E9] xl:bg-transparent shadow-xl xl:shadow-none rounded-b-xl xl:rounded-none overflow-hidden transition-all duration-500 border border-[#C5A059]/20 xl:border-0
+              ${navigationOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 xl:max-h-none opacity-0 xl:opacity-100'}
             `}>
-              <ul className="flex flex-col xl:flex-row xl:items-center p-5 xl:p-0 gap-4 xl:gap-8">
+              <ul className="flex flex-col xl:flex-row xl:items-center p-5 xl:p-0 gap-4 xl:gap-10">
                 {menuData.map((menuItem, i) => (
                   <li key={i} className="group relative">
                     {menuItem.submenu ? (
@@ -283,9 +295,9 @@ const Header = () => {
                     ) : (
                       <Link
                         href={menuItem.path}
-                        className={`text-sm font-semibold text-dark hover:text-blue transition-all relative
-                          ${stickyMenu ? 'py-3' : 'py-5'} inline-block
-                          after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-blue after:transition-all hover:after:w-full
+                        className={`text-sm md:text-base font-serif font-medium text-[#2D1A11] hover:text-[#C5A059] transition-all duration-300 relative
+                          ${stickyMenu ? 'py-3' : 'py-5'} inline-block tracking-wide
+                          after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-[#C5A059] after:transition-all after:duration-300 hover:after:w-full
                         `}
                       >
                         {menuItem.title}
@@ -296,10 +308,11 @@ const Header = () => {
               </ul>
             </nav>
 
-            {/* Quick Links */}
-            <div className={`hidden xl:flex items-center gap-6 text-sm font-medium ${stickyMenu ? 'opacity-0 translate-x-10 pointer-events-none' : 'opacity-100 translate-x-0'} transition-all duration-300`}>
-                <Link href="#" className="hover:text-blue">Recently Viewed</Link>
-                <Link href="/wishlist" className="hover:text-blue">Wishlist</Link>
+            {/* Quick Links Kanan (Mewah) */}
+            <div className={`hidden xl:flex items-center gap-8 text-xs tracking-widest font-serif font-medium uppercase text-[#C5A059] ${stickyMenu ? 'opacity-0 translate-x-10 pointer-events-none' : 'opacity-100 translate-x-0'} transition-all duration-500`}>
+                <Link href="#" className="hover:text-[#2D1A11] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[1px] after:bg-[#2D1A11] hover:after:w-full after:transition-all">Terakhir Dilihat</Link>
+                <span className="w-1 h-1 rounded-full bg-[#C5A059]/40"></span>
+                <Link href="/wishlist" className="hover:text-[#2D1A11] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[1px] after:bg-[#2D1A11] hover:after:w-full after:transition-all">Wishlist</Link>
             </div>
           </div>
         </div>

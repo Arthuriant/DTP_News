@@ -12,6 +12,9 @@ const config: Config = {
   theme: {
     fontFamily: {
       "euclid-circular-a": ["Euclid Circular A"],
+      // --- Tambahan Font Luxury Nusantara ---
+      "playfair": ["'Playfair Display'", "serif"],
+      "cinzel": ["'Cinzel'", "serif"],
     },
     container: {
       center: true,
@@ -26,6 +29,22 @@ const config: Config = {
       transparent: "transparent",
       white: "#FFFFFF",
       body: "#6C6F93",
+      
+      // --- Tambahan Palet Luxury Nusantara ---
+      nusantara: {
+        cream: "#F8F3E9",          // Background utama
+        "cream-dim": "#F5EFE6",    // Background card dalam
+        "cream-dark": "#EFE8DC",   // Teks terang / alas gambar
+        brown: "#2D1A11",          // Background card luar / Teks utama
+        "brown-dark": "#1E110A",   // Background footer
+        "brown-light": "#6B442A",  // Teks deskripsi/sekunder
+        black: "#160B08",          // Footer paling bawah
+        gold: "#C5A059",           // Warna emas standar
+        "gold-light": "#D4AF37",   // Warna emas terang (Glow/Hover)
+        "gold-dark": "#8B6B3D",    // Warna emas gelap (untuk gradasi)
+      },
+      // ---------------------------------------
+
       meta: {
         DEFAULT: "#F7F9FC",
         2: "#495270",

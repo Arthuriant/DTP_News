@@ -8,10 +8,9 @@ import SpritePart from "./SpritePart";
 import StaticSpritePart from "./StaticSpritePart";
 import { useSearchParams } from "next/navigation";
 import { PRODUCTS_CONFIG, ProductConfig } from "@/config/products";
-import { Product } from '../../types/product';
-import ProductGallery from "./ProductGallert";
+import ProductGallery from "./ProductGallery"; 
 import ProductMarketing from "./ProductMarketing";
-import ProductDimensions from "./ProductDimensions";
+import ProductDimensions from "./ProductDimensions"; 
 import RecentlyViewdItems from "../ShopDetails/RecentlyViewd";
 import Newsletter from "../Common/Newsletter";
 import TextureOnlyPart from "./TextureOnlyPart";
@@ -26,8 +25,16 @@ export default function BagCustomizer() {
 
   if (!product) {
     return (
-      <div className="p-20 text-center font-bold text-slate-500">
-        Produk tidak ditemukan.
+      <div className="p-20 text-center font-serif text-3xl text-[#2D1A11] bg-[#F8F3E9] h-screen flex items-center justify-center relative overflow-hidden">
+        <div 
+          className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none mix-blend-color-dodge"
+          style={{ 
+            backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`,
+            backgroundSize: '400px',
+            backgroundRepeat: 'repeat'
+          }}
+        ></div>
+        <span className="relative z-10">Produk tidak ditemukan.</span>
       </div>
     );
   }
@@ -41,10 +48,19 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
 
+  // --- BUILD STEPS ARRAY ---
+  const steps = [];
+  if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
+  product.parts.forEach((part) => steps.push({ id: part.id, type: 'part', title: part.name, partData: part }));
+
   // --- STATES ---
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const currentStep = steps[activeStepIndex];
+
   const [activeSize, setActiveSize] = useState<string>(
     bagSizes.length > 0 ? bagSizes[0].id : ""
   );
+  
   const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     product.parts.forEach((p) => {
@@ -59,7 +75,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
         const variant = p.variants?.find((v) => v.id === activeShapeId);
         
-        // Mengambil tekstur pertama sebagai default
         const textures = variant?.textures || p.textures || [];
         const defaultTexture = textures[0];
         const colors = defaultTexture?.colors || [];
@@ -88,18 +103,24 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const [activeView, setActiveView] = useState<string>("front");
 
-  // Accordion State
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = { size: true };
-    product.parts.forEach((p) => (init[p.id] = true)); 
-    return init;
-  });
+  // Modal States 
+  const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
+  const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
+  const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
 
-  const toggleSection = (sectionId: string) => {
-    setOpenSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
-  };
+  // TAMBAHAN: State full preview
+  const [showFullPreview, setShowFullPreview] = useState(false);
 
-  // LOGIKA 360 ROTATION
+  // Effect to auto-highlight part when changing step
+  useEffect(() => {
+    if (currentStep && currentStep.type === 'part') {
+      setHighlightedPartId(currentStep.id);
+    } else {
+      setHighlightedPartId(null);
+    }
+  }, [activeStepIndex, currentStep]);
+
+  // 360 ROTATION
   const TOTAL_FRAMES = 17;
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -132,9 +153,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   // --- HANDLERS ---
   const handleColorSelect = (partId: string, hexColor: string) =>
     setSelections((p) => ({ ...p, [partId]: hexColor }));
-  const handleVisibilityToggle = (partId: string) =>
-    setVisibleParts((p) => ({ ...p, [partId]: !p[partId] }));
-
+  
   const handleShapeSelect = (partId: string, shapeId: string) => {
     setShapeSelections((p) => ({ ...p, [partId]: shapeId }));
 
@@ -163,7 +182,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   };
 
-  // Menggantikan handleTextureSelect lama yang hanya sebaris
   const handleTextureSelect = (partId: string, textureId: string) => {
     setTextureSelections((p) => ({ ...p, [partId]: textureId }));
 
@@ -173,11 +191,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const variant = part.variants?.find((v) => v.id === activeShapeId);
       const textures = variant?.textures || part.textures || [];
       
-      // Cari tekstur yang baru saja dipilih
       const selectedTextureObj = textures.find((t) => t.id === textureId);
       const newColors = selectedTextureObj?.colors || [];
 
-      // Perbarui pilihan warna jika tekstur baru ini punya array warnanya sendiri
       setSelections((prev) => {
         const currentColor = prev[partId];
         if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) {
@@ -187,8 +203,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       });
     }
   };
-
-  
 
   const calculateTotalPrice = () => {
     let total = product.basePrice || 0;
@@ -267,7 +281,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   };
 
-  // --- RENDERER ---
+  const nextStep = () => setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
+  const prevStep = () => setActiveStepIndex((prev) => Math.max(prev - 1, 0));
   // --- RENDERER ---
   const renderProductParts = (pov: string) => {
     return product.parts.map((part) => {
@@ -281,23 +296,21 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const activeShape = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v) => v.id === activeShape);
       
-      // 1. Ambil objek tekstur yang sedang aktif
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
 
-      // 2. LOGIKA DATA-DRIVEN: Cek apakah objek tekstur ini memiliki properti 'colors'?
       const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
 
       const activeColor = isColorable ? selections[part.id] : "#FFFFFF";
       const activeTexture = textureSelections[part.id];
 
       const partZIndex = typeof part.zIndex === "number" ? part.zIndex : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
-      const isHighlighted = highlightedPartId === part.id;
-      const isOtherPartHighlighted = highlightedPartId !== null && highlightedPartId !== part.id;
+      
+      // TAMBAHAN: Logika Highlight Baru yang dipengaruhi showFullPreview
+      const activeHighlight = showFullPreview ? null : highlightedPartId;
+      const isHighlighted = activeHighlight === part.id;
+      const isOtherPartHighlighted = activeHighlight !== null && activeHighlight !== part.id;
 
-      // ========================================================
-      // BLOK 1: KHUSUS PART STATIS (Misal: Kancing, Pengait fix)
-      // ========================================================
       if (part.variants?.some((v) => v.staticOverlays)) {
         return (
           <div
@@ -323,15 +336,12 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         );
       }
 
-      // ========================================================
-      // BLOK 2: PART DINAMIS & TEXTURE (Body, Lidah, Pita, Tali)
-      // ========================================================
       return (
         <div
           key={`${pov}-${part.id}-${activeShape}`}
           className={`absolute inset-0 pointer-events-none transition-all duration-500 ease-in-out ${
-            isHighlighted ? "scale-[1.02] drop-shadow-2xl brightness-110 z-50" : ""
-          } ${isOtherPartHighlighted ? "opacity-50 grayscale-[30%]" : "opacity-100"}`}
+            isHighlighted ? "scale-[1.05] drop-shadow-2xl brightness-110 z-50" : ""
+          } ${isOtherPartHighlighted ? "opacity-40 grayscale-[40%]" : "opacity-100"}`}
           style={{ zIndex: isHighlighted ? 999 : partZIndex }} 
         >
           {pov === "360" ? (
@@ -345,7 +355,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               totalFrames={TOTAL_FRAMES}
             />
           ) : isColorable ? (
-            // JIKA ADA WARNA -> Panggil DynamicPart (Butuh base-base & mask)
             <DynamicPart
               productId={product.id}
               pov={pov}
@@ -355,7 +364,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               zIndex={partZIndex}
             />
           ) : (
-            // JIKA TIDAK ADA WARNA -> Panggil TextureOnlyPart (Hanya butuh -base biasa)
             <TextureOnlyPart
               productId={product.id}
               pov={pov}
@@ -378,399 +386,347 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const globalAnimationKey = `${activeView}-${JSON.stringify(selections)}-${JSON.stringify(textureSelections)}-${JSON.stringify(shapeSelections)}-${JSON.stringify(visibleParts)}`;
 
-  // Modals
-  const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
-  const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
-  const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
-
+  // ================= RENDER UTAMA =================
   return (
-    <>
+    <div className="relative bg-[#F8F3E9] text-[#2D1A11] min-h-screen overflow-hidden selection:bg-[#C5A059] selection:text-white pb-20" style={{ fontFamily: "'Cinzel', 'Playfair Display', serif" }}>
+      
+      {/* --- ORNAMEN SAMPING & BAWAH --- */}
+      <div 
+        className="absolute left-[-5%] top-[10%] w-[350px] h-[700px] pointer-events-none z-0 opacity-5 mix-blend-multiply grayscale contrast-125"
+        style={{ backgroundImage: `url('https://www.shutterstock.com/shutterstock/photos/1411052360/display_1500/stock-photo-puppet-or-wayang-kulit-one-of-the-traditional-art-of-java-indonesia-mahabharata-and-ramayana-1411052360.jpg')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
+      ></div>
+
+      <div 
+        className="absolute right-[-5%] top-[10%] w-[450px] h-[800px] pointer-events-none z-0 opacity-10 mix-blend-multiply grayscale contrast-125"
+        style={{ backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
+      ></div>
+
       <Breadcrumb title={`Kustomisasi Produk`} pages={["Kustomisasi"]} />
 
-      {/* ================= 1. MAIN LAYOUT CUSTOMIZER ================= */}
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
+      <section className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <h1 className="text-4xl lg:text-5xl text-[#2D1A11] tracking-[0.2em] mb-12 text-center uppercase drop-shadow-sm font-light">
+          Mahakarya <span className="text-[#C5A059]">Nusantara</span>
+        </h1>
         
-        {/* KIRI: PREVIEW STICKY */}
-        <div className="w-full lg:w-[55%] lg:sticky lg:top-24 flex flex-col bg-[#f4f4f4] rounded-2xl p-6 lg:p-12 relative">
-          <div className="flex-grow flex items-center justify-center w-full min-h-[300px] lg:min-h-[450px] relative z-10">
-            {activeView !== "360" ? (
-              <div
-                key={globalAnimationKey}
-                className="animate-soft-fade w-full max-w-[450px] aspect-[6/5] relative drop-shadow-xl"
-              >
-                {renderProductParts(activeView.charAt(0).toUpperCase() + activeView.slice(1))}
-              </div>
-            ) : (
-              <div
-                key={globalAnimationKey}
-                className="animate-soft-fade w-full max-w-[450px] aspect-[4/5] relative cursor-grab active:cursor-grabbing touch-none flex items-center justify-center drop-shadow-xl"
-                onMouseDown={handleDragStart}
-                onMouseMove={handleDragMove}
-                onMouseUp={handleDragEnd}
-                onMouseLeave={handleDragEnd}
-                onTouchStart={handleDragStart}
-                onTouchMove={handleDragMove}
-                onTouchEnd={handleDragEnd}
-              >
-                <div className="absolute inset-0 pointer-events-none">
-                  {renderProductParts("360")}
-                </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 text-slate-800 px-4 py-2 rounded-full text-xs font-bold shadow-sm flex items-center gap-2 border border-slate-200 z-50">
-                  <span className="text-lg leading-none pb-0.5">↔</span> Geser untuk 360°
-                </div>
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch">
+        
+          {/* ================= KIRI: PREVIEW ================= */}
+          <div className="w-full lg:w-[55%] lg:sticky lg:top-24 flex flex-col bg-[#2D1A11] rounded-2xl p-1 relative shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#C5A059]/40">
+            <div className="bg-[#2D1A11] p-3 rounded-2xl relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '300px' }}></div>
+                <div className="bg-[#BFA690] rounded-xl p-4 lg:p-10 flex flex-col justify-center items-center relative overflow-hidden shadow-inner border border-[#9A7A5D]/50">
+                  <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#C5A059]/60"></div>
+                  <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#C5A059]/60"></div>
+                  <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#C5A059]/60"></div>
+                  <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#C5A059]/60"></div>
 
-          {/* Thumbnails POV */}
-          <div className="mt-8 flex justify-center z-20">
-            <div className="flex items-center gap-3">
-              {PREVIEW_VIEWS.map((view) => {
-                const isActive = activeView === view.id;
-                return (
+                  {/* TAMBAHAN: Tombol Shortcut Fokus Detail / Keseluruhan */}
                   <button
-                    key={view.id}
-                    onClick={() => setActiveView(view.id)}
-                    className={`relative w-14 h-14 rounded-lg flex items-center justify-center transition-all ${
-                      isActive
-                        ? "bg-white border-2 border-slate-900 shadow-md"
-                        : "bg-white/50 border border-transparent hover:bg-white hover:border-slate-300 text-slate-500"
+                    onClick={() => setShowFullPreview(!showFullPreview)}
+                    className={`absolute top-6 right-6 z-[100] px-4 py-2.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 shadow-xl border backdrop-blur-md flex items-center gap-2 ${
+                      showFullPreview 
+                        ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059]" 
+                        : "bg-[#2D1A11]/90 text-[#C5A059] border-[#C5A059]/50 hover:bg-[#2D1A11] hover:scale-105"
                     }`}
+                    style={{ fontFamily: "sans-serif" }}
                   >
-                    {view.type === "icon" ? (
-                      <span className="text-[10px] font-bold tracking-wider text-slate-700">360°</span>
+                    {showFullPreview ? (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0l-3.29-3.29" /></svg>
+                        Fokus Detail
+                      </>
                     ) : (
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">{view.label}</span>
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Lihat Keseluruhan
+                      </>
                     )}
                   </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
-        {/* KANAN: ACCORDION CONTROLS */}
-        <div className="w-full lg:w-[45%] flex flex-col pb-12 lg:pb-16">
-          
-          <div className="mb-8">
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
-              Kustom {product.name}
-            </h1>
-            <p className="text-slate-500 mb-4">Didesain oleh Anda, dibuat khusus untuk Anda.</p>
-            <div className="text-2xl font-semibold text-slate-900">
-              Rp {calculateTotalPrice().toLocaleString("id-ID")}
-            </div>
-          </div>
-
-          <button
-              onClick={handleAddToCart}
-              className="w-full md:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-widest rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-            >
-              Tambah ke Keranjang
-            </button>
-            {/* 👆 BATAS TAMBAHAN 👆 */}
-
-          <hr className="border-slate-200 mb-4" />
-
-          {/* STEP 1: UKURAN */}
-          {hasSizes && (
-            <div className="border-b border-slate-200 py-4">
-              <div 
-                className="flex items-center justify-between cursor-pointer group"
-                onClick={() => toggleSection('size')}
-              >
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest flex items-center gap-3">
-                  <span className="bg-blue text-white min-w-[24px] h-6 rounded-full flex items-center justify-center text-[11px] font-bold shadow-md shadow-blue-600/30">1</span>
-                  Pilih Ukuran
-                </h2>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSizeGuideModal(true);
-                    }}
-                    className="text-xs text-blue-600 underline hover:text-blue-800"
-                  >
-                    Panduan Ukuran
-                  </button>
-                  <svg 
-                    className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${openSections['size'] ? 'rotate-180' : ''}`} 
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-              
-              {openSections['size'] && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6 animate-soft-fade">
-                  {bagSizes.map((size) => {
-                    const isActive = activeSize === size.id;
-                    return (
-                      <button
-                        key={size.id}
-                        onClick={() => setActiveSize(size.id)}
-                        className={`flex flex-col items-center justify-center p-4 border rounded-lg transition-all ${
-                          isActive
-                            ? "border-slate-900 bg-slate-50 ring-2 ring-slate-900 shadow-sm"
-                            : "border-slate-200 hover:border-slate-400 bg-white"
-                        }`}
+                  <div className="w-full h-[380px] sm:h-[450px] lg:h-[500px] flex items-center justify-center relative z-10">
+                    {activeView !== "360" ? (
+                      <div key={globalAnimationKey} className="animate-soft-fade w-full h-full max-w-[500px] flex items-center justify-center relative drop-shadow-[0_35px_35px_rgba(0,0,0,0.4)]">
+                        <div className="relative w-full aspect-[6/5]">
+                          {renderProductParts(activeView.charAt(0).toUpperCase() + activeView.slice(1))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        key={globalAnimationKey}
+                        className="animate-soft-fade w-full h-full max-w-[500px] flex items-center justify-center relative cursor-grab active:cursor-grabbing touch-none drop-shadow-[0_35px_35px_rgba(0,0,0,0.4)]"
+                        onMouseDown={handleDragStart}
+                        onMouseMove={handleDragMove}
+                        onMouseUp={handleDragEnd}
+                        onMouseLeave={handleDragEnd}
+                        onTouchStart={handleDragStart}
+                        onTouchMove={handleDragMove}
+                        onTouchEnd={handleDragEnd}
                       >
-                        <span className={`font-bold text-sm ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>
-                          {size.title}
-                        </span>
-                        <span className="text-[10px] text-slate-500 mt-1">{size.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 2++: CUSTOMIZATION PARTS */}
-          {product.parts.map((part, index) => {
-            const stepNumber = hasSizes ? index + 2 : index + 1;
-            const activeShapeId = shapeSelections[part.id] || part.id;
-            const variant = part.variants?.find((v) => v.id === activeShapeId);
-            const currentTextures = variant?.textures || part.textures || [];
-            const isOpen = openSections[part.id];
-            
-            // --- 1. TAMBAHKAN LOGIKA INI ---
-            const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
-            const activeTextureObj = currentTextures.find(t => t.id === activeTextureId) || currentTextures[0];
-            const currentColors = activeTextureObj?.colors || [];
-            const isColorable = currentColors.length > 0;
-            
-
-            return (
-              <div key={part.id} 
-                   className="border-b border-slate-200 py-4"
-                   onMouseEnter={() => setHighlightedPartId(part.id)}
-                   onMouseLeave={() => setHighlightedPartId(null)}>
-                <div 
-                  className="flex items-center justify-between cursor-pointer group"
-                  onClick={() => toggleSection(part.id)}
-                >
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest flex items-center gap-3">
-                    <span className="bg-blue text-white min-w-[24px] h-6 rounded-full flex items-center justify-center text-[11px] font-bold shadow-md shadow-blue-600/30">
-                      {stepNumber}
-                    </span>
-                    Kustom {part.name}
-                  </h2>
-                  <div className="flex items-center gap-4">
-                     {currentTextures.length > 0 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedFabricPartId(part.id);
-                            setShowFabricGuideModal(true);
-                          }}
-                          className="text-xs text-blue-600 underline hover:text-blue-800"
-                        >
-                          Panduan Bahan
-                        </button>
-                     )}
-                    <svg 
-                      className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+                        <div className="relative w-full aspect-[6/5] pointer-events-none">
+                          {renderProductParts("360")}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {isOpen && (
-                  <div className="mt-6 space-y-6 animate-soft-fade">
-                    
-                    {/* Variants / Model */}
-                    {part.variants && (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 mb-3 uppercase">Pilih Model</p>
-                        <div className="flex flex-wrap gap-2">
-                          {part.variants.map((v) => {
-                            const isSelected = activeShapeId === v.id;
-                            return (
-                              <button
-                                key={v.id}
-                                onClick={() => handleShapeSelect(part.id, v.id)}
-                                className={`px-5 py-2.5 text-xs font-bold border rounded-md transition-all duration-200 ${
-                                  isSelected
-                                    ? "bg-slate-900 text-slate-700 border-slate-900 ring-2 ring-slate-900 ring-offset-2 shadow-md"
-                                    : "bg-white text-slate-700 border-slate-300 hover:border-slate-500 hover:bg-slate-50"
-                                }`}
-                              >
-                                {v.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                <div className="mt-6 mb-4 flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-4 w-full px-6">
+                    <div className="h-[1px] flex-grow bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent"></div>
+                    <span className="text-[#C5A059] text-[10px] tracking-[0.3em] uppercase font-sans font-bold">Sudut Pandang</span>
+                    <div className="h-[1px] flex-grow bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent"></div>
+                  </div>
+                  <div className="flex gap-3">
+                    {PREVIEW_VIEWS.map((view) => (
+                      <button
+                        key={view.id}
+                        onClick={() => setActiveView(view.id)}
+                        // TAMBAHAN: Update class name untuk mempertegas kontras tombol view saat inaktif
+                        className={`px-6 py-2.5 rounded-full text-[11px] tracking-widest transition-all duration-300 uppercase border backdrop-blur-sm ${
+                          activeView === view.id
+                            ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059] font-bold shadow-[0_0_15px_rgba(197,160,89,0.4)]"
+                            : "bg-white/10 text-white border-white/20 hover:bg-white/20 hover:border-[#C5A059] hover:text-[#C5A059] shadow-sm"
+                        }`}
+                        style={{ fontFamily: "sans-serif" }}
+                      >
+                        {view.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+          </div>
 
-                    {/* Textures / Material */}
-                    {currentTextures.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 mb-3 uppercase">Pilih Material</p>
-                        <div className="flex flex-wrap gap-2">
-                          {currentTextures.map((tex) => {
-                            const isSelected = textureSelections[part.id] === tex.id;
-                            return (
-                              <button
-                                key={tex.id}
-                                onClick={() => handleTextureSelect(part.id, tex.id)}
-                                className={`px-5 py-2.5 text-xs font-bold border rounded-md transition-all duration-200 ${
-                                  isSelected
-                                    ? "bg-slate-900  text-slate-700 border-slate-900 ring-2 ring-slate-900 ring-offset-2 shadow-md"
-                                    : "bg-white text-slate-700 border-slate-300 hover:border-slate-500 hover:bg-slate-50"
-                                }`}
-                              >
-                                {tex.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+          {/* ================= KANAN: WIZARD CONTROLS ================= */}
+          <div className="w-full lg:w-[45%] flex flex-col relative z-10">
+            <div className="bg-[#2D1A11] rounded-2xl p-7 shadow-2xl h-full flex flex-col min-h-[550px] border border-[#C5A059]/30 relative overflow-hidden">
+              <div className="absolute right-0 top-0 bottom-0 w-16 opacity-10 mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '200px' }}></div>
+              <div className="flex items-center justify-between border-b border-[#C5A059]/30 pb-5 mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#C5A059] flex items-center justify-center text-[#2D1A11] font-bold text-sm shadow-inner">
+                    {activeStepIndex + 1}
+                  </div>
+                  <div>
+                    <h2 className="text-[10px] text-[#C5A059] uppercase tracking-[0.2em] font-sans font-bold">Langkah Konfigurasi</h2>
+                    <p className="text-lg text-[#F8F3E9] uppercase tracking-widest">{currentStep.title}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={prevStep} disabled={activeStepIndex === 0} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                  <button onClick={nextStep} disabled={activeStepIndex === steps.length - 1} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                </div>
+              </div>
 
-                    {/* Colors */}
-                    {currentColors.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 mb-3 uppercase">Pilih Warna</p>
-                        <div className="flex flex-wrap gap-3">
-                          {isColorable ? (
-                            <div className="flex flex-wrap gap-3">
-                              {currentColors.map((color) => {
-                                const isSelected = selections[part.id] === color.hex;
-                                return (
-                                  <button
-                                    key={color.hex}
-                                    onClick={() => handleColorSelect(part.id, color.hex)}
-                                    className="group flex flex-col items-center gap-1.5"
-                                    title={color.name}
-                                  >
-                                    <div
-                                      style={{ backgroundColor: color.hex }}
-                                      className={`w-10 h-10 rounded-full border border-slate-300 transition-all ${
-                                        isSelected
-                                          ? "ring-2 ring-slate-900 ring-offset-2 scale-110 shadow-md"
-                                          : "hover:scale-105"
-                                      }`}
-                                    />
-                                    <span className="text-[9px] font-medium text-slate-500 text-center max-w-[50px] truncate">
-                                      {color.name}
-                                    </span>
-                                  </button>
-                                );
-                              })}
+              <div key={currentStep.id} className="bg-[#F8F3E9] rounded-2xl p-7 relative flex-grow animate-soft-fade flex flex-col shadow-inner border border-[#E5D7C1] z-10">
+                
+                {/* UKURAN */}
+                {currentStep.type === 'size' && (
+                  <div className="flex flex-col h-full relative z-10">
+                    <div className="flex justify-between items-end mb-8 border-b border-[#C5A059]/20 pb-4">
+                      <h3 className="text-[#2D1A11] uppercase tracking-widest text-sm font-bold font-sans">Pilih Siluet</h3>
+                      <div className="text-right">
+                        <span className="text-[9px] text-[#C5A059] font-bold uppercase tracking-widest block mb-1">Estimasi Dasar</span>
+                        <div className="text-[#2D1A11] font-bold text-xl">Rp {(product.basePrice || 0).toLocaleString("id-ID")}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {bagSizes.map((size) => {
+                        const isActive = activeSize === size.id;
+                        return (
+                          <button key={size.id} onClick={() => setActiveSize(size.id)} className={`flex flex-col p-4 rounded-xl transition-all duration-300 text-left border ${ isActive ? "bg-[#EFE8DC] border-[#2D1A11] shadow-md ring-1 ring-[#2D1A11]" : "bg-white border-[#E5D7C1] hover:border-[#2D1A11]" }`}>
+                            <span className={`font-bold text-lg ${isActive ? 'text-[#2D1A11]' : 'text-[#6B442A]'}`}>{size.title}</span>
+                            <span className="text-[10px] text-[#6B442A] mt-1" style={{fontFamily: "sans-serif"}}>{size.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); setShowSizeGuideModal(true); }} className="mt-auto self-start text-[10px] font-bold tracking-widest uppercase text-[#C5A059] hover:text-[#2D1A11] transition-colors underline" style={{fontFamily: "sans-serif"}}>
+                      Lihat Panduan Detail
+                    </button>
+                  </div>
+                )}
+
+                {/* PARTS */}
+                {currentStep.type === 'part' && (
+                  <div className="flex flex-col h-full relative z-10">
+                    <div className="flex justify-between items-start mb-6 border-b border-[#E5D7C1] pb-3">
+                      <h3 className="text-[#2D1A11] uppercase tracking-widest text-base font-bold">Bag Details</h3>
+                    </div>
+                    {(() => {
+                      const part = currentStep.partData as NonNullable<ProductConfig['parts'][number]>;
+                      const activeShapeId = shapeSelections[part.id] || part.id;
+                      const variant = part.variants?.find((v) => v.id === activeShapeId);
+                      const currentTextures = variant?.textures || part.textures || [];
+                      const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
+                      const activeTextureObj = currentTextures.find(t => t.id === activeTextureId) || currentTextures[0];
+                      const currentColors = activeTextureObj?.colors || [];
+                      const isColorable = currentColors.length > 0;
+
+                      return (
+                        <div className="space-y-6" style={{fontFamily: "sans-serif"}}>
+                          {part.variants && (
+                            <div>
+                              <p className="text-[11px] text-[#2D1A11] font-semibold mb-2 uppercase tracking-wide">Pilih Bentuk</p>
+                              <div className="flex flex-wrap gap-2">
+                                {part.variants.map((v) => {
+                                  const isSelected = activeShapeId === v.id;
+                                  return (
+                                    <button key={v.id} onClick={() => handleShapeSelect(part.id, v.id)} className={`px-4 py-2 text-[12px] font-semibold rounded-[4px] transition-all duration-300 uppercase ${isSelected ? "bg-[#2D1A11] text-[#F8F3E9] shadow-md" : "bg-white text-[#6B442A] border border-[#E5D7C1] hover:border-[#2D1A11]"}`}>
+                                      {v.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          ) : (
-                            // Tampilkan pesan elegan jika material ini tidak punya warna
-                            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3 text-slate-600 text-sm">
-                              <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Material <strong>{activeTextureObj?.name}</strong> memiliki corak/warna natural bawaan yang tidak dapat diubah.</span>
+                          )}
+
+                          {currentTextures.length > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-[11px] text-[#2D1A11] font-semibold uppercase tracking-wide">Material Motif</p>
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedFabricPartId(part.id); setShowFabricGuideModal(true); }} className="text-[10px] font-bold tracking-widest uppercase text-[#C5A059] hover:text-[#2D1A11] underline">
+                                  Lihat Pustaka
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {currentTextures.map((tex) => {
+                                  const isSelected = textureSelections[part.id] === tex.id;
+                                  return (
+                                    <button key={tex.id} onClick={() => handleTextureSelect(part.id, tex.id)} className={`px-4 py-2 text-[12px] font-semibold rounded-[4px] transition-all duration-300 uppercase ${isSelected ? "bg-[#2D1A11] text-[#F8F3E9] shadow-md" : "bg-white text-[#6B442A] border border-[#E5D7C1] hover:border-[#2D1A11]"}`}>
+                                      {tex.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {currentColors.length > 0 && (
+                            <div>
+                              <p className="text-[11px] text-[#2D1A11] font-semibold mb-3 uppercase tracking-wide">Warna Solid</p>
+                              <div className="flex flex-wrap gap-3">
+                                {isColorable ? (
+                                    currentColors.map((color) => {
+                                      const isSelected = selections[part.id] === color.hex;
+                                      return (
+                                        <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />
+                                      );
+                                    })
+                                ) : (
+                                  <div className="text-[12px] text-[#6B442A] italic py-2">
+                                    Material ini menggunakan corak natural.
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 )}
               </div>
-            );
-          })}
 
+              <div className="pt-6 mt-6 border-t border-[#C5A059]/30 relative z-10">
+                  <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
+                      <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                      <span className="text-3xl tracking-tighter font-light text-[#F8F3E9]">
+                        Rp <span className="font-bold text-[#C5A059]">{calculateTotalPrice().toLocaleString("id-ID")}</span>
+                      </span>
+                      <button 
+                        onClick={handleAddToCart} 
+                        className="bg-[#C5A059] text-[#2D1A11] px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white transition-all duration-500 shadow-xl"
+                      >
+                        Simpan Desain
+                      </button>
+                  </div>
+              </div>
+
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* ================= BAGIAN BAWAH: DIMENSI, GALERI, DLL ================= */}
+      <div className="relative z-10 bg-[#F8F3E9] pt-8">
+        
+        <div className="w-full max-w-[1200px] mx-auto px-4 mb-4">
+            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/40 to-transparent"></div>
+        </div>
 
-     <ProductGallery images={product.gallery} productName={product.name} />
-     <ProductMarketing blocks={product.marketingBlocks} />
-     <ProductDimensions
-        productName={product.name} 
-        image={product.dimensionsImage} 
-        specifications={product.specifications} 
-      />
-      <RecentlyViewdItems />
-      <Newsletter />
+        <ProductGallery images={product.gallery} productName={product.name} />
+        <ProductMarketing blocks={(product as any).marketingBlocks || []} />
+        <ProductDimensions productName={product.name} image={product.dimensionsImage} specifications={product.specifications} />
+        <RecentlyViewdItems />
+        <Newsletter />
+      </div>
 
-      {/* ================= MODALS ================= */}      
-
+      {/* ================= MODALS ================= */} 
+      
       {/* 1. MODAL PANDUAN UKURAN */}
       {showSizeGuideModal && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"
-          onClick={() => setShowSizeGuideModal(false)}
-        >
-          <div 
-            className="bg-white rounded-[2.5rem] max-w-7xl w-full max-h-[85vh] flex flex-col scale-in-center shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25),0_30px_60px_-30px_rgba(0,0,0,0.3)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-10 py-8 flex justify-between items-center bg-white rounded-t-[2.5rem] z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-1.5 h-10 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"></div>
-                <div>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tight italic uppercase">Panduan Ukuran</h3>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Sesuaikan dengan kebutuhan Anda</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowSizeGuideModal(false)}
-                className="group p-3 bg-slate-50 hover:bg-slate-900 rounded-full transition-all duration-300 shadow-sm"
-              >
-                <svg className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-10 pt-2 custom-scrollbar bg-slate-50/20">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-4">
-                {bagSizes.map((size) => (
-                  <div key={size.id} className="group flex flex-col bg-white rounded-3xl p-5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500 hover:-translate-y-1">
-
-                    <div className="relative aspect-[3/2] rounded-2xl overflow-hidden bg-slate-100 mb-6">
-                      {size.image ? (
-                        <img 
-                          src={size.image} 
-                          alt={size.title} 
-                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[2s]" 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-100 italic text-slate-300">Tidak Ada Gambar</div>
-                      )}
-                      <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase shadow-sm">
-                        {size.id} Edition
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1 mb-5 flex-grow">
-                      <h4 className="text-xl font-bold text-slate-900">{size.title}</h4>
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-tighter">{size.desc}</p>
-                      <p className="text-sm text-slate-500 leading-relaxed font-medium opacity-80 pt-2">{size.description}</p>
-                    </div>
-                    
-                    {size.dimensions && (
-                      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100">
-                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
-                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Lebar</span>
-                          <span className="text-xs font-black text-slate-800">{size.dimensions.width}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
-                        </div>
-                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
-                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Tinggi</span>
-                          <span className="text-xs font-black text-slate-800">{size.dimensions.height}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
-                        </div>
-                        <div className="bg-slate-50/50 rounded-xl p-2 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-slate-100/50">
-                          <span className="block text-[7px] text-slate-400 font-bold uppercase tracking-widest">Kedalaman</span>
-                          <span className="text-xs font-black text-slate-800">{size.dimensions.depth}<span className="text-[10px] font-medium opacity-50 ml-0.5">cm</span></span>
-                        </div>
-                      </div>
-                    )}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#1A0F0A]/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowSizeGuideModal(false)}>
+          <div className="bg-[#2D1A11] rounded-[2.5rem] p-1 max-w-7xl w-full max-h-[90vh] flex flex-col scale-in-center shadow-[0_30px_60px_rgba(197,160,89,0.15)] border border-[#C5A059]/40 relative" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#F8F3E9] rounded-[2.3rem] flex flex-col h-full overflow-hidden relative">
+              <div className="absolute inset-0 opacity-5 pointer-events-none z-0" style={{ backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png')`, backgroundSize: '500px', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}></div>
+              <div className="px-10 py-8 flex justify-between items-center bg-[#2D1A11] z-10 border-b-4 border-[#C5A059]">
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 flex items-center justify-center rounded-full border border-[#C5A059]/50 text-[#C5A059]">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-3xl text-[#F8F3E9] tracking-[0.1em] font-light">Panduan <span className="text-[#C5A059] font-bold">Proporsi</span></h3>
+                    <p className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.3em] mt-1 font-sans">Sesuaikan Dengan Kebutuhan Esensial Anda</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowSizeGuideModal(false)} className="group p-3 bg-transparent hover:bg-[#C5A059] rounded-full transition-all duration-300 border border-[#C5A059]/40">
+                  <svg className="w-6 h-6 text-[#C5A059] group-hover:text-[#2D1A11] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-10 pt-10 custom-scrollbar relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-4">
+                  {bagSizes.map((size) => (
+                    <div key={size.id} className="group flex flex-col bg-white border border-[#E5D7C1] rounded-[2rem] p-6 shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(197,160,89,0.3)] hover:border-[#C5A059]/50 transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
+                      <div className="absolute inset-2 border border-[#C5A059]/0 group-hover:border-[#C5A059]/20 rounded-[1.5rem] transition-colors duration-500 pointer-events-none"></div>
+                      <div className="relative aspect-[3/2] rounded-[1.5rem] overflow-hidden bg-[#2D1A11] mb-6 border border-[#E5D7C1] flex items-center justify-center group-hover:border-[#C5A059]/50 transition-colors">
+                        {size.image ? (
+                          <img src={size.image} alt={size.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-[2s]" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] tracking-widest text-[#C5A059] uppercase font-sans">Visualisasi Emas</div>
+                        )}
+                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.id}</div>
+                      </div>
+                      <div className="space-y-2 mb-6 flex-grow text-center">
+                        <h4 className="text-2xl text-[#2D1A11] font-bold">{size.title}</h4>
+                        <div className="w-8 h-[1px] bg-[#C5A059] mx-auto my-2"></div>
+                        <p className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.2em] font-sans">{size.desc}</p>
+                        <p className="text-xs text-[#6B442A] leading-relaxed pt-3 font-sans">{size.description}</p>
+                      </div>
+                      {size.dimensions && (
+                        <div className="grid grid-cols-3 gap-2 pt-5 border-t border-[#C5A059]/20 font-sans">
+                          <div className="bg-[#F8F3E9] rounded-xl p-2 text-center border border-[#E5D7C1]/60">
+                            <span className="block text-[8px] text-[#C5A059] font-bold uppercase tracking-widest mb-1">Lebar</span>
+                            <span className="text-xs font-bold text-[#2D1A11]">{size.dimensions.width}<span className="text-[8px] ml-0.5 text-[#6B442A] font-normal">cm</span></span>
+                          </div>
+                          <div className="bg-[#F8F3E9] rounded-xl p-2 text-center border border-[#E5D7C1]/60">
+                            <span className="block text-[8px] text-[#C5A059] font-bold uppercase tracking-widest mb-1">Tinggi</span>
+                            <span className="text-xs font-bold text-[#2D1A11]">{size.dimensions.height}<span className="text-[8px] ml-0.5 text-[#6B442A] font-normal">cm</span></span>
+                          </div>
+                          <div className="bg-[#F8F3E9] rounded-xl p-2 text-center border border-[#E5D7C1]/60">
+                            <span className="block text-[8px] text-[#C5A059] font-bold uppercase tracking-widest mb-1">Dimensi</span>
+                            <span className="text-xs font-bold text-[#2D1A11]">{size.dimensions.depth}<span className="text-[8px] ml-0.5 text-[#6B442A] font-normal">cm</span></span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -779,69 +735,63 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
       {/* 2. MODAL PANDUAN BAHAN */}
       {showFabricGuideModal && selectedFabricPartId && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-lg animate-in fade-in duration-300"
-          onClick={() => setShowFabricGuideModal(false)}
-        >
-          <div 
-            className="bg-white rounded-[3rem] max-w-3xl w-full max-h-[80vh] flex flex-col scale-in-center shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-10 pb-6 flex items-center justify-between bg-white rounded-t-[3rem] z-10">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-xl shadow-lg rotate-3 italic">M</div>
-                <div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight italic uppercase">Pustaka Bahan</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Tekstur & Sentuhan</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#1A0F0A]/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowFabricGuideModal(false)}>
+          <div className="bg-[#2D1A11] rounded-[2.5rem] p-1 max-w-5xl w-full max-h-[90vh] flex flex-col scale-in-center shadow-[0_30px_60px_rgba(197,160,89,0.15)] border border-[#C5A059]/40 relative" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#F8F3E9] rounded-[2.3rem] flex flex-col h-full overflow-hidden relative">
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 mix-blend-multiply" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '300px' }}></div>
+              <div className="px-10 py-8 flex justify-between items-center bg-[#2D1A11] z-10 border-b-4 border-[#C5A059] relative overflow-hidden">
+                <div className="absolute right-0 top-0 w-64 h-full opacity-10 pointer-events-none" style={{ backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png')`, backgroundSize: 'contain', backgroundPosition: 'right' }}></div>
+                <div className="flex items-center gap-6 relative z-10">
+                  <div className="w-14 h-14 flex items-center justify-center border border-[#C5A059] rounded-full text-[#C5A059]">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-3xl text-[#F8F3E9] tracking-[0.1em] font-light">Pustaka <span className="text-[#C5A059] font-bold">Material</span></h3>
+                    <p className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.3em] mt-1 font-sans">Koleksi Tekstur Khas Nusantara</p>
+                  </div>
                 </div>
+                <button onClick={() => setShowFabricGuideModal(false)} className="relative z-10 group p-3 bg-transparent hover:bg-[#C5A059] rounded-full transition-all duration-300 border border-[#C5A059]/40">
+                  <svg className="w-6 h-6 text-[#C5A059] group-hover:text-[#2D1A11] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
               </div>
-              <button onClick={() => setShowFabricGuideModal(false)} className="text-slate-300 hover:text-slate-900 transition-colors p-2 rounded-full hover:bg-slate-50">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-10 pt-0 custom-scrollbar bg-slate-50/20">
-              <div className="space-y-6 pb-6 pt-4">
-                {(() => {
-                  const part = product.parts.find((p) => p.id === selectedFabricPartId);
-                  if (!part) return null;
-                  const textures = part.variants?.find((v) => v.id === (shapeSelections[part.id] || part.id))?.textures || part.textures || [];
-                  
-                  return textures.map((tex) => (
-                    <div key={tex.id} className="flex flex-col md:flex-row gap-8 group items-center bg-white p-6 rounded-[2.5rem] shadow-[0_10px_25px_-10px_rgba(0,0,0,0.05)] transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]">
-                      
-                      <div className="relative w-40 h-40 shrink-0 rounded-[2rem] overflow-hidden shadow-md border-4 border-white">
-                        {tex.thumb ? (
-                          <img 
-                            src={tex.thumb} 
-                            alt={tex.name} 
-                            className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-[2.5s]" 
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center italic text-slate-300">Tekstur</div>
-                        )}
-
-                        {tex.price > 0 && (
-                          <div className="absolute top-2 right-2 bg-slate-900/90 text-white px-3 py-1 rounded-full text-[9px] font-black backdrop-blur-sm">
-                            +Rp {tex.price.toLocaleString('id-ID')}
-                          </div>
-                        )}
+              <div className="flex-1 overflow-y-auto p-10 pt-8 custom-scrollbar relative z-10">
+                <div className="space-y-6 pb-6">
+                  {(() => {
+                    const part = product.parts.find((p) => p.id === selectedFabricPartId);
+                    if (!part) return null;
+                    const textures = part.variants?.find((v) => v.id === (shapeSelections[part.id] || part.id))?.textures || part.textures || [];
+                    
+                    return textures.map((tex) => (
+                      <div key={tex.id} className="flex flex-col md:flex-row gap-8 group items-center bg-white border border-[#E5D7C1] p-6 rounded-[2rem] shadow-sm transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(197,160,89,0.2)] hover:border-[#C5A059]/50 hover:-translate-y-1">
+                        <div className="relative w-40 h-40 md:w-48 md:h-48 shrink-0 rounded-[1.5rem] overflow-hidden shadow-inner border-[3px] border-[#F8F3E9] group-hover:border-[#C5A059]/20 transition-colors">
+                          {tex.thumb ? (
+                            <img src={tex.thumb} alt={tex.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] ease-out" />
+                          ) : (
+                            <div className="w-full h-full bg-[#2D1A11] flex items-center justify-center text-[10px] tracking-widest text-[#C5A059] uppercase font-sans">Serat Material</div>
+                          )}
+                          {tex.price > 0 && (
+                            <div className="absolute bottom-3 right-3 bg-[#2D1A11]/90 text-[#C5A059] px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.1em] backdrop-blur-md border border-[#C5A059]/30 font-sans shadow-lg">
+                              +Rp {tex.price.toLocaleString('id-ID')}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-center flex-1 space-y-3">
+                          <h4 className="text-3xl text-[#2D1A11] font-bold">{tex.name}</h4>
+                          <div className="w-12 h-[2px] bg-[#C5A059] rounded-full"></div>
+                          <p className="text-[#6B442A] text-sm leading-relaxed tracking-wide font-sans mt-2">
+                            {tex.description || "Sebuah mahakarya yang ditenun dengan presisi. Dipilih secara khusus untuk memberikan kesan elegan, autentik, dan menua dengan indah seiring perjalanan Anda."}
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div className="flex flex-col justify-center flex-1 space-y-3">
-                        <h4 className="text-2xl font-bold text-slate-900">{tex.name}</h4>
-                        <p className="text-slate-500 text-sm leading-loose font-medium opacity-80 border-l-2 border-slate-100 pl-5">
-                          {tex.description || "Perpaduan sempurna antara ketahanan dan kemewahan. Dipilih secara khusus untuk menua dengan indah seiring pemakaian, material ini mewujudkan keahlian yang tahan lama."}
-                        </p>
-                      </div>
-                    </div>
-                  ));
-                })()}
+                    ));
+                  })()}
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
-    </>
+
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import "../css/euclid-circular-a-font.css";
 import "../css/style.css";
