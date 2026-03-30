@@ -15,6 +15,7 @@ type CartItem = {
     thumbnails: string[];
     previews: string[];
   };
+  customizations?: any;
 };
 
 const initialState: InitialState = {

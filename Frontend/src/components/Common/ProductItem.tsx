@@ -9,10 +9,12 @@ import { addItemToWishlist } from "@/redux/features/wishlist-slice";
 import { updateproductDetails } from "@/redux/features/product-details";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
+import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import Link from "next/link";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const { openCartModal } = useCartModalContext(); // 👈 Tambahkan ini
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -23,7 +25,7 @@ const ProductItem = ({ item }: { item: Product }) => {
 
   // add to cart
   const handleAddToCart = async () => {
-  const res = await fetch("http://127.0.0.1:8000/api/cart", {
+  const res = await fetch("http://127.0.0.1:8000/cart", {
     method: "POST",
     credentials: "include",
     headers: {
@@ -34,11 +36,12 @@ const ProductItem = ({ item }: { item: Product }) => {
     }),
   });
 
-  // 🔴 kalau belum login
   if (res.status === 401) {
     window.location.href = "/signin";
     return;
   }
+
+  alert("Berhasil ditambahkan ke cart!");
 
   // ✅ kalau berhasil
   const data = await res.json();
@@ -50,7 +53,7 @@ const ProductItem = ({ item }: { item: Product }) => {
     })
   );
 
-  alert(data.message);
+  openCartModal();
 };
 
   const handleItemToWishList = () => {

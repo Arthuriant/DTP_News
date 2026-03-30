@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\CartController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,3 +22,10 @@ Route::get('/logout', function () {
 Route::get('/user', function () {
     return response()->json(Auth::user());
 });
+
+Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth');
+
+Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth');
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);

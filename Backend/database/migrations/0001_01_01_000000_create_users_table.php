@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->string('password')->nullable(); // Nullable penting karena login Google tidak pakai password
+            $table->string('role')->default('customer');
+            $table->string('phone')->nullable();
+            $table->string('google_id')->nullable(); // Untuk menyimpan ID Google-mu
             $table->timestamps();
         });
 

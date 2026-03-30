@@ -15,6 +15,9 @@ import ProductDimensions from "./ProductDimensions";
 import RecentlyViewdItems from "../ShopDetails/RecentlyViewd";
 import Newsletter from "../Common/Newsletter";
 import TextureOnlyPart from "./TextureOnlyPart";
+import { useDispatch } from "react-redux";
+import { addItemToCart } from "@/redux/features/cart-slice";
+import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 
 export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -32,6 +35,8 @@ export default function BagCustomizer() {
 }
 
 function BagCustomizerInner({ product }: { product: ProductConfig }) {
+  const dispatch = useDispatch();
+  const { openCartModal } = useCartModalContext();
   const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
@@ -201,6 +206,65 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       }
     });
     return total;
+  };
+
+  const handleAddToCart = async () => {
+    // 1. Kumpulkan semua data desain user
+    const finalPrice = calculateTotalPrice();
+    const customizationsData = {
+      size: activeSize,
+      shapes: shapeSelections,
+      textures: textureSelections,
+      colors: selections,
+      visibleParts: visibleParts
+    };
+
+    try {
+      // 2. Kirim ke Laravel
+      const res = await fetch("http://127.0.0.1:8000/cart", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: product.id,
+          price: finalPrice,
+          customizations: customizationsData
+        }),
+      });
+
+      // 3. Jika belum login, lempar ke Sign In
+      if (res.status === 401) {
+        window.location.href = "/signin";
+        return;
+      }
+
+      if (res.ok) {
+        // 4. Jika berhasil masuk database, masukkan juga ke Redux biar Sidebar langsung update!
+        // 4. Jika berhasil masuk database, masukkan juga ke Redux biar Sidebar langsung update!
+        // 4. Masukkan ke Redux
+        dispatch(
+          addItemToCart({
+            id: Date.now(), 
+            title: `Kustom ${product.name}`,
+            price: finalPrice,
+            
+            // 👇 Tambahkan baris ini agar TypeScript puas 👇
+            discountedPrice: finalPrice, 
+            
+            quantity: 1,
+            imgs: { 
+              previews: [product.gallery?.[0] || ""],
+              thumbnails: [product.gallery?.[0] || ""] 
+            },
+            customizations: customizationsData
+          })
+        );
+
+        openCartModal(); // Buka sidebar keranjang dengan cantik
+      }
+    } catch (error) {
+      console.error("Gagal menambahkan ke keranjang", error);
+    }
   };
 
   // --- RENDERER ---
@@ -397,6 +461,14 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               Rp {calculateTotalPrice().toLocaleString("id-ID")}
             </div>
           </div>
+
+          <button
+              onClick={handleAddToCart}
+              className="w-full md:w-auto px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold uppercase tracking-widest rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+            >
+              Tambah ke Keranjang
+            </button>
+            {/* 👆 BATAS TAMBAHAN 👆 */}
 
           <hr className="border-slate-200 mb-4" />
 

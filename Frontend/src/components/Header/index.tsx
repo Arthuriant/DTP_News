@@ -9,6 +9,9 @@ import { useSelector } from "react-redux";
 import { selectTotalPrice } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { addItemToCart } from "@/redux/features/cart-slice";
+import { PRODUCTS_CONFIG } from "@/config/products";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +23,7 @@ const Header = () => {
   
   const { openCartModal } = useCartModalContext();
   const product = useAppSelector((state) => state.cartReducer.items);
+  const dispatch = useDispatch();
   const totalPrice = useSelector(selectTotalPrice);
 
   const handleOpenCartModal = () => {
@@ -45,12 +49,43 @@ const Header = () => {
       try {
         const res = await fetch("http://127.0.0.1:8000/user", {
           credentials: "include",
+          cache: "no-store",
         });
 
         if (res.ok) {
           const data = await res.json();
           if (data && data.name) {
             setUserData(data);
+
+            // 👇 JIKA LOGIN BERHASIL, TARIK DATA KERANJANG DARI DATABASE 👇
+            const cartRes = await fetch("http://127.0.0.1:8000/cart", {
+              credentials: "include",
+            });
+
+            if (cartRes.ok) {
+              const dbCartItems = await cartRes.json();
+
+              // Masukkan data dari database ke Redux satu per satu
+              dbCartItems.forEach((dbItem: any) => {
+                const baseProduct = PRODUCTS_CONFIG[dbItem.product_id];
+                if (baseProduct) {
+                  dispatch(
+                    addItemToCart({
+                      id: dbItem.id, // Gunakan ID asli dari database
+                      title: `Kustom ${baseProduct.name}`,
+                      price: dbItem.price,
+                      discountedPrice: dbItem.price,
+                      quantity: dbItem.quantity,
+                      imgs: {
+                        previews: [baseProduct.gallery?.[0] || ""],
+                        thumbnails: [baseProduct.gallery?.[0] || ""]
+                      },
+                      customizations: dbItem.customizations
+                    } as any)
+                  );
+                }
+              });
+            }
           }
         }
       } catch (error) {
@@ -59,7 +94,7 @@ const Header = () => {
     };
 
     fetchUser();
-  }, []);
+  }, [dispatch]);
 
   // 3. Fungsi untuk Logout
   // 3. Fungsi untuk Logout
