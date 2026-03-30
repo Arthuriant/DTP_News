@@ -66,11 +66,11 @@ const Header = () => {
           <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-6 lg:gap-12">
             <Link className="flex-shrink-0 transition-transform duration-500 hover:scale-105" href="/">
               <Image
-                src="/images/logo/logo.svg"
+                src="/images/logo/logo1.png"
                 alt="Logo"
                 width={stickyMenu ? 160 : 210} 
                 height={36}
-                className="w-auto h-auto transition-all duration-500"
+                className="w-120 h-auto transition-all duration-500"
               />
             </Link>
 
