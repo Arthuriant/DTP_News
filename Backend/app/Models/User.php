@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',        // Tambahkan ini agar aman
+        'google_id',   // Tambahkan ini untuk keperluan Login Google
     ];
 
     /**
@@ -50,5 +52,12 @@ class User extends Authenticatable
     public function cart()
     {
         return $this->hasOne(Cart::class);
+    }
+
+
+    // Tembahkan relasi profile di sini!
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
     }
 }

@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/register', // 👈 Tambahkan ini
             '/login'  ,   // 👈 Tambahkan ini juga biar nanti pas Sign In gak error
             '/save-bag',
+            '/profile',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

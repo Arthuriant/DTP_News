@@ -222,7 +222,7 @@ const Header = () => {
 
                   {/* Kotak Dropdown */}
                   <div className="absolute right-0 top-full mt-2 w-32 bg-white shadow-lg rounded-md border border-[#C5A059]/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:-translate-y-1 transition-all duration-300">
-                    <Link href="/profile" className="block px-4 py-2 text-sm text-[#2D1A11] hover:bg-[#C5A059]/10 hover:text-[#C5A059] transition-colors rounded-t-md">
+                    <Link href="/Profile" className="block px-4 py-2 text-sm text-[#2D1A11] hover:bg-[#C5A059]/10 hover:text-[#C5A059] transition-colors rounded-t-md">
                       Profile
                     </Link>
                     <button 
