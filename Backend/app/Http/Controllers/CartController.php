@@ -45,6 +45,7 @@ class CartController extends Controller
                 'product_id' => $request->product_id,
                 'price' => $request->price,
                 'customizations' => $request->customizations,
+                'image_preview' => $request->image_preview,
                 'quantity' => 1
             ]);
         }
@@ -67,5 +68,29 @@ class CartController extends Controller
         $items = CartItem::where('cart_id', $cart->id)->get();
         
         return response()->json($items, 200);
+    }
+    public function removeItem($id)
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        // 1. Cari keranjang milik user ini dulu
+        $cart = Cart::where('user_id', $user->id)->first();
+        
+        if (!$cart) {
+            return response()->json(['message' => 'Keranjang tidak ditemukan'], 404);
+        }
+
+        // 2. Cari barang berdasarkan ID yang dikirim, dan pastikan itu ada di dalam keranjang user
+        $item = CartItem::where('id', $id)
+                        ->where('cart_id', $cart->id)
+                        ->first();
+
+        if ($item) {
+            $item->delete(); // Hapus barangnya
+            return response()->json(['message' => 'Barang berhasil dihapus'], 200);
+        }
+
+        return response()->json(['message' => 'Barang tidak ditemukan'], 404);
     }
 }

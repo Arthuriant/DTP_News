@@ -24,7 +24,7 @@ Route::get('/user', function () {
 });
 
 Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth');
-
+Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('auth');
 Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth');
 
 Route::post('/register', [AuthController::class, 'register']);

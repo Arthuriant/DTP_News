@@ -17,6 +17,7 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+import html2canvas from "html2canvas";
 
 export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -44,6 +45,8 @@ export default function BagCustomizer() {
 function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const dispatch = useDispatch();
   const { openCartModal } = useCartModalContext();
+
+  const screenshotRef = useRef<HTMLDivElement>(null);
   const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
@@ -223,18 +226,16 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   const handleAddToCart = async () => {
-    // 1. Kumpulkan semua data desain user
     const finalPrice = calculateTotalPrice();
     const customizationsData = {
       size: activeSize,
       shapes: shapeSelections,
       textures: textureSelections,
-      colors: selections,
+      colors: selections, // Ini menyimpan kode HEX warna
       visibleParts: visibleParts
     };
 
     try {
-      // 2. Kirim ke Laravel
       const res = await fetch("http://127.0.0.1:8000/cart", {
         method: "POST",
         credentials: "include",
@@ -242,39 +243,27 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         body: JSON.stringify({
           product_id: product.id,
           price: finalPrice,
-          customizations: customizationsData
+          customizations: customizationsData,
+          image_preview: null // Kosongkan saja
         }),
       });
 
-      // 3. Jika belum login, lempar ke Sign In
-      if (res.status === 401) {
-        window.location.href = "/signin";
-        return;
-      }
-
       if (res.ok) {
-        // 4. Jika berhasil masuk database, masukkan juga ke Redux biar Sidebar langsung update!
-        // 4. Jika berhasil masuk database, masukkan juga ke Redux biar Sidebar langsung update!
-        // 4. Masukkan ke Redux
         dispatch(
           addItemToCart({
             id: Date.now(), 
             title: `Kustom ${product.name}`,
             price: finalPrice,
-            
-            // 👇 Tambahkan baris ini agar TypeScript puas 👇
-            discountedPrice: finalPrice, 
-            
+            discountedPrice: finalPrice,
             quantity: 1,
             imgs: { 
-              previews: [product.gallery?.[0] || ""],
+              previews: [product.gallery?.[0] || ""], // Pakai gambar bawaan
               thumbnails: [product.gallery?.[0] || ""] 
             },
             customizations: customizationsData
-          })
+          } as any)
         );
-
-        openCartModal(); // Buka sidebar keranjang dengan cantik
+        openCartModal();
       }
     } catch (error) {
       console.error("Gagal menambahkan ke keranjang", error);
@@ -445,7 +434,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
                   <div className="w-full h-[380px] sm:h-[450px] lg:h-[500px] flex items-center justify-center relative z-10">
                     {activeView !== "360" ? (
-                      <div key={globalAnimationKey} className="animate-soft-fade w-full h-full max-w-[500px] flex items-center justify-center relative drop-shadow-[0_35px_35px_rgba(0,0,0,0.4)]">
+                      <div 
+                      key={globalAnimationKey} 
+                      ref={screenshotRef}
+                      className="animate-soft-fade w-full h-full max-w-[500px] flex items-center justify-center relative drop-shadow-[0_35px_35px_rgba(0,0,0,0.4)]">
                         <div className="relative w-full aspect-[6/5]">
                           {renderProductParts(activeView.charAt(0).toUpperCase() + activeView.slice(1))}
                         </div>
