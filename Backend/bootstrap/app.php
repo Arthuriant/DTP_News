@@ -20,7 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
             '/cart/*',
             '/logout', // Sekalian kecualikan logout jika nanti diubah jadi POST lagi
             '/register', // 👈 Tambahkan ini
-            '/login'     // 👈 Tambahkan ini juga biar nanti pas Sign In gak error
+            '/login'  ,   // 👈 Tambahkan ini juga biar nanti pas Sign In gak error
+            '/save-bag',
+            '/profile',
+            '/addresses',
+            '/addresses/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
