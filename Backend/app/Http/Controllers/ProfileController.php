@@ -38,44 +38,39 @@ public function show()
     public function update(Request $request)
     {
 
-        $user = Auth::user();
+       $user = Auth::user();
 
-        // Validasi data yang dikirim dari frontend/Postman
+        // 1. GABUNGKAN SEMUA VALIDASI JADI SATU BLOK SAJA
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,' . $user->id,
             'phone'         => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
-            'gender'        => 'nullable|in:Laki-laki,Perempuan',
+            'gender'        => 'nullable|string', // Saya ubah jadi string biasa agar aman
         ]);
 
-        // Tambahkan validasi email
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id, // Pastikan email belum dipakai orang lain
-            // ... validasi profile lainnya
-        ]);
-
-        // 1. Update field 'name' di tabel users
+        // 2. Update tabel users
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email']
         ]);
 
-        // 2. Update atau Buat (Create) data di tabel profiles
-        // Laravel akan otomatis membuatkannya. Jika sudah ada, akan diupdate.
+        // 3. Update tabel profiles
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id], // Kunci pencarian
             [
                 'phone'         => $validated['phone'] ?? null,
                 'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'gender'        => $validated['gender'] ?? null,
-            ] // Data yang diisi
+            ]
         );
 
         return response()->json([
             'status' => 'success',
             'message' => 'Profil berhasil diperbarui!',
-            'data' => $user->load('profile') // Mengembalikan data terbaru
+            'data' => $user->load('profile')
         ]);
-    }
+
 }
+}
+
