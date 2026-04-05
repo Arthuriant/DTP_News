@@ -17,9 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+
+        $this->call([
+            RoleSeeder::class, // Wajib jalan duluan untuk membuat pangkat
+            UserSeeder::class, // Baru jalan ini untuk membuat user & memberi pangkat
         ]);
     }
 }

@@ -50,6 +50,7 @@ export default function ProfilePage() {
         if (resUser.ok) {
           const userData = await resUser.json();
           setUser(userData);
+          console.log("DATA USER SAAT INI:", userData);
         }
 
         if (resProfile.ok) {

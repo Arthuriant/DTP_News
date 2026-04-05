@@ -7,6 +7,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\SavebagController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
+use Illuminate\Http\Request;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,9 +24,17 @@ Route::get('/logout', function () {
 
     return response()->json(['message' => 'Logout berhasil']);
 });
-Route::get('/user', function () {
-    return response()->json(Auth::user());
-});
+Route::get('/user', function (Request $request) {
+    $user = $request->user();
+    
+    return response()->json([
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        // 👇 Ini dia kunci utamanya! Mengambil daftar pangkat dari Spatie
+        'roles' => $user->getRoleNames(), 
+    ]);
+})->middleware('auth');
 
 Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth');
 Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('auth');
@@ -49,3 +59,4 @@ Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middleware('auth');
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
+

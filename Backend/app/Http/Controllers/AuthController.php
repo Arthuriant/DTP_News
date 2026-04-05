@@ -25,6 +25,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password) // Enkripsi password
         ]);
 
+        $user->assignRole('customer');
+
         Auth::login($user); // Otomatis login pakai Session
 
         return response()->json([

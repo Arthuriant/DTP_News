@@ -12,12 +12,11 @@ const handleGoogleLogin = () => {
 };
 
 const Signin = () => {
-  // State untuk form email & password
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Pengecekan jika sudah login
+  // FUNGSI CEK OTOMATIS (Jika user sudah login dan buka halaman Signin)
   useEffect(() => {
     const checkLogin = async () => {
       try {
@@ -26,41 +25,54 @@ const Signin = () => {
         });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.name) {
+          // 👇 LOGIKA REDIREKSI BERDASARKAN ROLE
+          if (data.roles && data.roles.includes("admin")) {
+            window.location.href = "/admin";
+          } else {
             window.location.href = "/";
           }
         }
       } catch (err) {
-        console.error("Belum login", err);
+        console.error("Belum login");
       }
     };
     checkLogin();
   }, []);
 
-  // FUNGSI BARU: Mesin pemroses login manual (gabungan dari temanmu)
+  // FUNGSI HANDLE LOGIN MANUAL
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/login", {
+      const loginRes = await fetch("http://127.0.0.1:8000/login", {
         method: "POST",
-        credentials: "include", // WAJIB ADA
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Login gagal");
+      if (!loginRes.ok) {
+        const errData = await loginRes.json();
+        setError(errData.message || "Login gagal");
         return;
       }
 
-      // Jika berhasil, redirect ke home
-      window.location.href = "/";
+      // 👇 SETELAH LOGIN SUKSES, AMBIL DATA USER UNTUK CEK ROLE
+      const userRes = await fetch("http://127.0.0.1:8000/user", {
+        credentials: "include",
+      });
+
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        
+        // 👇 CEK APAKAH ADMIN?
+        if (userData.roles && userData.roles.includes("admin")) {
+          window.location.href = "/admin"; // Langsung ke Dashboard Admin
+        } else {
+          window.location.href = "/"; // Customer ke Beranda
+        }
+      }
     } catch (err) {
       setError("Terjadi kesalahan server");
     }
