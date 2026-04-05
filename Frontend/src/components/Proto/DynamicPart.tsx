@@ -32,7 +32,6 @@ export default function DynamicPart({ productId, pov, partName, color, texture, 
         style={{
           backgroundColor: color,
           mixBlendMode: 'multiply',
-          // Ubah .png ke .webp di sini juga jika file mask-nya sudah kamu convert
           WebkitMaskImage: `url(${basePath}/${partName}-mask.webp)`,
           WebkitMaskSize: 'contain',
           WebkitMaskRepeat: 'no-repeat',

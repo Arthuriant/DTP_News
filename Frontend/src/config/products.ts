@@ -104,12 +104,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     name: "Tas Kelalawar",
     basePrice: 0,
     gallery: [
-      "/assets/products/tas_kelalawar/gallery/gallery-1.jpeg",
-      "/assets/products/tas_kelalawar/gallery/gallery-2.jpeg",
-      "/assets/products/tas_kelalawar/gallery/gallery-3.jpeg",
-      "/assets/products/tas_kelalawar/gallery/gallery-4.jpeg",
+      "/assets/products/tas_kelalawar/gallery/gallery-1.webp",
+      "/assets/products/tas_kelalawar/gallery/gallery-2.webp",
+      "/assets/products/tas_kelalawar/gallery/gallery-3.webp",
+      "/assets/products/tas_kelalawar/gallery/gallery-4.webp",
     ],
-    dimensionsImage: "/assets/products/tas_kelalawar/dimension/dimension.png",
+    dimensionsImage: "/assets/products/tas_kelalawar/dimension/dimension.webp",
     specifications: [
       { label: "Gaya Produk", value: "Tas Kelalawar" },
       { label: "Total Volume (liter)", value: "16.00 L" },
@@ -126,7 +126,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Fungsional",
         titleHighlightStyle: "gradient",
         description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
-        image: "/assets/products/tas_kelalawar/marketing/marketing-1.jpeg",
+        image: "/assets/products/tas_kelalawar/marketing/marketing-1.webp",
         featureStyle: "cards",
         features: [
           { title: "Penyimpanan Cerdas", icon: "M3 7h18M3 12h18M3 17h18" },
@@ -141,7 +141,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Nyaman",
         titleHighlightStyle: "amber",
         description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
-        image: "/assets/products/tas_kelalawar/marketing/marketing-2.jpeg",
+        image: "/assets/products/tas_kelalawar/marketing/marketing-2.webp",
         imageQuote: "Tekstur kesempurnaan",
         featureStyle: "bullets",
         features: [
@@ -153,16 +153,16 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     ],
     sizes: [
       { 
-        id: "S", title: "Kecil (S)", desc: "Barang Bawaan Esensial", price: 0, image: "/assets/products/tas_kelalawar/size-guide/small.png", dimensions: { width: 18, height: 12, depth: 6, unit: 'cm' }, description: "Ukuran terkecil, pas untuk smartphone, lipstik, dan dompet kartu"
+        id: "S", title: "Kecil (S)", desc: "Barang Bawaan Esensial", price: 0, image: "/assets/products/tas_kelalawar/size-guide/small.webp", dimensions: { width: 18, height: 12, depth: 6, unit: 'cm' }, description: "Ukuran terkecil, pas untuk smartphone, lipstik, dan dompet kartu"
       },
       { 
-        id: "M", title: "Sedang (M)", desc: "Kebutuhan Harian", price: 50000, image: "/assets/products/tas_kelalawar/size-guide/medium.png", dimensions: { width: 22, height: 15, depth: 8, unit: 'cm' }, description: "Bisa memuat dompet lipat, smartphone, powerbank, dan makeup pouch kecil."
+        id: "M", title: "Sedang (M)", desc: "Kebutuhan Harian", price: 50000, image: "/assets/products/tas_kelalawar/size-guide/medium.webp", dimensions: { width: 22, height: 15, depth: 8, unit: 'cm' }, description: "Bisa memuat dompet lipat, smartphone, powerbank, dan makeup pouch kecil."
       },
       { 
-        id: "L", title: "Besar (L)", desc: "Kapasitas Maksimal", price: 550000, image: "/assets/products/tas_kelalawar/size-guide/large.png", dimensions: { width: 26, height: 18, depth: 10, unit: 'cm' }, description: "Lebih lega, sanggup memuat tablet mini (8 inci) atau payung lipat kecil."
+        id: "L", title: "Besar (L)", desc: "Kapasitas Maksimal", price: 550000, image: "/assets/products/tas_kelalawar/size-guide/large.webp", dimensions: { width: 26, height: 18, depth: 10, unit: 'cm' }, description: "Lebih lega, sanggup memuat tablet mini (8 inci) atau payung lipat kecil."
       },
       { 
-        id: "XL", title: "Ekstra Besar (XL)", desc: "Muat Tablet", price: 120000, image: "/assets/products/tas_kelalawar/size-guide/xlarge.png", dimensions: { width: 30, height: 22, depth: 12, unit: 'cm' }, description: "Varian terbesar untuk kategori minibag. Muat untuk tablet 11 inci"
+        id: "XL", title: "Ekstra Besar (XL)", desc: "Muat Tablet", price: 120000, image: "/assets/products/tas_kelalawar/size-guide/xlarge.webp", dimensions: { width: 30, height: 22, depth: 12, unit: 'cm' }, description: "Varian terbesar untuk kategori minibag. Muat untuk tablet 11 inci"
       },
     ],
     parts: [
@@ -262,12 +262,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     name: "Tas Tote Klasik",
     basePrice: 0,
     gallery: [
-      "/assets/products/totebag/gallery/gallery-1.png",
+      "/assets/products/totebag/gallery/gallery-1.webp",
       "/assets/products/totebag/gallery/gallery-3.jpg",
-      "/assets/products/totebag/gallery/gallery-2.png", 
+      "/assets/products/totebag/gallery/gallery-2.webp", 
       "/assets/products/totebag/gallery/gallery-4.jpg",
     ],
-    dimensionsImage: "/assets/products/totebag/dimension/dimension.png",
+    dimensionsImage: "/assets/products/totebag/dimension/dimension.webp",
     specifications: [
       { label: "Gaya Produk", value: "Tas Tote Klasik" },
       { label: "Total Volume (liter)", value: "16.00 L" },
@@ -284,7 +284,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Fungsional",
         titleHighlightStyle: "gradient",
         description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
-        image: "/assets/products/totebag/marketing/marketing-1.png",
+        image: "/assets/products/totebag/marketing/marketing-1.webp",
         featureStyle: "cards",
         features: [
           { title: "Penyimpanan Cerdas", icon: "M3 7h18M3 12h18M3 17h18" },
@@ -299,7 +299,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Nyaman",
         titleHighlightStyle: "amber",
         description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
-        image: "/assets/products/totebag/marketing/marketing-2.png",
+        image: "/assets/products/totebag/marketing/marketing-2.webp",
         imageQuote: "Tekstur kesempurnaan",
         featureStyle: "bullets",
         features: [
@@ -310,10 +310,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       }
     ],
     sizes: [
-      { id: "S", title: "Kompak (S)", desc: "Tablet & Kebutuhan", price: 0, image: "/assets/products/totebag/size-guide/small.png", dimensions: { width: 28, height: 22, depth: 8, unit: 'cm' }, description: "Cocok untuk tablet 11 inci (iPad Air/Pro)." },
-      { id: "M", title: "Standar (M)", desc: "Muat Laptop 13\"", price: 50000, image: "/assets/products/totebag/size-guide/medium.png", dimensions: { width: 34, height: 26, depth: 10, unit: 'cm' }, description: "Pas untuk MacBook Air atau laptop 13 inci, dan dokumen A4." },
-      { id: "L", title: "Pro (L)", desc: "Kapasitas Laptop 14-15\"", price: 85000, image: "/assets/products/totebag/size-guide/large.png", dimensions: { width: 38, height: 30, depth: 12, unit: 'cm' }, description: "Muat laptop 14-15 inci. Dapat memuat binder besar, botol minum, dan payung lipat." },
-      { id: "XL", title: "Grand (XL)", desc: "Ruang Kerja Portabel", price: 125000, image: "/assets/products/totebag/size-guide/xlarge.png", dimensions: { width: 42, height: 34, depth: 14, unit: 'cm' }, description: "Muat laptop 16 inci dan perlengkapan gym atau baju ganti." },
+      { id: "S", title: "Kompak (S)", desc: "Tablet & Kebutuhan", price: 0, image: "/assets/products/totebag/size-guide/small.webp", dimensions: { width: 28, height: 22, depth: 8, unit: 'cm' }, description: "Cocok untuk tablet 11 inci (iPad Air/Pro)." },
+      { id: "M", title: "Standar (M)", desc: "Muat Laptop 13\"", price: 50000, image: "/assets/products/totebag/size-guide/medium.webp", dimensions: { width: 34, height: 26, depth: 10, unit: 'cm' }, description: "Pas untuk MacBook Air atau laptop 13 inci, dan dokumen A4." },
+      { id: "L", title: "Pro (L)", desc: "Kapasitas Laptop 14-15\"", price: 85000, image: "/assets/products/totebag/size-guide/large.webp", dimensions: { width: 38, height: 30, depth: 12, unit: 'cm' }, description: "Muat laptop 14-15 inci. Dapat memuat binder besar, botol minum, dan payung lipat." },
+      { id: "XL", title: "Grand (XL)", desc: "Ruang Kerja Portabel", price: 125000, image: "/assets/products/totebag/size-guide/xlarge.webp", dimensions: { width: 42, height: 34, depth: 14, unit: 'cm' }, description: "Muat laptop 16 inci dan perlengkapan gym atau baju ganti." },
     ],
     parts: [
       { 
@@ -475,12 +475,12 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     name: "Tas Mini",
     basePrice: 850000,
     gallery: [
-      "/assets/products/tas_mini/gallery/gallery-1.png",
-      "/assets/products/tas_mini/gallery/gallery-2.png",
-      "/assets/products/tas_mini/gallery/gallery-3.png",
-      "/assets/products/tas_mini/gallery/gallery-4.png",
+      "/assets/products/tas_mini/gallery/gallery-1.webp",
+      "/assets/products/tas_mini/gallery/gallery-2.webp",
+      "/assets/products/tas_mini/gallery/gallery-3.webp",
+      "/assets/products/tas_mini/gallery/gallery-4.webp",
     ],
-    dimensionsImage: "/assets/products/tas_mini/dimension/dimension.png",
+    dimensionsImage: "/assets/products/tas_mini/dimension/dimension.webp",
     specifications: [
       { label: "Gaya Produk", value: "Tas Mini" }, // Fixed this from Bat Bag
       { label: "Total Volume (liter)", value: "16.00 L" },
@@ -497,7 +497,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Fungsional",
         titleHighlightStyle: "gradient",
         description: "Tas ini dirancang untuk menemani aktivitas harian Anda dengan gaya. Material kulit memberikan kesan mewah, sementara kompartemennya memudahkan navigasi barang Anda.",
-        image: "/assets/products/tas_mini/marketing/marketing-1.png",
+        image: "/assets/products/tas_mini/marketing/marketing-1.webp",
         featureStyle: "cards",
         features: [
           { title: "Penyimpanan Cerdas", icon: "M3 7h18M3 12h18M3 17h18" },
@@ -512,7 +512,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         titleHighlight: "& Nyaman",
         titleHighlightStyle: "amber",
         description: "Kami mengkurasi bahan dari penyamak kulit terbaik untuk memastikan kenyamanan maksimal di setiap sentuhan.",
-        image: "/assets/products/tas_mini/marketing/marketing-2.png",
+        image: "/assets/products/tas_mini/marketing/marketing-2.webp",
         imageQuote: "Tekstur kesempurnaan",
         featureStyle: "bullets",
         features: [
@@ -523,10 +523,10 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       }
     ],
     sizes: [
-      { id: "S", title: "Kecil (S)", desc: "Aksesoris Lengan & Sabuk", price: 0, image: "/assets/products/tas_mini/size-guide/small.png", dimensions: { width: 10, height: 16, depth: 4, unit: 'cm' }, description: "Pas untuk smartphone, kunci, dan earbuds." },
-      { id: "M", title: "Sedang (M)", desc: "Tas Paha & Pinggang", price: 35000, image: "/assets/products/tas_mini/size-guide/medium.png", dimensions: { width: 14, height: 20, depth: 6, unit: 'cm' }, description: "Bisa memuat smartphone besar, powerbank, dan dompet." },
-      { id: "L", title: "Besar (L)", desc: "Kapasitas Ekstra", price: 65000, image: "/assets/products/tas_mini/size-guide/large.png", dimensions: { width: 18, height: 24, depth: 8, unit: 'cm' }, description: "Cukup untuk tablet 7-8 inci, toolkit kecil, atau sarung tangan motor." },
-      { id: "XL", title: "Ekstra Besar (XL)", desc: "Kapasitas Lapangan Maksimal", price: 95000, image: "/assets/products/tas_mini/size-guide/xlarge.png", dimensions: { width: 22, height: 28, depth: 10, unit: 'cm' }, description: "Muat iPad Mini, botol minum kecil, dan peralatan harian lengkap." },
+      { id: "S", title: "Kecil (S)", desc: "Aksesoris Lengan & Sabuk", price: 0, image: "/assets/products/tas_mini/size-guide/small.webp", dimensions: { width: 10, height: 16, depth: 4, unit: 'cm' }, description: "Pas untuk smartphone, kunci, dan earbuds." },
+      { id: "M", title: "Sedang (M)", desc: "Tas Paha & Pinggang", price: 35000, image: "/assets/products/tas_mini/size-guide/medium.webp", dimensions: { width: 14, height: 20, depth: 6, unit: 'cm' }, description: "Bisa memuat smartphone besar, powerbank, dan dompet." },
+      { id: "L", title: "Besar (L)", desc: "Kapasitas Ekstra", price: 65000, image: "/assets/products/tas_mini/size-guide/large.webp", dimensions: { width: 18, height: 24, depth: 8, unit: 'cm' }, description: "Cukup untuk tablet 7-8 inci, toolkit kecil, atau sarung tangan motor." },
+      { id: "XL", title: "Ekstra Besar (XL)", desc: "Kapasitas Lapangan Maksimal", price: 95000, image: "/assets/products/tas_mini/size-guide/xlarge.webp", dimensions: { width: 22, height: 28, depth: 10, unit: 'cm' }, description: "Muat iPad Mini, botol minum kecil, dan peralatan harian lengkap." },
     ],
     parts: [
       {
@@ -598,15 +598,15 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           {
             id: "kancing", name: "Kancing", price: 0, priceLabel: "",
             staticOverlays: [
-              { id: "kancing2", url: "/assets/products/tas_mini/front/kancing2-base.png", zIndex: 50, name: "Kancing 2" },
-              { id: "kancing3", url: "/assets/products/tas_mini/front/kancing3-base.png", zIndex: 50, name: "Kancing 3" }
+              { id: "kancing2", url: "/assets/products/tas_mini/front/kancing2-base.webp", zIndex: 50, name: "Kancing 2" },
+              { id: "kancing3", url: "/assets/products/tas_mini/front/kancing3-base.webp", zIndex: 50, name: "Kancing 3" }
             ]
           },
           {
             id: "pengait", name: "Pengait", price: 50000, priceLabel: "+ Rp 50.000",
             staticOverlays: [
-              { id: "pengait1", url: "/assets/products/tas_mini/front/pengait1-base.png", zIndex: 50, name: "Pengait 1" },
-              { id: "pengait3", url: "/assets/products/tas_mini/front/pengait3-base.png", zIndex: 60, name: "Pengait 3" }
+              { id: "pengait1", url: "/assets/products/tas_mini/front/pengait1-base.webp", zIndex: 50, name: "Pengait 1" },
+              { id: "pengait3", url: "/assets/products/tas_mini/front/pengait3-base.webp", zIndex: 60, name: "Pengait 3" }
             ]
           }
         ]
@@ -617,8 +617,8 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         basePrice: 0, 
         zIndex: { Front: 5, Back: 30, Top: 10, "360": 50 },
         staticOverlays: [
-          { id: "tali-back", url: "/assets/products/tas_mini/back/tali-base.png", zIndex: 30, name: "Tali Belakang" },
-          { id: "tali-top", url: "/assets/products/tas_mini/top/tali-base.png", zIndex: 10, name: "Tali Atas" }
+          { id: "tali-back", url: "/assets/products/tas_mini/back/tali-base.webp", zIndex: 30, name: "Tali Belakang" },
+          { id: "tali-top", url: "/assets/products/tas_mini/top/tali-base.webp", zIndex: 10, name: "Tali Atas" }
         ]
       }
     ]
