@@ -10,12 +10,12 @@ const shopData: Product[] = [
     idProduct: "tas_kelalawar",
     imgs: {
       thumbnails: [
-        "/images/products/product-tasKelalawar.png",
-        "/images/products/product-tasKelalawar.png",
+        "/images/products/product-tasKelalawar.webp",
+        "/images/products/product-tasKelalawar.webp",
       ],
       previews: [
-        "/images/products/product-tasKelalawar.png",
-        "/images/products/product-tasKelalawar.pngg",
+        "/images/products/product-tasKelalawar.webp",
+        "/images/products/product-tasKelalawar.webp",
       ],
     },
   },
@@ -28,12 +28,12 @@ const shopData: Product[] = [
     idProduct: "totebag",
     imgs: {
       thumbnails: [
-        "/images/products/product-totebag.png",
-        "/images/products/product-totebag.png",
+        "/images/products/product-totebag.webp",
+        "/images/products/product-totebag.webp",
       ],
       previews: [
-        "/images/products/product-totebag.png",
-        "/images/products/product-totebag.png",
+        "/images/products/product-totebag.webp",
+        "/images/products/product-totebag.webp",
       ],
     },
   },
@@ -46,12 +46,12 @@ const shopData: Product[] = [
     idProduct: "tas_mini",
     imgs: {
       thumbnails: [
-        "/images/products/product-thighBag.png",
-        "/images/products/product-thighBag.png",
+        "/images/products/product-thighBag.webp",
+        "/images/products/product-thighBag.webp",
       ],
       previews: [
-        "/images/products/product-thighBag.png",
-        "/images/products/product-thighBag.png",
+        "/images/products/product-thighBag.webp",
+        "/images/products/product-thighBag.webp",
       ],
     },
   },
@@ -60,19 +60,39 @@ const shopData: Product[] = [
     reviews: 5,
     price: 1250000,
     discountedPrice: 725000,
-    id: 3,
+    id: 4, 
     idProduct: "top_handle_bag",
     imgs: {
       thumbnails: [
-        "/images/products/product-topHandleBag.png",
-        "/images/products/product-topHandleBag.png",
+        "/images/products/product-topHandleBag.webp",
+        "/images/products/product-topHandleBag.webp",
       ],
       previews: [
-        "/images/products/product-topHandleBag.png",
-        "/images/products/product-topHandleBag.png",
+        "/images/products/product-topHandleBag.webp",
+        "/images/products/product-topHandleBag.webp",
+      ],
+    },
+  },
+  
+  // === TAMBAHAN PRODUK BARU ===
+  {
+    title: "Classic Messenger Bag",
+    reviews: 0,
+    price: 750000, 
+    discountedPrice: 550000, 
+    id: 5,
+    idProduct: "classic_messenger_bag", // Harus sama persis dengan di PRODUCTS_CONFIG
+    imgs: {
+      thumbnails: [
+        "/images/products/product-classicMessengerBag.webp",
+        "/images/products/product-classicMessengerBag.webp",
+      ],
+      previews: [
+        "/images/products/product-classicMessengerBag.webp",
+        "/images/products/product-classicMessengerBag.webp",
       ],
     },
   },
 ];
 
-export default shopData;
+export default shopData;  
