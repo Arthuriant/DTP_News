@@ -17,7 +17,7 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import html2canvas from "html2canvas";
+
 
 export default function BagCustomizer() {
   const searchParams = useSearchParams();

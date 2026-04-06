@@ -74,14 +74,14 @@ const shopData: Product[] = [
     },
   },
   
-  // === TAMBAHAN PRODUK BARU ===
+
   {
     title: "Classic Messenger Bag",
     reviews: 0,
     price: 750000, 
     discountedPrice: 550000, 
     id: 5,
-    idProduct: "classic_messenger_bag", // Harus sama persis dengan di PRODUCTS_CONFIG
+    idProduct: "classic_messenger_bag", 
     imgs: {
       thumbnails: [
         "/images/products/product-classicMessengerBag.webp",

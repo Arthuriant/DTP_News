@@ -19,7 +19,7 @@ export default function DynamicPart({ productId, pov, partName, color, texture, 
           2. Perbaikan nama file: di folder kamu filenya adalah "partName-texture-base-base.webp"
       */}
       <Image
-        src={`${basePath}/${partName}-${texture}-base-base.webp`}
+        src={`${basePath}/${partName}-${texture}-base.webp`}
         alt={`${partName} Base`}
         fill
         className="object-contain"

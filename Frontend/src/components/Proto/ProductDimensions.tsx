@@ -73,17 +73,6 @@ export default function ProductDimensions({ productName, image, specifications }
 
             {/* --- AREA GAMBAR DIMENSI (Atas) --- */}
             <div className="flex-grow p-8 md:p-16 lg:p-20 flex flex-col items-center justify-center relative z-20">
-              <img
-                src={image || `/assets/products/default-dimensions.webp`}
-                alt={`Dimensi ${productName}`}
-                className="max-w-full md:max-w-md h-auto mix-blend-multiply opacity-95 transition-transform duration-[1.5s] group-hover:scale-105 relative z-10 drop-shadow-lg"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  e.currentTarget.nextElementSibling?.classList.add('flex');
-                  e.currentTarget.nextElementSibling?.classList.add('flex');
-                }}
-              />
               
               {/* Fallback ilustrasi tas/kotak jika gambar tidak ditemukan */}
               <div className="hidden flex-col items-center gap-4 text-[#2D1A11] p-10 bg-white/40 rounded-full border border-[#C5A059]/30 backdrop-blur-sm shadow-inner relative z-10">

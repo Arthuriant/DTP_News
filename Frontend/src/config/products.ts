@@ -623,4 +623,372 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       }
     ]
   },
+
+  // ================= TOP HANDLE BAG =================
+  top_handle_bag: {
+    id: "top_handle_bag", 
+    name: "Tas Jinjing Klasik",
+    basePrice: 650000,
+     gallery: [
+      "/assets/products/top_handle_bag/gallery/gallery-1.webp",
+      "/assets/products/top_handle_bag/gallery/gallery-2.webp",
+      "/assets/products/top_handle_bag/gallery/gallery-3.webp",
+      "/assets/products/top_handle_bag/gallery/gallery-4.webp",
+    ],
+    dimensionsImage: "/assets/products/top_handle_bag/dimensions/dimension.webp",
+    specifications: [
+      { label: "Gaya Produk", value: "Tas Jinjing" },
+      { label: "Total Volume (liter)", value: "16.00 L" },
+      { label: "Berat (lbs)", value: "2.2 lb" },
+      { label: "Kecocokan Laptop Rata-rata (inci)", value: '16"' },
+    ],
+    marketingBlocks: [
+      {
+        "layout": "image-left",
+        "hasPattern": true, 
+        "badge": "Keahlian Tangan", 
+        "subtitle": "Tekstur yang Menyihir", 
+        "title": "Detail Kepangan", 
+        "titleHighlight": "& Keahlian", 
+        "titleHighlightStyle": "gradient",
+        "description": "Rasakan sentuhan kulit berkerikil yang halus yang dipadukan dengan detail kepangan kulit cokelat yang kaya, dibuat dengan tangan oleh pengrajin ahli kami untuk keunikan yang tak tertandingi.",
+        "image": "/assets/products/top_handle_bag/marketing/marketing-2.webp",
+        "featureStyle": "cards",
+        "features": [
+          { "title": "Anyaman Tangan", "icon": "M10 10l5 5M10 20l10-10M5 5l5 5" }, 
+          { "title": "Tekstur Mewah", "icon": "M4 4h16v16H4V4z M10 10l4 4" } 
+        ]
+      },
+      {
+        "layout": "image-right",
+        "hasPattern": false,
+        "badge": "Penyimpanan Cerdas", 
+        "title": "Navigasi Internal", 
+        "titleHighlight": "& Mewah",
+        "titleHighlightStyle": "amber",
+        "description": "Lapisan dalam burgundy yang kaya menampung kompartemen ganda berritsleting dan saku slip untuk menjaga barang berharga Anda tetap terorganisir, aman, dan mudah diakses sepanjang hari.", 
+        "image": "/assets/products/top_handle_bag/marketing/marketing-1.webp", 
+        "imageQuote": "Keindahan yang tersembunyi", 
+        "featureStyle": "bullets",
+        "features": [
+          { "title": "Lapisan burgundy lembut" },
+          { "title": "Kompartemen berritsleting ganda" }, 
+          { "title": "Ritsleting emas berlogo" } 
+        ]
+      }
+    ],
+    sizes: [
+      { 
+        id: "S", 
+        title: "Mini (S)", 
+        desc: "Gaya Elegan Ringkas", 
+        price: 0, 
+        image: "/assets/products/top_handle_bag/size-guide/small.webp", 
+        dimensions: { width: 20, height: 14, depth: 8, unit: 'cm' }, 
+        description: "Ukuran mungil yang memikat. Sempurna untuk acara malam atau pesta, muat untuk smartphone, dompet kartu, dan lipstik."
+      },
+      { 
+        id: "M", 
+        title: "Standar (M)", 
+        desc: "Esensial Sehari-hari", 
+        price: 150000, 
+        image: "/assets/products/top_handle_bag/size-guide/medium.webp", 
+        dimensions: { width: 25, height: 18, depth: 10, unit: 'cm' }, 
+        description: "Ukuran paling populer dan proporsional. Pas untuk menemani aktivitas harian, memuat dompet panjang, smartphone, dan pouch kosmetik kecil."
+      },
+      { 
+        id: "L", 
+        title: "Besar (L)", 
+        desc: "Kapasitas Ekstra", 
+        price: 350000, 
+        image: "/assets/products/top_handle_bag/size-guide/large.webp", 
+        dimensions: { width: 30, height: 22, depth: 12, unit: 'cm' }, 
+        description: "Lebih leluasa untuk wanita aktif tanpa kehilangan siluet elegannya. Sanggup memuat tablet 8 inci (iPad Mini), buku catatan, dan payung lipat kecil."
+      },
+      { 
+        id: "XL", 
+        title: "Maksimal (XL)", 
+        desc: "Profesional & Elegan", 
+        price: 550000, 
+        image: "/assets/products/top_handle_bag/size-guide/xlarge.webp", 
+        dimensions: { width: 35, height: 25, depth: 14, unit: 'cm' }, 
+        description: "Varian terbesar, sangat cocok untuk wanita karir. Memiliki ruang ekstra untuk dokumen berukuran A4 atau laptop tipis 13 inci."
+      },
+    ],
+    parts: [
+      {
+        id: "badan", name: "Badan Tas", basePrice: 0, zIndex: { Front: 10, Back: 20, Top: 10 },
+        textures: [
+          { id: "base", name: "Original", thumb: "/assets/products/top_handle_bag/textures/thumb-original.webp", price: 0 },
+          { id: "leather1", name: "Hitam Klasik", thumb: "/assets/products/top_handle_bag/textures/thumb-leather1.webp", price: 1000000 },
+          { id: "leather2", name: "Cokelat Kastanye", thumb: "/assets/products/top_handle_bag/textures/thumb-leather2.webp", price: 2000000 },
+          { id: "leather3", name: "Cokelat Espresso", thumb: "/assets/products/top_handle_bag/textures/thumb-leather3.webp", price: 3000000 },
+          { id: "leather4", name: "Kulit Buaya Gelap", thumb: "/assets/products/top_handle_bag/textures/thumb-leather4.webp", price: 4000000 },
+          { id: "leather5", name: "Cokelat Karamel", thumb: "/assets/products/top_handle_bag/textures/thumb-leather5.webp", price: 5000000 },
+        ]
+      },
+
+      {
+        id: 'tali_kunci', name : 'Tali Kunci', basePrice : 0 , zIndex: {Front: 50, Back:50, Top:50},
+        textures: [
+          { id: "base", name: "Original", thumb: "", price: 0 },
+        ]
+      },
+      {
+        id: "kunci", name: "Kunci", basePrice: 0, zIndex: { Front: 60, Back: 60, Top: 60 },
+        variants: [
+          {
+            id: "kunci", 
+            name: "Gesper Kulit Klasik", 
+            price: 0, 
+            priceLabel: "",
+          },
+          {
+            id: "kunci1", 
+            name: "Kunci Emblem Vintage", 
+            price: 35000, 
+            priceLabel: "+ Rp 35.000",
+          },
+          {
+            id: "kunci2", 
+            name: "Kunci Emas Menyilang", 
+            price: 50000, 
+            priceLabel: "+ Rp 50.000",
+          },
+          {
+            id: "kunci3", 
+            name: "Kunci Perak Minimalis", 
+            price: 25000, 
+            priceLabel: "+ Rp 25.000",
+          },
+        ]
+      },
+      {
+        id: "lidah_kanan", name: "Lidah Kanan", basePrice: 0, zIndex: { Front: 30, Back: 30, Top: 30 },
+        textures: [
+          { 
+            id: "base", name: "Kulit Premium", thumb: "", price: 0,
+            colors: [
+              { name: "Biru Dongker", hex: "#1E293B" },{ name: "Krem", hex: "#F3E9DC" }, { name: "Beige Lembut", hex: "#EAD7C0" }, { name: "Merah Marun", hex: "#800000" }, { name: "Hitam", hex: "#1A1A1A" },
+            ] 
+          }
+        ]
+      },
+      {
+        id: "lidah_kiri", name: "Lidah Kiri", basePrice: 0, zIndex: { Front: 30, Back: 30, Top: 30 },
+        textures: [
+          { 
+            id: "base", name: "Kulit Premium", thumb: "", price: 0,
+            colors: [
+              { name: "Biru Dongker", hex: "#1E293B" },{ name: "Krem", hex: "#F3E9DC" }, { name: "Beige Lembut", hex: "#EAD7C0" }, { name: "Merah Marun", hex: "#800000" }, { name: "Hitam", hex: "#1A1A1A" },
+            ]
+          }
+        ]
+      },
+      {
+        id: "lidah_tengah", name: "Lidah Tengah", basePrice: 0, zIndex: { Front: 40, Back: 40, Top: 40 }, 
+        textures: [
+          { 
+            id: "base", name: "Kulit Premium", thumb: "", price: 0,
+            colors: [
+               { name: "Merah Marun", hex: "#800000" }, { name: "Krem", hex: "#F3E9DC" }, { name: "Beige Lembut", hex: "#EAD7C0" }, { name: "Biru Dongker", hex: "#1E293B" }, { name: "Hitam", hex: "#1A1A1A" },
+            ]
+          }
+        ]
+      },
+      {
+        id: "pita", name: "Pita Aksesoris", basePrice: 25000, zIndex: { Front: 20, Back: 10, Top: 60 },
+        variants: [
+          {
+            id: "pita", 
+            name: "Gesper Kulit Klasik", 
+            price: 0, 
+            priceLabel: "",
+          },
+          {
+            id: "pita1", 
+            name: "Kunci Emblem Vintage", 
+            price: 35000, 
+            priceLabel: "+ Rp 35.000",
+          },
+          {
+            id: "pita2", 
+            name: "Kunci Emas Menyilang", 
+            price: 50000, 
+            priceLabel: "+ Rp 50.000",
+          },
+          {
+            id: "pita3", 
+            name: "Kunci Perak Minimalis", 
+            price: 25000, 
+            priceLabel: "+ Rp 25.000",
+          },
+        ]
+      },
+      {
+        id: "tali", name: "Tali Tas", basePrice: 50000, zIndex: { Front: 20, Back: 70, Top: 70 },
+        textures: [
+          { id: "base", name: "Tali Standar", thumb: "", price: 0} 
+        ]
+      }
+    ]
+  },
+  classic_messenger_bag: {
+
+    //Data Utama
+    id: "classic_messenger_bag", 
+    name: "Classic Messenger Bag",
+    basePrice: 650000,
+
+    //Gallery
+     gallery: [
+      "/assets/products/classic_messenger_bag/gallery/gallery-1.webp",
+      "/assets/products/classic_messenger_bag/gallery/gallery-2.webp",
+      "/assets/products/classic_messenger_bag/gallery/gallery-3.webp",
+      "/assets/products/classic_messenger_bag/gallery/gallery-4.webp",
+    ],
+
+    //Dimensi
+    dimensionsImage: "",
+    specifications: [
+      { label: "Product Style", value: "Classic Messenger Bag" },
+      { label: "Material", value: "Premium Canvas & Leather" }
+    ],
+
+    //Marketing 
+    "marketingBlocks": [
+        {
+          "layout": "image-right", 
+          "hasPattern": false, 
+          "badge": "Organisasi Cerdas", 
+          "subtitle": "Kejelasan Tanpa Kompromi", 
+          "title": "Interior Terorganisir", 
+          "titleHighlight": "& Jelas", 
+          "titleHighlightStyle": "amber", 
+          "description": "Lapisan dalam hitam pekat yang bersih memberikan kejelasan visual. Menampilkan kompartemen utama yang luas yang menampung barang-barang penting Anda, termasuk saku slip khusus untuk buku catatan dan dua smartphone, menjaga semuanya dalam jangkauan.", 
+          "image": "/assets/products/classic_messenger_bag/marketing/marketing-1.webp", // Dipetakan ke gambar 1 (interior)
+          "featureStyle": "bullets", 
+          "features": [
+            { "title": "Lapisan hitam pekat yang bersih" }, 
+            { "title": "Kompartemen utama yang luas" }, 
+            { "title": "Saku slip khusus untuk dua smartphone dan buku catatan" } 
+          ]
+        },
+        {
+          "layout": "image-left", 
+          "hasPattern": true, 
+          "badge": "Desain Berani", 
+          "subtitle": "Harmoni Blok Warna", 
+          "title": "Retro Modern", 
+          "titleHighlight": "& Ikonik", 
+          "titleHighlightStyle": "gradient", 
+          "description": "Rasakan pernyataan desain yang kuat dengan panel blok warna vertikal ikonik kami. Abu-abu muda, merah cerah, dan kuning cerah bersatu dalam harmoni minimalis. Terbuat dari kulit halus yang premium untuk tampilan yang bersih dan canggih.", 
+          "image": "/assets/products/classic_messenger_bag/marketing/marketing-2.webp", // Dipetakan ke gambar 0 (eksterior depan)
+          "featureStyle": "cards", 
+          "features": [
+            { "title": "Panel blok warna tiga nada", "icon": "M10 10l5 5M10 20l10-10M5 5l5 5" }, 
+            { "title": "Kulit halus yang premium", "icon": "M4 4h16v16H4V4z M10 10l4 4" } 
+          ]
+        }
+      ],
+
+  //Guide
+  sizes: [
+      { 
+        id: "S", 
+        title: "Kompak (S)", 
+        desc: "Gaya Kasual Ringkas", 
+        price: 0, 
+        image: "/assets/products/classic_messenger_bag/size-guide/small.webp", 
+        dimensions: { width: 20, height: 14, depth: 8, unit: 'cm' }, 
+        description: "Versi mungil dari desain ikonik kami. Sempurna untuk jalan santai, pas untuk menyimpan satu smartphone, dompet kartu, dan kunci mobil tanpa kehilangan gaya color-block yang khas."
+      },
+      { 
+        id: "M", 
+        title: "Standar (M)", 
+        desc: "Esensial Sehari-hari", 
+        price: 150000, 
+        image: "/assets/products/classic_messenger_bag/size-guide/medium.webp", 
+        dimensions: { width: 25, height: 18, depth: 10, unit: 'cm' }, 
+        description: "Ukuran paling ideal dan proporsional. Sesuai dengan desain interior yang luas, ukuran ini dengan mudah memuat dua smartphone, buku catatan kecil, pena, dan dompet harian Anda."
+      },
+      { 
+        id: "L", 
+        title: "Besar (L)", 
+        desc: "Kapasitas Ekstra", 
+        price: 350000, 
+        image: "/assets/products/classic_messenger_bag/size-guide/large.webp", 
+        dimensions: { width: 30, height: 22, depth: 12, unit: 'cm' }, 
+        description: "Ruang lebih leluasa untuk mobilitas tinggi. Sanggup memuat tablet (seperti iPad), buku agenda, serta membawa semua perlengkapan esensial harian Anda dengan tetap mempertahankan struktur minimalisnya."
+      },
+      { 
+        id: "XL", 
+        title: "Maksimal (XL)", 
+        desc: "Profesional & Modern", 
+        price: 550000, 
+        image: "/assets/products/classic_messenger_bag/size-guide/xlarge.webp", 
+        dimensions: { width: 35, height: 25, depth: 14, unit: 'cm' }, 
+        description: "Varian terbesar yang cocok untuk bekerja atau kuliah. Memiliki ruang ekstra untuk membawa dokumen, buku berukuran A4, atau laptop tipis 13 inci dengan gaya retro yang berani."
+      },
+    ],
+
+    // Parts and Component
+    parts: [
+      {
+        id: "body_kiri", name: "Badan Tas Kiri", basePrice: 0, zIndex: { Front: 20, Back: 10, Top: 10 },
+        textures: [
+            { id: "base", name: "Original", thumb: "assets/products/classic_messenger_bag/textures/thumb-original.webp", price: 0 },
+        ]
+      },
+      {
+        id: "body_tengah", name: "Badan Tas Tengah", basePrice: 0, zIndex: { Front: 30, Back: 20, Top: 20 },
+        textures: [
+            { id: "base", name: "Original", thumb: "assets/products/classic_messenger_bag/textures/thumb-original3.webp", price: 0 },
+        ]
+      },
+      {
+        id: "body_kanan", name: "Badan Tas Kanan", basePrice: 0, zIndex: { Front: 20, Back: 10, Top: 10 },
+        textures: [
+            { id: "base", name: "Original", thumb: "assets/products/classic_messenger_bag/textures/thumb-original2.webp", price: 0 },
+        ]
+      },
+
+      {
+        id: "tali", name: "Tali", basePrice: 0, zIndex: { Front: 10, Back: 30, Top: 20 },
+        variants: [
+          {
+            id: "tali", 
+            name: "Tali Selempang Klasik", 
+            price: 0, 
+            priceLabel: "",
+          },
+          {
+            id: "tali2", 
+            name: "Tali Pinggang Klasik", 
+            price: 35000, 
+            priceLabel: "+ Rp 35.000",
+          },
+          {
+            id: "tali3", 
+            name: "Tali Rantai", 
+            price: 50000, 
+            priceLabel: "+ Rp 50.000",
+          },
+        ]
+      },
+
+      {
+        id: "pengunci", name: "Pengunci", basePrice: 0, zIndex: { Front: 40, Back: 10, Top: 20 },
+        variants: [
+          {
+            id: "pengunci", 
+            name: "Pengunci Klasik", 
+            price: 0, 
+            priceLabel: "",
+          },
+        ]
+      },
+
+    ]
+  }
 };
