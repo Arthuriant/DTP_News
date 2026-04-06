@@ -11,16 +11,16 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // 1. Buat akun Admin Default
-        $admin = User::firstOrCreate(
+        $superadmin = User::firstOrCreate(
             ['email' => 'lintang@admin.com'], // Email default admin
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('admin'), // Password default
             ]
         );
-        
+
         // Berikan pangkat admin ke akun ini
-        $admin->assignRole('admin');
+        $superadmin->assignRole('super_admin');
 
         // 2. (Opsional) Buat satu akun Customer default untuk testing
         $customer = User::firstOrCreate(

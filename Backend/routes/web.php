@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\SavebagController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 
 
@@ -26,13 +27,13 @@ Route::get('/logout', function () {
 });
 Route::get('/user', function (Request $request) {
     $user = $request->user();
-    
+
     return response()->json([
         'id' => $user->id,
         'name' => $user->name,
         'email' => $user->email,
         // 👇 Ini dia kunci utamanya! Mengambil daftar pangkat dari Spatie
-        'roles' => $user->getRoleNames(), 
+        'roles' => $user->getRoleNames(),
     ]);
 })->middleware('auth');
 
@@ -52,7 +53,16 @@ Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth')
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
+}); // ← tutup di sini
+
+Route::middleware(['auth', 'role:super_admin'])->group(function () {
+    Route::get('/admins', [AdminController::class, 'index']);
+    Route::post('/admins', [AdminController::class, 'store']);
+    Route::put('/admins/{id}', [AdminController::class, 'update']);
+    Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
 });
+
+
 
 Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth');
 Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth');
