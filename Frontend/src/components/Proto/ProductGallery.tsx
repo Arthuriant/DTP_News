@@ -9,6 +9,8 @@ interface ProductGalleryProps {
 export default function ProductGallery({ images, productName }: ProductGalleryProps) {
   if (!images || images.length === 0) return null;
 
+  // Fallback images menggunakan unsplash (online) tidak masalah tetap format default, 
+  // tapi kalau kamu punya fallback lokal, pastikan pakai .webp
   const fallbackImages = [
     "https://images.unsplash.com/photo-1547949003-9792a18a2601?q=80&w=2070&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=1974&auto=format&fit=crop",
@@ -46,7 +48,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
       {/* ================= KONTEN UTAMA ================= */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* HEADER MEWAH SESUAI GAMBAR REFERENSI */}
+        {/* HEADER MEWAH */}
         <div className="mb-16 flex flex-col items-center justify-center text-center">
           <span 
             className="text-[#C5A059] text-[11px] tracking-[0.3em] font-bold uppercase mb-4 block"
@@ -68,10 +70,10 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           {images.map((src, index) => (
             <div key={index} className="relative group">
               
-              {/* Bingkai Cokelat Tua Tebal, Shadow Mewah, dan Double Border Emas */}
+              {/* Bingkai Cokelat Tua */}
               <div className="relative aspect-[4/3] w-full rounded-[2rem] bg-[#2D1A11] p-3 shadow-[0_15px_30px_rgba(45,26,17,0.15)] group-hover:shadow-[0_25px_50px_-10px_rgba(197,160,89,0.3)] hover:-translate-y-1 transition-all duration-500 overflow-hidden border border-[#C5A059]/30">
 
-                {/* Pembungkus Gambar Dalam (Dengan Bingkai Emas Tipis) */}
+                {/* Inner Card */}
                 <div className="relative w-full h-full rounded-[1.5rem] overflow-hidden bg-[#EFE8DC] border border-[#C5A059]/40 group-hover:border-[#C5A059] transition-colors duration-500 shadow-inner">
                   <img
                     src={src}
@@ -82,15 +84,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
                     }}
                   />
                   
-                  {/* Overlay Gradien Halus (Biar bingkai emas lebih terlihat) */}
+                  {/* Overlay Gradien */}
                   <div className="absolute inset-0 bg-black/10 pointer-events-none transition-opacity duration-500 group-hover:opacity-0"></div>
 
-                  {/* Aksen Sudut Emas Tipis (Sesuai Referensi Gambar) */}
+                  {/* Aksen Sudut Emas */}
                   <div className="absolute top-5 left-5 w-7 h-7 border-t border-l border-[#C5A059] pointer-events-none transition-all duration-500 z-10"></div>
                   <div className="absolute top-5 right-5 w-7 h-7 border-t border-r border-[#C5A059] pointer-events-none transition-all duration-500 z-10"></div>
                   <div className="absolute bottom-5 left-5 w-7 h-7 border-b border-l border-[#C5A059] pointer-events-none transition-all duration-500 z-10"></div>
                   <div className="absolute bottom-5 right-5 w-7 h-7 border-b border-r border-[#C5A059] pointer-events-none transition-all duration-500 z-10"></div>
-                
                 </div>
               </div>
 

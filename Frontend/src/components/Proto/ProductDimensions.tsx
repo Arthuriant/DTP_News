@@ -74,12 +74,13 @@ export default function ProductDimensions({ productName, image, specifications }
             {/* --- AREA GAMBAR DIMENSI (Atas) --- */}
             <div className="flex-grow p-8 md:p-16 lg:p-20 flex flex-col items-center justify-center relative z-20">
               <img
-                src={image || `/assets/products/default-dimensions.png`}
+                src={image || `/assets/products/default-dimensions.webp`}
                 alt={`Dimensi ${productName}`}
                 className="max-w-full md:max-w-md h-auto mix-blend-multiply opacity-95 transition-transform duration-[1.5s] group-hover:scale-105 relative z-10 drop-shadow-lg"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  e.currentTarget.nextElementSibling?.classList.add('flex');
                   e.currentTarget.nextElementSibling?.classList.add('flex');
                 }}
               />
@@ -99,7 +100,6 @@ export default function ProductDimensions({ productName, image, specifications }
             </div>
 
             {/* --- AREA TABEL SPESIFIKASI (Bawah) --- */}
-            {/* Panel bawah ini dibungkus dengan background gelap dan ornamen BATIK PUDAR */}
             <div className="relative bg-[#2D1A11] px-8 py-10 md:px-16 md:py-12 border-t-[3px] border-[#C5A059] mt-auto">
                 
                 {/* Ornamen Batik Khusus di Panel Bawah */}

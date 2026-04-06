@@ -20,7 +20,7 @@ export default function TextureOnlyPart({
   return (
     <div className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
       <Image
-        src={`${basePath}/${partName}-${texture}.png`}
+        src={`${basePath}/${partName}-${texture}.webp`}
         alt={`${partName} ${texture}`}
         fill
         className="object-contain"

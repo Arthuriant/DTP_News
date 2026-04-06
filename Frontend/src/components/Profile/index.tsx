@@ -33,16 +33,17 @@ export default function ProfilePage() {
     phone: "",
   });
 
+  // URL Aksen Nusantara
+  const megaMendungUrl = "https://static.vecteezy.com/system/resources/previews/024/036/944/large_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
+
   // Load Data
   useEffect(() => {
     const loadAllData = async () => {
       try {
-        // 1. Ambil data User (Nama & Email)
         const resUser = await fetch("http://127.0.0.1:8000/user", {
           credentials: "include",
         });
         
-        // 2. Ambil data Profile
         const resProfile = await fetch("http://127.0.0.1:8000/profile", {
           credentials: "include",
         });
@@ -83,9 +84,8 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Pastikan backend Laravel kamu menggunakan POST atau PUT untuk route ini
       const res = await fetch("http://127.0.0.1:8000/profile", {
-        method: "POST", // Ubah ke "POST" jika Laravel kamu pakai Route::post()
+        method: "POST", 
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +95,6 @@ export default function ProfilePage() {
       });
 
       if (res.ok) {
-        // Update tampilan secara instan tanpa perlu refresh halaman
         setUser({ name: formData.name, email: formData.email });
         setProfile({
           date_of_birth: formData.date_of_birth,
@@ -103,7 +102,7 @@ export default function ProfilePage() {
           phone: formData.phone,
         });
         
-        setEditingField(null); // Tutup form edit
+        setEditingField(null); 
       } else {
         const errorData = await res.json();
         alert("Gagal menyimpan: " + (errorData.message || "Pastikan data valid"));
@@ -117,204 +116,253 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return <div className="p-10 text-center pt-32">Memuat profil...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-[#F8F3E9]">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#C5A059]"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="w-2 h-2 bg-[#2D1A11] rounded-full animate-pulse"></span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Komponen Input Minimalis & Elegan
+  const inputClasses = "w-full flex-1 bg-transparent border-b-2 border-[#C5A059]/30 text-gray-900 px-1 py-2 outline-none focus:border-[#C5A059] transition-all font-sans text-sm placeholder:text-gray-400";
+
   return (
-    <div className="max-w-5xl mx-auto px-6 pb-6 pt-32 bg-white min-h-screen">
-      
-      {/* Header - Nama diambil dari data User */}
-      <div className="flex items-center gap-2 mb-8 text-2xl font-bold text-[#3B414D]">
-        <span>👤</span>
-        <h1>{user?.name || "Pengguna"}</h1>
-      </div>
+    <section 
+      className="relative min-h-screen bg-[#F8F3E9] pt-32 pb-24 overflow-hidden"
+      style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}
+    >
+      {/* ================= ORNAMEN BACKGROUND ================= */}
+      <div 
+        className="absolute right-[-5%] top-0 w-[500px] h-[700px] pointer-events-none z-0 opacity-[0.03] mix-blend-multiply grayscale fixed"
+        style={{ 
+          backgroundImage: `url('https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png')`, 
+          backgroundSize: 'contain', 
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right top'
+        }}
+      ></div>
 
-      {/* Tabs - Tombol untuk pindah form */}
-      <div className="flex border-b border-gray-200 mb-8">
-        <button
-          onClick={() => setActiveTab("biodata")}
-          className={`pb-3 px-6 text-sm font-semibold transition-colors ${
-            activeTab === "biodata" ? "border-b-2 border-[#C5A059] text-[#C5A059]" : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Biodata Diri
-        </button>
-        <button
-          onClick={() => setActiveTab("alamat")}
-          className={`pb-3 px-6 text-sm font-semibold transition-colors ${
-            activeTab === "alamat" ? "border-b-2 border-[#C5A059] text-[#C5A059]" : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          Daftar Alamat
-        </button>
-      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+        
+        {/* ================= HERO BANNER PROFIL ================= */}
+        <div className="relative bg-[#2D1A11] rounded-[2rem] shadow-2xl border border-[#C5A059]/40 overflow-hidden mb-10">
+          
+          {/* Hiasan Mega Mendung di Sudut Banner */}
+          <div 
+            className="absolute -right-20 -top-20 w-[400px] h-[400px] z-0 opacity-40 pointer-events-none transform rotate-12"
+            style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
+          ></div>
+          <div 
+            className="absolute -left-20 -bottom-20 w-[300px] h-[300px] z-0 opacity-20 pointer-events-none transform -rotate-12"
+            style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
+          ></div>
 
-      {/* Area Konten Utama */}
-      <div className="w-full">
-        {activeTab === "biodata" && (
-          <div className="space-y-10">
-            {/* BAGIAN BIODATA */}
-            <section>
-              <h2 className="font-bold text-[#3B414D] mb-6 text-lg">Ubah Biodata Diri</h2>
-              
-              <div className="space-y-6 text-sm">
-                
-                {/* 1. Nama */}
-                <div className="flex items-center border-b border-gray-200 pb-4">
-                  <span className="w-1/3 text-gray-500">Nama</span>
-                  {editingField === "name" ? (
-                    <div className="w-2/3 flex items-center gap-3 justify-end">
-                      <input 
-                        type="text" 
-                        value={formData.name} 
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="border border-gray-300 rounded px-3 py-1.5 w-full focus:outline-none focus:border-[#C5A059]"
-                      />
-                      <button onClick={handleSave} disabled={isSaving} className="bg-[#C5A059] text-white px-4 py-1.5 rounded hover:bg-[#a88647]">{isSaving ? "..." : "Simpan"}</button>
-                      <button onClick={() => setEditingField(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300">Batal</button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="w-1/3 text-[#3B414D] font-medium">{user?.name || "-"}</span>
-                      <div className="w-1/3 text-right">
-                        <button onClick={() => handleEditClick("name")} className="text-[#3B414D] font-bold hover:text-[#C5A059] transition-colors">Ubah</button>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* 2. Tanggal Lahir */}
-                <div className="flex items-center border-b border-gray-200 pb-4">
-                  <span className="w-1/3 text-gray-500">Tanggal Lahir</span>
-                  {editingField === "date_of_birth" ? (
-                    <div className="w-2/3 flex items-center gap-3 justify-end">
-                      <input 
-                        type="date" 
-                        value={formData.date_of_birth} 
-                        onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})}
-                        className="border border-gray-300 rounded px-3 py-1.5 w-full focus:outline-none focus:border-[#C5A059]"
-                      />
-                      <button onClick={handleSave} disabled={isSaving} className="bg-[#C5A059] text-white px-4 py-1.5 rounded hover:bg-[#a88647]">{isSaving ? "..." : "Simpan"}</button>
-                      <button onClick={() => setEditingField(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300">Batal</button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="w-1/3 text-[#3B414D] font-medium">{profile?.date_of_birth || ""}</span>
-                      <div className="w-1/3 text-right">
-                        <button onClick={() => handleEditClick("date_of_birth")} className="text-[#3B414D] font-bold hover:text-[#C5A059] transition-colors">
-                          {profile?.date_of_birth ? "Ubah Tanggal Lahir" : "Tambah Tanggal Lahir"}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* 3. Jenis Kelamin */}
-                <div className="flex items-center border-b border-gray-200 pb-4">
-                  <span className="w-1/3 text-gray-500">Jenis Kelamin</span>
-                  {editingField === "gender" ? (
-                    <div className="w-2/3 flex items-center gap-3 justify-end">
-                      <select 
-                        value={formData.gender} 
-                        onChange={(e) => setFormData({...formData, gender: e.target.value})}
-                        className="border border-gray-300 rounded px-3 py-1.5 w-full focus:outline-none focus:border-[#C5A059]"
-                      >
-                        <option value="">Pilih Jenis Kelamin</option>
-                        <option value="Laki-laki">Laki-laki</option>
-                        <option value="Perempuan">Perempuan</option>
-                      </select>
-                      <button onClick={handleSave} disabled={isSaving} className="bg-[#C5A059] text-white px-4 py-1.5 rounded hover:bg-[#a88647]">{isSaving ? "..." : "Simpan"}</button>
-                      <button onClick={() => setEditingField(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300">Batal</button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="w-1/3 text-[#3B414D] font-medium">{profile?.gender || ""}</span>
-                      <div className="w-1/3 text-right">
-                        <button onClick={() => handleEditClick("gender")} className="text-[#3B414D] font-bold hover:text-[#C5A059] transition-colors">
-                          {profile?.gender ? "Ubah Jenis Kelamin" : "Tambah Jenis Kelamin"}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+          <div className="relative z-10 p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-8">
+            {/* Avatar Mewah */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#C5A059] rounded-full blur-md opacity-30 animate-pulse"></div>
+              <div className="w-28 h-28 bg-[#F8F3E9] rounded-full flex items-center justify-center border-4 border-[#C5A059] relative z-10 shadow-[0_0_20px_rgba(197,160,89,0.3)]">
+                <span className="text-5xl">👑</span>
               </div>
-            </section>
+            </div>
+            
+            <div className="text-center sm:text-left">
+              <p className="text-[#C5A059] font-sans text-sm tracking-widest uppercase mb-2 font-semibold">Tamu Kehormatan</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-[#F8F3E9] tracking-wide mb-2">
+                {user?.name || "Pengguna"}
+              </h1>
+              <p className="text-[#F8F3E9]/60 font-sans text-sm flex items-center justify-center sm:justify-start gap-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full inline-block"></span>
+                Akun Terverifikasi
+              </p>
+            </div>
+          </div>
+        </div>
 
-            {/* BAGIAN KONTAK */}
-            <section>
-              <h2 className="font-bold text-[#3B414D] mb-6 text-lg">Ubah Kontak</h2>
-              
-              <div className="space-y-6 text-sm">
+        {/* ================= LAYOUT TERPISAH (GRID/SIDEBAR) ================= */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* SIDEBAR NAVIGASI */}
+          <div className="w-full lg:w-1/4">
+            <div className="bg-white rounded-[2rem] p-6 shadow-lg border border-[#C5A059]/10 sticky top-32">
+              <h3 className="text-[#C5A059] text-xs font-sans font-bold uppercase tracking-widest mb-6 px-4">Menu Pengaturan</h3>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setActiveTab("biodata")}
+                  className={`text-left px-5 py-4 rounded-2xl font-sans text-sm font-medium transition-all duration-300 ${
+                    activeTab === "biodata" 
+                      ? "bg-[#2D1A11] text-[#C5A059] shadow-md shadow-[#2D1A11]/20" 
+                      : "text-gray-600 hover:bg-[#F8F3E9] hover:text-[#2D1A11]"
+                  }`}
+                >
+                  <span className="mr-3">{activeTab === "biodata" ? "✨" : "👤"}</span>
+                  Biodata Diri
+                </button>
+                <button
+                  onClick={() => setActiveTab("alamat")}
+                  className={`text-left px-5 py-4 rounded-2xl font-sans text-sm font-medium transition-all duration-300 ${
+                    activeTab === "alamat" 
+                      ? "bg-[#2D1A11] text-[#C5A059] shadow-md shadow-[#2D1A11]/20" 
+                      : "text-gray-600 hover:bg-[#F8F3E9] hover:text-[#2D1A11]"
+                  }`}
+                >
+                  <span className="mr-3">{activeTab === "alamat" ? "✨" : "📍"}</span>
+                  Daftar Alamat
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* KONTEN UTAMA */}
+          <div className="w-full lg:w-3/4">
+            
+            {activeTab === "biodata" && (
+              <div className="space-y-8">
                 
-                {/* 4. Email */}
-                <div className="flex items-center border-b border-gray-200 pb-4">
-                  <span className="w-1/3 text-gray-500">Email</span>
-                  {editingField === "email" ? (
-                    <div className="w-2/3 flex items-center gap-3 justify-end">
-                      <input 
-                        type="email" 
-                        value={formData.email} 
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="border border-gray-300 rounded px-3 py-1.5 w-full focus:outline-none focus:border-[#C5A059]"
-                      />
-                      <button onClick={handleSave} disabled={isSaving} className="bg-[#C5A059] text-white px-4 py-1.5 rounded hover:bg-[#a88647]">{isSaving ? "..." : "Simpan"}</button>
-                      <button onClick={() => setEditingField(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300">Batal</button>
+                {/* KARTU 1: BIODATA DIRI */}
+                <div className="relative bg-white rounded-[2rem] p-8 sm:p-10 shadow-lg border border-[#C5A059]/10 overflow-hidden group">
+                  {/* Ornamen Halus di dalam Kartu */}
+                  <div className="absolute -top-10 -right-10 w-48 h-48 opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+                      <h2 className="text-2xl font-bold text-[#2D1A11]">Informasi Pribadi</h2>
                     </div>
-                  ) : (
-                    <>
-                      <div className="w-1/3 flex items-center gap-3">
-                        <span className="text-[#3B414D] font-medium">{user?.email || "-"}</span>
-                        {user?.email && (
-                          <span className="text-gray-500 text-[11px] px-2 py-0.5 border border-gray-300 rounded">
-                            Terverifikasi
-                          </span>
+                    
+                    <div className="space-y-6 font-sans">
+                      {/* Nama */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Nama Lengkap</span>
+                        {editingField === "name" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                            <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className={inputClasses} autoFocus/>
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <span className="text-[#2D1A11] font-medium text-lg">{user?.name || "-"}</span>
+                            <button onClick={() => handleEditClick("name")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">Ubah</button>
+                          </div>
                         )}
                       </div>
-                      <div className="w-1/3 text-right">
-                        <button onClick={() => handleEditClick("email")} className="text-[#3B414D] font-bold hover:text-[#C5A059] transition-colors">Ubah</button>
-                      </div>
-                    </>
-                  )}
-                </div>
 
-                {/* 5. Nomor HP */}
-                <div className="flex items-center border-b border-gray-200 pb-4">
-                  <span className="w-1/3 text-gray-500">Nomor HP</span>
-                  {editingField === "phone" ? (
-                    <div className="w-2/3 flex items-center gap-3 justify-end">
-                      <input 
-                        type="text" 
-                        value={formData.phone} 
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="border border-gray-300 rounded px-3 py-1.5 w-full focus:outline-none focus:border-[#C5A059]"
-                        placeholder="Contoh: 081234567890"
-                      />
-                      <button onClick={handleSave} disabled={isSaving} className="bg-[#C5A059] text-white px-4 py-1.5 rounded hover:bg-[#a88647]">{isSaving ? "..." : "Simpan"}</button>
-                      <button onClick={() => setEditingField(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300">Batal</button>
+                      {/* Tanggal Lahir */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2 border-t border-gray-50 pt-6">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Tanggal Lahir</span>
+                        {editingField === "date_of_birth" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                            <input type="date" value={formData.date_of_birth} onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})} className={inputClasses} autoFocus/>
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <span className="text-[#2D1A11] font-medium text-lg">{profile?.date_of_birth || "-"}</span>
+                            <button onClick={() => handleEditClick("date_of_birth")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">
+                              {profile?.date_of_birth ? "Ubah" : "Tambah"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Jenis Kelamin */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2 border-t border-gray-50 pt-6">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Jenis Kelamin</span>
+                        {editingField === "gender" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                            <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className={inputClasses} autoFocus>
+                              <option value="">Pilih...</option>
+                              <option value="Laki-laki">Laki-laki</option>
+                              <option value="Perempuan">Perempuan</option>
+                            </select>
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <span className="text-[#2D1A11] font-medium text-lg">{profile?.gender || "-"}</span>
+                            <button onClick={() => handleEditClick("gender")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">
+                              {profile?.gender ? "Ubah" : "Tambah"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      <span className="w-1/3 text-[#3B414D] font-medium">{profile?.phone || ""}</span>
-                      <div className="w-1/3 text-right">
-                        <button onClick={() => handleEditClick("phone")} className="text-[#3B414D] font-bold hover:text-[#C5A059] transition-colors">
-                          {profile?.phone ? "Ubah Nomor HP" : "Tambah Nomor HP"}
-                        </button>
-                      </div>
-                    </>
-                  )}
+                  </div>
                 </div>
-                
-              </div>
-            </section>
-          </div>
-        )}
 
-        {/* TAB DAFTAR ALAMAT */}
-        {activeTab === "alamat" && (
-          // 👇 Komponen AddressTab dari file kamu
-          <AddressTab />
-        )}
+                {/* KARTU 2: DATA KONTAK */}
+                <div className="relative bg-white rounded-[2rem] p-8 sm:p-10 shadow-lg border border-[#C5A059]/10 overflow-hidden group">
+                  <div className="absolute -bottom-10 -left-10 w-48 h-48 opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+                      <h2 className="text-2xl font-bold text-[#2D1A11]">Kontak & Keamanan</h2>
+                    </div>
+
+                    <div className="space-y-6 font-sans">
+                      {/* Email */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Alamat Email</span>
+                        {editingField === "email" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                            <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className={inputClasses} autoFocus/>
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <div className="flex items-center gap-3">
+                              <span className="text-[#2D1A11] font-medium text-lg">{user?.email || "-"}</span>
+                              {user?.email && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-md uppercase tracking-wider font-bold">Verified</span>}
+                            </div>
+                            <button onClick={() => handleEditClick("email")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">Ubah</button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Nomor HP */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2 border-t border-gray-50 pt-6">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Nomor Telepon</span>
+                        {editingField === "phone" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                            <input type="text" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="08..." className={inputClasses} autoFocus/>
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <span className="text-[#2D1A11] font-medium text-lg">{profile?.phone || "-"}</span>
+                            <button onClick={() => handleEditClick("phone")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">
+                              {profile?.phone ? "Ubah" : "Tambah"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* TAB DAFTAR ALAMAT */}
+            {activeTab === "alamat" && (
+              <div className="bg-white rounded-[2rem] p-8 shadow-lg border border-[#C5A059]/10 font-sans">
+                {/* Pastikan komponen AddressTab juga disesuaikan stylingnya di file terpisahnya jika perlu */}
+                <AddressTab />
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
