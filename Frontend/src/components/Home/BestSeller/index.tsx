@@ -3,9 +3,11 @@ import React from "react";
 import SingleItem from "./SingleItem";
 import Image from "next/image";
 import Link from "next/link";
-import shopData from "@/components/Shop/shopData";
+import { getShopCatalogList } from "@/config/products"; 
 
 const BestSeller = () => {
+  const shopData = getShopCatalogList();
+
   return (
     <section className="relative overflow-hidden bg-[#F8F3E9] py-16 lg:py-24">
       

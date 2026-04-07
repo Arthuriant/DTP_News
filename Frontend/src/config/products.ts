@@ -1,3 +1,6 @@
+// ==========================================
+// INTERFACES
+// ==========================================
 export interface ProductColor {
   name: string;
   hex: string;
@@ -10,7 +13,7 @@ export interface ProductTexture {
   image?: string;
   description?: string;
   price: number;
-  colors?: ProductColor[];  // <-- HANYA DI SINI COLORS BERADA
+  colors?: ProductColor[];  
 }
 
 export interface ProductSize {
@@ -75,21 +78,32 @@ export interface MarketingBlock {
   features: MarketingFeature[];
 }
 
+export interface MarketingFeature {
+  title: string;
+  icon?: string; 
+}
+
 export interface ProductConfig {
   id: string;
   name: string;
   basePrice: number;
+  
+  // --- DATA KATALOG (Pengganti shopData) ---
+  numericId: number;
+  catalogTitle: string;
+  reviews: number;
+  catalogPrice: number;
+  discountedPrice: number;
+  thumbnails: string[];
+  previews: string[];
+  // ------------------------------------------
+
   parts: ProductPart[];
   sizes?: ProductSize[];
   gallery?: string[];
   marketingBlocks?: MarketingBlock[];
   dimensionsImage?: string;
   specifications?: ProductSpecification[];
-}
-
-export interface MarketingFeature {
-  title: string;
-  icon?: string; 
 }
 
 
@@ -103,6 +117,22 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "tas_kelalawar",
     name: "Tas Kelalawar",
     basePrice: 0,
+    
+    // Data Katalog
+    numericId: 1,
+    catalogTitle: "Bag Bat Kulit Premium",
+    reviews: 15,
+    catalogPrice: 1150000,
+    discountedPrice: 2220000,
+    thumbnails: [
+      "/images/products/product-tasKelalawar.webp",
+      "/images/products/product-tasKelalawar.webp",
+    ],
+    previews: [
+      "/images/products/product-tasKelalawar.webp",
+      "/images/products/product-tasKelalawar.webp",
+    ],
+
     gallery: [
       "/assets/products/tas_kelalawar/gallery/gallery-1.webp",
       "/assets/products/tas_kelalawar/gallery/gallery-2.webp",
@@ -261,6 +291,22 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "totebag",
     name: "Tas Tote Klasik",
     basePrice: 0,
+    
+    // Data Katalog
+    numericId: 2,
+    catalogTitle: "Totebag Kulit Premium",
+    reviews: 5,
+    catalogPrice: 555555,
+    discountedPrice: 249000,
+    thumbnails: [
+      "/images/products/product-totebag.webp",
+      "/images/products/product-totebag.webp",
+    ],
+    previews: [
+      "/images/products/product-totebag.webp",
+      "/images/products/product-totebag.webp",
+    ],
+
     gallery: [
       "/assets/products/totebag/gallery/gallery-1.webp",
       "/assets/products/totebag/gallery/gallery-3.jpg",
@@ -474,6 +520,22 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "tas_mini",
     name: "Tas Mini",
     basePrice: 850000,
+    
+    // Data Katalog
+    numericId: 3,
+    catalogTitle: "thighBag",
+    reviews: 5,
+    catalogPrice: 1250000,
+    discountedPrice: 950000,
+    thumbnails: [
+      "/images/products/product-thighBag.webp",
+      "/images/products/product-thighBag.webp",
+    ],
+    previews: [
+      "/images/products/product-thighBag.webp",
+      "/images/products/product-thighBag.webp",
+    ],
+
     gallery: [
       "/assets/products/tas_mini/gallery/gallery-1.webp",
       "/assets/products/tas_mini/gallery/gallery-2.webp",
@@ -482,7 +544,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     ],
     dimensionsImage: "/assets/products/tas_mini/dimension/dimension.webp",
     specifications: [
-      { label: "Gaya Produk", value: "Tas Mini" }, // Fixed this from Bat Bag
+      { label: "Gaya Produk", value: "Tas Mini" }, 
       { label: "Total Volume (liter)", value: "16.00 L" },
       { label: "Berat (lbs)", value: "2.2 lb" },
       { label: "Kecocokan Laptop Rata-rata (inci)", value: '16"' },
@@ -629,7 +691,23 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
     id: "top_handle_bag", 
     name: "Tas Jinjing Klasik",
     basePrice: 650000,
-     gallery: [
+    
+    // Data Katalog
+    numericId: 4,
+    catalogTitle: "Top Handle Bag",
+    reviews: 5,
+    catalogPrice: 1250000,
+    discountedPrice: 725000,
+    thumbnails: [
+      "/images/products/product-topHandleBag.webp",
+      "/images/products/product-topHandleBag.webp",
+    ],
+    previews: [
+      "/images/products/product-topHandleBag.webp",
+      "/images/products/product-topHandleBag.webp",
+    ],
+
+    gallery: [
       "/assets/products/top_handle_bag/gallery/gallery-1.webp",
       "/assets/products/top_handle_bag/gallery/gallery-2.webp",
       "/assets/products/top_handle_bag/gallery/gallery-3.webp",
@@ -727,7 +805,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           { id: "leather5", name: "Cokelat Karamel", thumb: "/assets/products/top_handle_bag/textures/thumb-leather5.webp", price: 5000000 },
         ]
       },
-
       {
         id: 'tali_kunci', name : 'Tali Kunci', basePrice : 0 , zIndex: {Front: 50, Back:50, Top:50},
         textures: [
@@ -833,30 +910,40 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
       }
     ]
   },
-  classic_messenger_bag: {
 
-    //Data Utama
+  // ================= CLASSIC MESSENGER BAG =================
+  classic_messenger_bag: {
     id: "classic_messenger_bag", 
     name: "Classic Messenger Bag",
     basePrice: 650000,
 
-    //Gallery
-     gallery: [
+    // Data Katalog
+    numericId: 5,
+    catalogTitle: "Classic Messenger Bag",
+    reviews: 0,
+    catalogPrice: 750000, 
+    discountedPrice: 550000, 
+    thumbnails: [
+      "/images/products/product-classicMessengerBag.webp",
+      "/images/products/product-classicMessengerBag.webp",
+    ],
+    previews: [
+      "/images/products/product-classicMessengerBag.webp",
+      "/images/products/product-classicMessengerBag.webp",
+    ],
+
+    gallery: [
       "/assets/products/classic_messenger_bag/gallery/gallery-1.webp",
       "/assets/products/classic_messenger_bag/gallery/gallery-2.webp",
       "/assets/products/classic_messenger_bag/gallery/gallery-3.webp",
       "/assets/products/classic_messenger_bag/gallery/gallery-4.webp",
     ],
-
-    //Dimensi
     dimensionsImage: "",
     specifications: [
       { label: "Product Style", value: "Classic Messenger Bag" },
       { label: "Material", value: "Premium Canvas & Leather" }
     ],
-
-    //Marketing 
-    "marketingBlocks": [
+    marketingBlocks: [
         {
           "layout": "image-right", 
           "hasPattern": false, 
@@ -866,7 +953,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           "titleHighlight": "& Jelas", 
           "titleHighlightStyle": "amber", 
           "description": "Lapisan dalam hitam pekat yang bersih memberikan kejelasan visual. Menampilkan kompartemen utama yang luas yang menampung barang-barang penting Anda, termasuk saku slip khusus untuk buku catatan dan dua smartphone, menjaga semuanya dalam jangkauan.", 
-          "image": "/assets/products/classic_messenger_bag/marketing/marketing-1.webp", // Dipetakan ke gambar 1 (interior)
+          "image": "/assets/products/classic_messenger_bag/marketing/marketing-1.webp", 
           "featureStyle": "bullets", 
           "features": [
             { "title": "Lapisan hitam pekat yang bersih" }, 
@@ -883,7 +970,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           "titleHighlight": "& Ikonik", 
           "titleHighlightStyle": "gradient", 
           "description": "Rasakan pernyataan desain yang kuat dengan panel blok warna vertikal ikonik kami. Abu-abu muda, merah cerah, dan kuning cerah bersatu dalam harmoni minimalis. Terbuat dari kulit halus yang premium untuk tampilan yang bersih dan canggih.", 
-          "image": "/assets/products/classic_messenger_bag/marketing/marketing-2.webp", // Dipetakan ke gambar 0 (eksterior depan)
+          "image": "/assets/products/classic_messenger_bag/marketing/marketing-2.webp",
           "featureStyle": "cards", 
           "features": [
             { "title": "Panel blok warna tiga nada", "icon": "M10 10l5 5M10 20l10-10M5 5l5 5" }, 
@@ -891,9 +978,7 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           ]
         }
       ],
-
-  //Guide
-  sizes: [
+    sizes: [
       { 
         id: "S", 
         title: "Kompak (S)", 
@@ -931,8 +1016,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
         description: "Varian terbesar yang cocok untuk bekerja atau kuliah. Memiliki ruang ekstra untuk membawa dokumen, buku berukuran A4, atau laptop tipis 13 inci dengan gaya retro yang berani."
       },
     ],
-
-    // Parts and Component
     parts: [
       {
         id: "body_kiri", name: "Badan Tas Kiri", basePrice: 0, zIndex: { Front: 20, Back: 10, Top: 10 },
@@ -952,7 +1035,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
             { id: "base", name: "Original", thumb: "assets/products/classic_messenger_bag/textures/thumb-original2.webp", price: 0 },
         ]
       },
-
       {
         id: "tali", name: "Tali", basePrice: 0, zIndex: { Front: 10, Back: 30, Top: 20 },
         variants: [
@@ -976,7 +1058,6 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           },
         ]
       },
-
       {
         id: "pengunci", name: "Pengunci", basePrice: 0, zIndex: { Front: 40, Back: 10, Top: 20 },
         variants: [
@@ -988,7 +1069,25 @@ export const PRODUCTS_CONFIG: Record<string, ProductConfig> = {
           },
         ]
       },
-
     ]
   }
+};
+
+// ==========================================
+// HELPER METHODS UNTUK FRONTEND
+// ==========================================
+
+export const getShopCatalogList = () => {
+  return Object.values(PRODUCTS_CONFIG).map((product) => ({
+    id: product.numericId,
+    idProduct: product.id,
+    title: product.catalogTitle,
+    reviews: product.reviews,
+    price: product.catalogPrice,
+    discountedPrice: product.discountedPrice,
+    imgs: {
+      thumbnails: product.thumbnails,
+      previews: product.previews,
+    }
+  }));
 };

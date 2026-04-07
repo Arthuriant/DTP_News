@@ -3,9 +3,14 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ProductItem from "@/components/Common/ProductItem";
-import shopData from "@/components/Shop/shopData";
+// IMPORT BARU: Ambil fungsi dari products.ts
+// Pastikan path "@/data/products" sesuai dengan struktur folder Anda
+import { getShopCatalogList } from "@/config/products"; 
 
 const NewArrival = () => {
+  // Panggil fungsi untuk mendapatkan array produk
+  const shopData = getShopCatalogList();
+
   return (
     <section className="relative overflow-hidden bg-[#F8F3E9] py-16 lg:py-24">
       

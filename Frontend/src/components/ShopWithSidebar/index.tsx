@@ -5,13 +5,16 @@ import CustomSelect from "./CustomSelect";
 import CategoryDropdown from "./CategoryDropdown";
 import GenderDropdown from "./GenderDropdown";
 import SizeDropdown from "./SizeDropdown";
-import ColorsDropdwon from "./ColorsDropdwon"; // Typo bawaan file aslimu, kubiarkan agar tidak error
+import ColorsDropdwon from "./ColorsDropdwon"; 
 import PriceDropdown from "./PriceDropdown";
-import shopData from "../Shop/shopData";
+import { getShopCatalogList } from "@/config/products"; 
 import SingleGridItem from "../Shop/SingleGridItem";
 import SingleListItem from "../Shop/SingleListItem";
 
 const ShopWithSidebar = () => {
+  // Panggil fungsi untuk mendapatkan array produk
+  const shopData = getShopCatalogList();
+
   const [productStyle, setProductStyle] = useState("grid");
   const [productSidebar, setProductSidebar] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);

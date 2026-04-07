@@ -1,17 +1,17 @@
 "use client";
 import React from "react";
-import shopData from "@/components/Shop/shopData";
+import { getShopCatalogList } from "@/config/products"; 
 import ProductItem from "@/components/Common/ProductItem";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useCallback, useRef } from "react";
-import "swiper/css/navigation";
-import "swiper/css";
 
 const RecentlyViewdItems = () => {
-  const sliderRef = useRef(null);
+  const shopData = getShopCatalogList();
+  
+  const sliderRef = useRef<any>(null);
 
   const handlePrev = useCallback(() => {
     if (!sliderRef.current) return;
@@ -27,7 +27,7 @@ const RecentlyViewdItems = () => {
     <section className="overflow-hidden pt-17.5">
       <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0 pb-15 border-b border-gray-3">
         <div className="swiper categories-carousel common-carousel">
-          {/* <!-- section title --> */}
+          {/* */}
           <div className="mb-10 flex items-center justify-between">
             <div>
               <span className="flex items-center gap-2.5 font-medium text-dark mb-1.5">
@@ -88,6 +88,13 @@ const RecentlyViewdItems = () => {
             slidesPerView={4}
             spaceBetween={20}
             className="justify-between"
+            breakpoints={{
+              // Responsivitas tambahan untuk Swiper agar rapi di mobile/tablet
+              320: { slidesPerView: 1, spaceBetween: 10 },
+              640: { slidesPerView: 2, spaceBetween: 15 },
+              1024: { slidesPerView: 3, spaceBetween: 20 },
+              1280: { slidesPerView: 4, spaceBetween: 20 },
+            }}
           >
             {shopData.map((item, key) => (
               <SwiperSlide key={key}>
