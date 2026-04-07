@@ -8,6 +8,7 @@ use App\Http\Controllers\SavebagController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\RoleController;
 
 
 Route::get('/', function () {
@@ -60,3 +61,9 @@ Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middlew
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
 
+Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::put('/roles/{id}', [RoleController::class, 'update']);
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+});

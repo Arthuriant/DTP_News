@@ -6,10 +6,10 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
-        api: __DIR__.'/../routes/api.php',
+        api: __DIR__ . '/../routes/api.php',
 
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -21,11 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             '/cart/*',
             '/logout', // Sekalian kecualikan logout jika nanti diubah jadi POST lagi
             '/register', // 👈 Tambahkan ini
-            '/login'  ,   // 👈 Tambahkan ini juga biar nanti pas Sign In gak error
+            '/login',   // 👈 Tambahkan ini juga biar nanti pas Sign In gak error
             '/save-bag',
             '/profile',
             '/addresses',
             '/addresses/*',
+            '/roles',
+            '/roles/*',
         ]);
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

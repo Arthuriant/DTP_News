@@ -14,7 +14,19 @@ class UserSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'lintang@admin.com'], // Email default admin
             [
-                'name' => 'Super Admin',
+                'name' => 'Lintang Mahardika',
+                'password' => Hash::make('admin'), // Password default
+            ]
+        );
+        
+        // Berikan pangkat admin ke akun ini
+        $admin->assignRole('super_admin');
+
+        // 1. Buat akun Admin Default
+        $admin = User::firstOrCreate(
+            ['email' => 'bayu@gmail.com'], // Email default admin
+            [
+                'name' => 'Bayu Putra',
                 'password' => Hash::make('admin'), // Password default
             ]
         );
