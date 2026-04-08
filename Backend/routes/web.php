@@ -35,6 +35,7 @@ Route::get('/user', function (Request $request) {
         'email' => $user->email,
         // 👇 Ini dia kunci utamanya! Mengambil daftar pangkat dari Spatie
         'roles' => $user->getRoleNames(),
+        'permissions' => $user->getAllPermissions()->pluck('name')
     ]);
 })->middleware('auth');
 
@@ -63,17 +64,21 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
 });
 
-
-
 Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth');
 Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth');
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middleware('auth');
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
 
-Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
-    Route::get('/roles', [RoleController::class, 'index']);
-    Route::post('/roles', [RoleController::class, 'store']);
-    Route::put('/roles/{id}', [RoleController::class, 'update']);
-    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
+Route::middleware(['auth'])->group(function () {
+    // Rute Role & Permission - Dilindungi oleh kunci spesifik (Spatie / Gate)
+    Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
+    Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');
+    Route::put('/roles/{id}', [RoleController::class, 'update'])->middleware('can:edit_roles');
+    Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->middleware('can:delete_roles');
+
+    Route::get('/admins', [AdminController::class, 'index'])->middleware('can:view_users');
+    Route::post('/admins', [AdminController::class, 'store'])->middleware('can:create_users');
+    Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
+    Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
 });
