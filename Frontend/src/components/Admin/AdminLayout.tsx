@@ -7,25 +7,32 @@ import { usePathname } from 'next/navigation';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
-  // STATE UNTUK RBAC DAN DATA USER
+  // 1. GABUNGAN STATE: Punya kamu (roles array) + Punya temanmu (isSuperAdmin)
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({ name: '', email: '', roles: [] as string[] });
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false); 
 
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
         const res = await fetch("http://127.0.0.1:8000/user", {
           credentials: "include",
-          headers: { "Accept": "application/json" } // Tambahkan header ini untuk amannya
+          headers: { "Accept": "application/json" }
         });
 
         if (res.ok) {
           const data = await res.json();
+          // 2. GABUNGAN LOGIKA PENGECEKAN
           if (data.roles && (data.roles.includes("admin") || data.roles.includes("super_admin"))) {
-            // 2. Simpan juga data roles-nya ke dalam state
+            // Simpan data dari kamu
             setUserData({ name: data.name, email: data.email, roles: data.roles });
             setIsAuthorized(true);
+
+            // Cek Super Admin dari temanmu
+            if (data.roles.includes("super_admin")) {
+              setIsSuperAdmin(true);
+            }
           } else {
             window.location.replace("/");
           }
@@ -43,20 +50,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkAdminAccess();
   }, []);
 
+  // 3. LOGOUT MILIKMU (Sudah benar pakai GET)
   const handleLogout = async () => {
     try {
-      // Panggil API logout Laravel menggunakan GET (samakan dengan Header Navbar)
       const res = await fetch("http://127.0.0.1:8000/logout", {
-        method: "GET", // 👈 UBAH DARI POST MENJADI GET
+        method: "GET",
         credentials: "include",
       });
 
-      if (res.ok) {
-        console.log("Logout admin berhasil di server!");
+      if (res.ok || res.status === 204) {
         window.location.replace("/signin");
       } else {
-        console.error("Logout ditolak oleh server. Status HTTP:", res.status);
-        window.location.replace("/signin"); // Tetap tendang untuk keamanan frontend
+        window.location.replace("/signin");
       }
     } catch (err) {
       console.error("Gagal logout", err);
@@ -64,18 +69,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const menuItems = [
+  // 4. GABUNGAN MENU (Milik Temanmu + Milikmu)
+  const baseMenuItems = [
     { title: 'Dashboard', path: '/admin', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { title: 'Produk & Kustom', path: '/admin/produk', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-    { title: 'Pesanan Custom', path: '/admin/pesanan', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+    { title: 'Pesanan Custom', path: '/admin/pesanan', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2' },
     { title: 'Data Customer', path: '/admin/customer', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
     { title: 'Mitra Pengrajin', path: '/admin/pengrajin', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0' },
     { title: 'Manajemen Role', path: '/admin/roles', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
   ];
 
-  // Ambil role pertama, lalu ubah underscore jadi spasi (contoh: super_admin -> super admin)
-  
-  // LAYAR LOADING KHUSUS: Mengikuti desain background tim frontend
+  const superAdminMenuItems = [
+    { title: 'Kelola Admin', path: '/admin/admin', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+  ];
+
+  const menuItems = isSuperAdmin ? [...baseMenuItems, ...superAdminMenuItems] : baseMenuItems;
+
+  // 5. TEKS ROLE DINAMIS MILIKMU
+  const displayRole = userData.roles.length > 0 
+    ? userData.roles[0].replace('_', ' ') 
+    : 'Administrator';
+
   if (isLoading || !isAuthorized) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-[#E0EFFF] to-[#E6E6FA] items-center justify-center font-sans">
@@ -87,12 +101,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Ambil nama depan saja untuk sapaan
   const firstName = userData.name.split(' ')[0] || 'Admin';
 
-  const displayRole = userData.roles.length > 0 
-    ? userData.roles[0].replace('_', ' ') 
-    : 'Administrator';
   return (
     <div className="flex h-screen bg-gradient-to-br from-[#E0EFFF] to-[#E6E6FA] font-sans overflow-hidden text-[#2D3E5E]">
       
@@ -108,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </span>
         </div>
 
-        <nav className="flex-1 mt-4 px-3 space-y-2">
+        <nav className="flex-1 mt-4 px-3 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
             return (
@@ -134,15 +144,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* Footer Sidebar */}
+        {/* 6. GABUNGAN FOOTER SIDEBAR: Info dari temanmu, onClick dari kamu */}
+        {isSuperAdmin && (
+          <div className="px-6 py-2">
+            <div className="border-t border-white/10"></div>
+          </div>
+        )}
+
         <div className="p-4 border-t border-white/5">
-            {/* 👇 Pastikan onClick terpasang di sini 👇 */}
-            <button onClick={handleLogout} className="w-full flex items-center text-slate-400 hover:text-white transition p-3 rounded-2xl hover:bg-white/5 group/logout">
-                <svg className="w-5 h-5 group-hover/logout:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="ml-5 text-sm font-medium opacity-0 group-hover:opacity-100 whitespace-nowrap">Keluar</span>
-            </button>
+          <div className="mb-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest capitalize">
+              {displayRole}
+            </p>
+            <p className="text-xs text-white font-semibold truncate">{userData.name}</p>
+          </div>
+          <button onClick={handleLogout} className="w-full flex items-center text-slate-400 hover:text-white transition p-3 rounded-2xl hover:bg-white/5 group/logout">
+            <svg className="w-5 h-5 group-hover/logout:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="ml-5 text-sm font-medium opacity-0 group-hover:opacity-100 whitespace-nowrap">Keluar</span>
+          </button>
         </div>
       </aside>
 
@@ -166,6 +187,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-4 border-l pl-6 border-slate-100">
               <div className="text-right">
                 <p className="text-xs font-bold text-[#2D3E5E] truncate max-w-[120px]">{userData.name}</p>
+                {/* 7. TEKS HEADER MENGGUNAKAN LOGIKAMU (displayRole) */}
                 <p className="text-[10px] text-[#3B82F6] font-bold tracking-widest uppercase capitalize">
                   {displayRole}
                 </p>

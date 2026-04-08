@@ -30,11 +30,21 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('admin'), // Password default
             ]
         );
-        
+
         // Berikan pangkat admin ke akun ini
         $admin->assignRole('admin');
 
-        // 2. (Opsional) Buat satu akun Customer default untuk testing
+         // 2. Admin biasa ← tambah ini
+            $admin = User::firstOrCreate(
+                ['email' => 'admin@uptoyou.com'],
+                [
+                    'name' => 'Admin',
+                    'password' => Hash::make('admin123'),
+                ]
+            );
+            $admin->assignRole('admin');
+
+        // 3. (Opsional) Buat satu akun Customer default untuk testing
         $customer = User::firstOrCreate(
             ['email' => 'customer@uptoyou.com'],
             [
