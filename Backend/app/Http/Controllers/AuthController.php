@@ -64,7 +64,10 @@ class AuthController extends Controller
         $googleUser = Socialite::driver('google')->user();
         $user = User::updateOrCreate(['email' => $googleUser->getEmail()], ['name' => $googleUser->getName(), 'password' => bcrypt('google_login')]);
         Auth::login($user);
-        $redirectUrl = session('url.intended', 'http://localhost:3000');
+        if (!$user->hasRole('customer')) {
+        $user->assignRole('customer');
+    }
+        $redirectUrl = session('url.intended', 'http://127.0.0.1:3000');
         return redirect($redirectUrl);
     }
 }
