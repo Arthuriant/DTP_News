@@ -12,6 +12,7 @@ class Profile extends Model
         'date_of_birth',
         'gender',
         'phone',
+        'pin',
     ];
 
     /**

@@ -25,6 +25,7 @@ public function show()
                 'date_of_birth' => null,
                 'phone'         => null,
                 'gender'        => null,
+                'pin'           => null, // ← tambah ini
             ], 200);
         }
 
@@ -47,6 +48,7 @@ public function show()
             'phone'         => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
             'gender'        => 'nullable|string', // Saya ubah jadi string biasa agar aman
+            'pin'           => 'nullable|string|max:6',
         ]);
 
         // 2. Update tabel users
@@ -62,6 +64,7 @@ public function show()
                 'phone'         => $validated['phone'] ?? null,
                 'date_of_birth' => $validated['date_of_birth'] ?? null,
                 'gender'        => $validated['gender'] ?? null,
+                'pin'           => $validated['pin'] ?? null, // ← tambah ini
             ]
         );
 

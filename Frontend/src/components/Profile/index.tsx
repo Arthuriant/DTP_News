@@ -12,6 +12,7 @@ interface ProfileData {
   date_of_birth: string | null;
   phone: string | null;
   gender: string | null;
+  pin: string | null;
 }
 
 export default function ProfilePage() {
@@ -31,6 +32,7 @@ export default function ProfilePage() {
     date_of_birth: "",
     gender: "",
     phone: "",
+    pin: "",
   });
 
   // URL Aksen Nusantara
@@ -76,6 +78,7 @@ export default function ProfilePage() {
       date_of_birth: profile?.date_of_birth || "",
       gender: profile?.gender || "",
       phone: profile?.phone || "",
+      pin: profile?.pin || "",
     });
     setEditingField(field);
   };
@@ -100,6 +103,7 @@ export default function ProfilePage() {
           date_of_birth: formData.date_of_birth,
           gender: formData.gender,
           phone: formData.phone,
+          pin: formData.pin,
         });
         
         setEditingField(null); 
@@ -341,6 +345,39 @@ export default function ProfilePage() {
                             <span className="text-[#2D1A11] font-medium text-lg">{profile?.phone || "-"}</span>
                             <button onClick={() => handleEditClick("phone")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">
                               {profile?.phone ? "Ubah" : "Tambah"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* pin */}
+                      <div className="flex flex-col sm:flex-row sm:items-center py-2 border-t border-gray-50 pt-6">
+                        <span className="w-full sm:w-1/3 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-0">Pin</span>
+                        {editingField === "pin" ? (
+                          <div className="w-full sm:w-2/3 flex items-center gap-3">
+                           <input 
+                                type="password"
+                                value={formData.pin} 
+                                onChange={(e) => {
+                                  if (e.target.value.length <= 6) {
+                                    setFormData({...formData, pin: e.target.value})
+                                  }
+                                }} 
+                                placeholder="Masukkan PIN 6 karakter" 
+                                maxLength={6}
+                                className={inputClasses} 
+                                autoFocus
+                              />
+                            <button onClick={handleSave} disabled={isSaving} className="text-[#C5A059] text-sm font-bold hover:text-[#2D1A11] transition-colors">{isSaving ? "..." : "Simpan"}</button>
+                            <button onClick={() => setEditingField(null)} className="text-gray-400 text-sm font-medium hover:text-red-500 transition-colors">Batal</button>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
+                            <span className="text-[#2D1A11] font-medium text-lg">
+                              {profile?.pin ? "••••••" : "-"}
+                            </span>
+                            <button onClick={() => handleEditClick("pin")} className="text-[#C5A059] text-sm font-semibold opacity-0 group-hover/item:opacity-100 transition-opacity">
+                              {profile?.pin ? "Ubah" : "Tambah"}
                             </button>
                           </div>
                         )}

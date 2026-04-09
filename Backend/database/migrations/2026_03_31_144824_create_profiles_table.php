@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('date_of_birth')->nullable();
 
             $table->string('phone')->nullable();
+            $table->string('pin')->nullable(); // ← tambah ini
 
             // Jenis kelamin (bisa pakai string atau enum)
             $table->enum('gender', ['Laki-laki', 'Perempuan'])->nullable();
