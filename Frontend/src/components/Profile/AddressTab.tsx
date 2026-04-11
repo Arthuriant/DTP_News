@@ -4,10 +4,12 @@ import AddressModal from "./AddressModal";
 
 export default function AddressTab() {
   const [addresses, setAddresses] = useState<any[]>([]);
-  
-  // State untuk mengontrol Modal
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any | null>(null);
+
+  const megaMendungUrl = "https://static.vecteezy.com/system/resources/previews/024/036/944/large_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
+  const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   const fetchAddresses = async () => {
     try {
@@ -28,7 +30,7 @@ export default function AddressTab() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus alamat ini?")) return;
+    if (!window.confirm("Hapus lokasi pengiriman ini?")) return;
     try {
       const res = await fetch(`http://127.0.0.1:8000/addresses/${id}`, {
         method: "DELETE",
@@ -53,79 +55,89 @@ export default function AddressTab() {
   };
 
   const handleAddNewClick = () => {
-    setEditData(null); // Mode Tambah Baru
+    setEditData(null); 
     setIsModalOpen(true);
   };
 
   const handleEditClick = (address: any) => {
-    setEditData(address); // Mode Edit Data
+    setEditData(address); 
     setIsModalOpen(true);
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-medium text-gray-800">Alamat Saya</h2>
+    <div className="animate-fadeIn relative font-sans">
+
+      <div className="flex justify-end mb-8 relative z-10">
         <button 
           onClick={handleAddNewClick}
-          className="bg-[#EE4D2D] hover:bg-[#D73211] text-white px-4 py-2 rounded text-sm flex items-center gap-2 transition-colors shadow-sm"
+          className="bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] text-[#1A1A1A] px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest border-none shadow-[6px_6px_15px_rgba(217,179,90,0.4),-6px_-6px_15px_rgba(255,255,255,0.9)] hover:shadow-[8px_8px_20px_rgba(217,179,90,0.5),-8px_-8px_20px_rgba(255,255,255,1)] hover:-translate-y-1 active:translate-y-0 transition-all flex items-center justify-center gap-2 group"
         >
-          <span>+</span> Tambah Alamat Baru
+          <span className="text-lg group-hover:rotate-180 transition-transform duration-500">✧</span> 
+          Tambah Alamat
         </button>
       </div>
 
       {addresses.length === 0 ? (
-        <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-lg bg-gray-50">
-          <p className="text-gray-400 text-sm">Belum ada alamat yang disimpan.</p>
+        <div className="py-20 flex flex-col items-center justify-center text-center bg-[#F8F3E9] rounded-[2rem] border-none shadow-[inset_8px_8px_20px_rgba(45,26,17,0.05),inset_-8px_-8px_20px_rgba(255,255,255,0.9)]">
+          <span className="text-4xl opacity-30 text-[#8B7355] mb-4">✧</span>
+          <p className="text-[#2D1A11] font-bold font-serif text-xl">Belum Ada Lokasi Terdaftar</p>
+          <p className="text-[#8B7355] text-xs mt-2 uppercase tracking-widest font-semibold">Silakan tambahkan alamat pengiriman.</p>
         </div>
       ) : (
-        addresses.map((address) => (
-          <div key={address.id} className="border-t border-gray-200 py-4 flex flex-col md:flex-row justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-800">{address.recipient_name}</span>
-                <span className="text-gray-400">|</span>
-                <span className="text-gray-500">{address.phone_number}</span>
-              </div>
-              <p className="text-gray-500 text-sm">{address.street}</p>
-              <p className="text-gray-500 text-sm uppercase">{address.region}</p>
-              
-              <div className="flex gap-2 mt-2">
-                {address.is_primary && (
-                  <span className="inline-block border border-[#EE4D2D] text-[#EE4D2D] px-2 py-0.5 text-[10px] rounded-sm">
-                    Utama
-                  </span>
-                )}
-                {address.label && (
-                  <span className="inline-block border border-gray-400 text-gray-500 px-2 py-0.5 text-[10px] rounded-sm">
-                    {address.label}
-                  </span>
-                )}
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+          {addresses.map((address) => (
+            <div key={address.id} className="bg-[#F8F3E9] rounded-[2rem] border-none overflow-hidden relative group shadow-[10px_10px_30px_rgba(45,26,17,0.08),-10px_-10px_30px_rgba(255,255,255,1)] hover:shadow-[15px_15px_40px_rgba(217,179,90,0.15),-15px_-15px_40px_rgba(255,255,255,1)] transition-all duration-500 hover:-translate-y-2">
 
-            <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
-              <div className="space-x-3 text-sm font-medium">
-                <button onClick={() => handleEditClick(address)} className="text-blue-600 hover:text-blue-800">Ubah</button>
-                <button onClick={() => handleDelete(address.id)} className="text-blue-600 hover:text-blue-800">Hapus</button>
+              <div className="h-28 relative bg-[#2D1A11]" 
+                   style={{ backgroundImage: `linear-gradient(to bottom, rgba(45, 26, 17, 0.4), rgba(45, 26, 17, 0.9)), url('${brownBatikUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                 <div className="absolute inset-0 opacity-20 mix-blend-overlay" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain' }}></div>
+                 <div className="absolute inset-0 shadow-[inset_0_-15px_20px_rgba(248,243,233,0.2)]"></div>
               </div>
-              <button 
-                onClick={() => handleSetPrimary(address.id)}
-                disabled={address.is_primary}
-                className={`border px-3 py-1 text-sm rounded transition-colors ${
-                  address.is_primary 
-                    ? "border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed" 
-                    : "border-gray-400 text-gray-700 hover:bg-gray-50 hover:border-gray-500 cursor-pointer"
-                }`}
-              >
-                Atur sebagai utama
-              </button>
+
+              <div className="absolute top-16 left-6 w-16 h-16 bg-[#F8F3E9] rounded-full border-none shadow-[6px_6px_15px_rgba(45,26,17,0.12),-6px_-6px_15px_rgba(255,255,255,1)] flex items-center justify-center z-10 group-hover:scale-110 transition-transform duration-500">
+                 <span className="text-[#D9B35A] text-2xl font-serif italic drop-shadow-sm">
+                    {address.label ? address.label.charAt(0).toUpperCase() : "A"}
+                 </span>
+              </div>
+
+              <div className="p-6 pt-10 bg-transparent h-full flex flex-col justify-between relative">
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                     <div>
+                       <h3 className="text-lg font-bold text-[#2D1A11] tracking-tight drop-shadow-sm">{address.recipient_name}</h3>
+                       <p className="text-[#8B7355] text-[11px] font-black tracking-widest uppercase mt-0.5">{address.phone_number}</p>
+                     </div>
+                     {address.is_primary && (
+                       <span className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#1A1A1A] px-3 py-1 rounded-full text-[9px] uppercase tracking-widest font-black shadow-[4px_4px_10px_rgba(217,179,90,0.3),-2px_-2px_5px_rgba(255,255,255,0.5)]">
+                         Utama
+                       </span>
+                     )}
+                  </div>
+
+                  <p className="text-[#5A4A3B] text-xs leading-relaxed mb-2 line-clamp-2">{address.street}</p>
+                  <p className="text-[#D9B35A] text-[9px] uppercase font-black tracking-[0.2em] mb-6">{address.region}</p>
+                </div>
+
+                <div className="flex items-center justify-between pt-5 mt-auto shadow-[0_-10px_15px_-15px_rgba(45,26,17,0.15)] relative">
+                  <div className="flex gap-4">
+                     <button onClick={() => handleEditClick(address)} className="text-[#8B7355] hover:text-[#D9B35A] text-[10px] font-black uppercase tracking-[0.15em] transition-colors drop-shadow-sm">Ubah</button>
+                     <button onClick={() => handleDelete(address.id)} className="text-[#C5A059]/50 hover:text-rose-500 text-[10px] font-black uppercase tracking-[0.15em] transition-colors drop-shadow-sm">Hapus</button>
+                  </div>
+
+                  {!address.is_primary && (
+                    <button onClick={() => handleSetPrimary(address.id)} className="bg-[#F8F3E9] border-none text-[#8B7355] px-4 py-2 rounded-full text-[9px] uppercase tracking-widest font-bold shadow-[4px_4px_10px_rgba(45,26,17,0.1),-4px_-4px_10px_rgba(255,255,255,1)] hover:shadow-[inset_4px_4px_10px_rgba(45,26,17,0.1),inset_-4px_-4px_10px_rgba(255,255,255,1)] hover:text-[#D9B35A] transition-all duration-300">
+                      Jadikan Utama
+                    </button>
+                  )}
+                </div>
+              </div>
+              
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
 
-      {/* Memanggil Komponen Modal */}
+      {/* MODAL */}
       <AddressModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
