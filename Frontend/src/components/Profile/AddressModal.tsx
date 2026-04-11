@@ -1,5 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// --- DYNAMIC IMPORTS LEAFLET (Wajib untuk Next.js) ---
+const MapPicker = dynamic(() => import("./MapPicker"), { 
+  ssr: false,
+  loading: () => <div className="flex h-full items-center justify-center text-slate-400 text-sm">Memuat Peta...</div>
+});
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -8,7 +15,6 @@ interface AddressModalProps {
   editData: any | null;
 }
 
-// API IBNUX - Sangat stabil dan anti CORS
 const API_WILAYAH = "https://ibnux.github.io/data-indonesia";
 
 export default function AddressModal({ isOpen, onClose, onSuccess, editData }: AddressModalProps) {
@@ -32,6 +38,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     villId: "", villName: ""
   });
 
+  // State untuk menyimpan titik koordinat Peta (Default: Pusat Kota Bandung)
+  const [mapPosition, setMapPosition] = useState<[number, number]>([-6.9175, 107.6191]);
+
   useEffect(() => {
     if (isOpen) {
       if (editData) {
@@ -41,9 +50,15 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
           label: editData.label || "", is_primary: editData.is_primary == 1,
         });
         setIsChangingRegion(false); 
+        
+        // Jika data alamat lama punya latitude & longitude, pasang di peta
+        if (editData.latitude && editData.longitude) {
+          setMapPosition([parseFloat(editData.latitude), parseFloat(editData.longitude)]);
+        }
       } else {
         setFormData({ recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false });
         setIsChangingRegion(true);  
+        setMapPosition([-6.9175, 107.6191]); // Reset ke Bandung
       }
       
       setSelectedRegion({ provId: "", provName: "", cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: "" });
@@ -56,12 +71,12 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     }
   }, [isOpen, editData]);
 
+  // Handler API Ibnux
   const handleProvChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     const name = e.target.options[e.target.selectedIndex].text;
     setSelectedRegion({ provId: id, provName: name, cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: "" });
     setCities([]); setDistricts([]); setVillages([]);
-    
     try {
       const res = await fetch(`${API_WILAYAH}/kabupaten/${id}.json`);
       setCities(await res.json());
@@ -73,7 +88,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     const name = e.target.options[e.target.selectedIndex].text;
     setSelectedRegion(prev => ({ ...prev, cityId: id, cityName: name, distId: "", distName: "", villId: "", villName: "" }));
     setDistricts([]); setVillages([]);
-    
     try {
       const res = await fetch(`${API_WILAYAH}/kecamatan/${id}.json`);
       setDistricts(await res.json());
@@ -85,7 +99,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     const name = e.target.options[e.target.selectedIndex].text;
     setSelectedRegion(prev => ({ ...prev, distId: id, distName: name, villId: "", villName: "" }));
     setVillages([]);
-    
     try {
       const res = await fetch(`${API_WILAYAH}/kelurahan/${id}.json`);
       setVillages(await res.json());
@@ -118,7 +131,16 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     }
 
     setIsLoading(true);
-    const payload = { ...formData, region: finalRegion, label: formData.label === "" ? null : formData.label };
+    
+    // 👇 Tambahkan mapPosition ke Payload agar dikirim ke Laravel 👇
+    const payload = { 
+      ...formData, 
+      region: finalRegion, 
+      label: formData.label === "" ? null : formData.label,
+      latitude: mapPosition[0],   // Kirim Lat
+      longitude: mapPosition[1]   // Kirim Lng
+    };
+    
     const url = editData ? `http://127.0.0.1:8000/addresses/${editData.id}` : "http://127.0.0.1:8000/addresses";
     const method = editData ? "PUT" : "POST";
 
@@ -140,6 +162,28 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       setIsLoading(false);
     }
   };
+
+  // Komponen Helper untuk menangkap klik di Peta Leaflet
+  function LocationMarker() {
+    useMapEvents({
+      click(e: any) {
+        setMapPosition([e.latlng.lat, e.latlng.lng]);
+      },
+    });
+
+    // Fix Bug Icon Next.js secara aman (menggunakan Icon CDN)
+    const customIcon = typeof window !== 'undefined' ? new (require('leaflet')).Icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    }) : null;
+
+    return customIcon ? <Marker position={mapPosition} icon={customIcon} /> : null;
+  }
 
   return (
     <div className="fixed inset-0 z-[99999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -209,12 +253,25 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               <input type="text" name="details" placeholder="Cth: Cat rumah warna hijau, pagar hitam" value={formData.details} onChange={handleInputChange} className="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-[#EE4D2D] outline-none transition-all" />
             </div>
 
-            {/* 👇 INI BAGIAN MAPS YANG KAMU MINTA TETAP ADA 👇 */}
-            <div className="w-full h-20 bg-gray-100 border border-gray-200 flex items-center justify-center relative overflow-hidden rounded-xl">
-              <div className="absolute inset-0 opacity-10 bg-[url('https://maps.gstatic.com/mapfiles/transparent.png')] bg-repeat"></div>
-              <button type="button" onClick={() => alert("Fitur Google Maps membutuhkan Integrasi API Key khusus. Saat ini gunakan input manual.")} className="bg-white border border-gray-300 text-gray-600 px-4 py-1.5 text-sm rounded shadow-sm z-10 flex items-center gap-2 hover:bg-gray-50 transition-colors">
-                <span className="text-lg">+</span> Tambah Lokasi
-              </button>
+            {/* 👇 IMPLEMENTASI LEAFLET MAPS 👇 */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-bold text-slate-500">Tandai Lokasi Presisi di Peta</label>
+                {/* Menampilkan koordinat secara realtime agar user tahu peta berfungsi */}
+                <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-mono">
+                  {mapPosition[0].toFixed(5)}, {mapPosition[1].toFixed(5)}
+                </span>
+              </div>
+              
+                {/* Tema Map: CartoDB Positron (Bersih & Elegan) */}
+                {/* 👇 IMPLEMENTASI LEAFLET MAPS YANG SUDAH BERSIH 👇 */}
+            <div className="space-y-2">
+              <div className="h-[250px] w-full rounded-xl overflow-hidden border border-slate-200 shadow-inner relative z-0 bg-slate-50">
+                {/* Cukup panggil komponen yang sudah kita pisah di sini */}
+                <MapPicker position={mapPosition} setPosition={setMapPosition} />
+              </div>
+            </div>
+              <p className="text-[10px] text-slate-400 italic">*Geser atau klik peta untuk menempatkan pin lokasi.</p>
             </div>
             {/* 👆 ========================================= 👆 */}
 
@@ -236,7 +293,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
           </form>
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-white">
+        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
           <button type="button" onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Batal</button>
           <button type="submit" form="addressForm" disabled={isLoading} className="bg-[#EE4D2D] hover:bg-[#D73211] text-white px-8 py-2.5 text-sm font-bold rounded-xl transition-colors disabled:opacity-70 shadow-lg shadow-orange-500/30">
             {isLoading ? "Menyimpan..." : "Simpan Alamat"}
