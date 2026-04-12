@@ -36,7 +36,9 @@ class AddressController extends Controller
             'street' => 'required|string',
             'details' => 'nullable|string',
             'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean'
+            'is_primary' => 'boolean',  
+            'latitude'       => 'nullable|numeric',
+            'longitude'      => 'nullable|numeric',
         ]);
 
         $isPrimary = $request->is_primary;
@@ -61,6 +63,8 @@ class AddressController extends Controller
             'details' => $request->details,
             'label' => $request->label,
             'is_primary' => $isPrimary,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil ditambahkan', 'address' => $address], 201);
@@ -117,7 +121,9 @@ class AddressController extends Controller
             'street' => 'required|string',
             'details' => 'nullable|string',
             'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean'
+            'is_primary' => 'boolean',
+            'latitude'       => 'nullable|numeric',
+            'longitude'      => 'nullable|numeric',
         ]);
 
         $isPrimary = $request->is_primary;
@@ -136,6 +142,8 @@ class AddressController extends Controller
             'details' => $request->details,
             'label' => $request->label,
             'is_primary' => $isPrimary,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil diubah', 'address' => $address], 200);

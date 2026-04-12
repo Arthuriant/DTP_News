@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
+
+      
         // Tambahkan baris ini
         $middleware->validateCsrfTokens(except: [
             '/cart',

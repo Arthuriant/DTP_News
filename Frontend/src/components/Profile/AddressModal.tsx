@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
-// --- DYNAMIC IMPORTS LEAFLET (Wajib untuk Next.js) ---
+// 👇 1. IMPORT KOMPONEN PETA SECARA DINAMIS 👇
 const MapPicker = dynamic(() => import("./MapPicker"), { 
   ssr: false,
-  loading: () => <div className="flex h-full items-center justify-center text-slate-400 text-sm">Memuat Peta...</div>
+  loading: () => <div className="h-[250px] w-full bg-slate-100 animate-pulse rounded-xl flex items-center justify-center text-slate-400 text-sm">Memuat Peta...</div>
 });
 
 interface AddressModalProps {
@@ -38,7 +38,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     villId: "", villName: ""
   });
 
-  // State untuk menyimpan titik koordinat Peta (Default: Pusat Kota Bandung)
+  // State Peta
   const [mapPosition, setMapPosition] = useState<[number, number]>([-6.9175, 107.6191]);
 
   useEffect(() => {
@@ -51,14 +51,13 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
         });
         setIsChangingRegion(false); 
         
-        // Jika data alamat lama punya latitude & longitude, pasang di peta
         if (editData.latitude && editData.longitude) {
           setMapPosition([parseFloat(editData.latitude), parseFloat(editData.longitude)]);
         }
       } else {
         setFormData({ recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false });
         setIsChangingRegion(true);  
-        setMapPosition([-6.9175, 107.6191]); // Reset ke Bandung
+        setMapPosition([-6.9175, 107.6191]);
       }
       
       setSelectedRegion({ provId: "", provName: "", cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: "" });
@@ -71,7 +70,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     }
   }, [isOpen, editData]);
 
-  // Handler API Ibnux
   const handleProvChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value;
     const name = e.target.options[e.target.selectedIndex].text;
@@ -131,14 +129,12 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     }
 
     setIsLoading(true);
-    
-    // 👇 Tambahkan mapPosition ke Payload agar dikirim ke Laravel 👇
     const payload = { 
       ...formData, 
       region: finalRegion, 
       label: formData.label === "" ? null : formData.label,
-      latitude: mapPosition[0],   // Kirim Lat
-      longitude: mapPosition[1]   // Kirim Lng
+      latitude: mapPosition[0],   
+      longitude: mapPosition[1]   
     };
     
     const url = editData ? `http://127.0.0.1:8000/addresses/${editData.id}` : "http://127.0.0.1:8000/addresses";
@@ -162,28 +158,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       setIsLoading(false);
     }
   };
-
-  // Komponen Helper untuk menangkap klik di Peta Leaflet
-  function LocationMarker() {
-    useMapEvents({
-      click(e: any) {
-        setMapPosition([e.latlng.lat, e.latlng.lng]);
-      },
-    });
-
-    // Fix Bug Icon Next.js secara aman (menggunakan Icon CDN)
-    const customIcon = typeof window !== 'undefined' ? new (require('leaflet')).Icon({
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    }) : null;
-
-    return customIcon ? <Marker position={mapPosition} icon={customIcon} /> : null;
-  }
 
   return (
     <div className="fixed inset-0 z-[99999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -253,24 +227,18 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               <input type="text" name="details" placeholder="Cth: Cat rumah warna hijau, pagar hitam" value={formData.details} onChange={handleInputChange} className="w-full border border-slate-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-[#EE4D2D] outline-none transition-all" />
             </div>
 
-            {/* 👇 IMPLEMENTASI LEAFLET MAPS 👇 */}
+            {/* 👇 2. CUKUP PANGGIL KOMPONEN MAPS DI SINI 👇 */}
             <div className="space-y-2">
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-xs font-bold text-slate-500">Tandai Lokasi Presisi di Peta</label>
-                {/* Menampilkan koordinat secara realtime agar user tahu peta berfungsi */}
                 <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-mono">
                   {mapPosition[0].toFixed(5)}, {mapPosition[1].toFixed(5)}
                 </span>
               </div>
               
-                {/* Tema Map: CartoDB Positron (Bersih & Elegan) */}
-                {/* 👇 IMPLEMENTASI LEAFLET MAPS YANG SUDAH BERSIH 👇 */}
-            <div className="space-y-2">
               <div className="h-[250px] w-full rounded-xl overflow-hidden border border-slate-200 shadow-inner relative z-0 bg-slate-50">
-                {/* Cukup panggil komponen yang sudah kita pisah di sini */}
                 <MapPicker position={mapPosition} setPosition={setMapPosition} />
               </div>
-            </div>
               <p className="text-[10px] text-slate-400 italic">*Geser atau klik peta untuk menempatkan pin lokasi.</p>
             </div>
             {/* 👆 ========================================= 👆 */}
