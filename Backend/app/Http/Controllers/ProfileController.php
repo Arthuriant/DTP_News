@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
@@ -75,5 +76,30 @@ public function show()
         ]);
 
 }
+        public function updatePassword(Request $request)
+        {
+            $user = Auth::user();
+
+            $request->validate([
+                'current_password' => 'required|string',
+                'new_password'     => 'required|string|min:6|confirmed', // confirmed = butuh new_password_confirmation
+            ]);
+
+            // Cek apakah password lama benar
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'message' => 'Password lama tidak sesuai'
+                ], 422);
+            }
+
+            // Update password baru
+            $user->update([
+                'password' => Hash::make($request->new_password),
+            ]);
+
+            return response()->json([
+                'message' => 'Password berhasil diperbarui'
+            ]);
+        }
 }
 

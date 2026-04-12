@@ -55,6 +55,7 @@ Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth')
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword']);
 }); // ← tutup di sini
 
 Route::middleware(['auth', 'role:super_admin'])->group(function () {
