@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
 
 
@@ -82,3 +83,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
     Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
 });
+
+    // Admin dan Super Admin bisa lihat data customer
+    Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+        Route::get('/customers', [CustomerController::class, 'index']);
+        Route::post('/customers', [CustomerController::class, 'store']);
+        Route::put('/customers/{id}', [CustomerController::class, 'update']);
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+    });

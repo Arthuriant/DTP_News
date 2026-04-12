@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
             '/roles/*',
             '/admins',
             '/admins/*',
+            '/profile/update-password',
+            '/customers',
+            '/customers/*',
         ]);
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
