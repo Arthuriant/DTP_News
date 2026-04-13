@@ -11,7 +11,6 @@ use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Middleware\LogUserActivity;
 
 
