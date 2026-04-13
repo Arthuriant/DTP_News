@@ -62,6 +62,7 @@ class User extends Authenticatable
         return $this->hasOne(Profile::class);
     }
 
+    // Tambahkan ini di dalam class User, di bawah fungsi-fungsi yang lain
     public function addresses()
     {
         return $this->hasMany(Address::class);

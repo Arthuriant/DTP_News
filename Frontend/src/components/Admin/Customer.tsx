@@ -1,187 +1,149 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const CustomerMap = dynamic(() => import("./CustomerMap"), { 
+  ssr: false,
+  loading: () => <div className="h-full w-full flex items-center justify-center bg-slate-100 animate-pulse text-slate-400">Memuat Peta Persebaran...</div>
+});
 
 export default function Customer() {
   const [search, setSearch] = useState('');
-  const [customers, setCustomers] = useState([
-    { id: 1, nama: "Charly Dues", email: "charly@mail.com", pesanan: 3, status: "Aktif", joined: "20 Okt 2023" },
-    { id: 2, nama: "Rina Ananda", email: "rina@mail.com", pesanan: 1, status: "Aktif", joined: "15 Nov 2023" },
-    { id: 3, nama: "Budi Santoso", email: "budi.s@mail.com", pesanan: 0, status: "Suspend", joined: "01 Des 2023" },
-  ]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedData, setSelectedData] = useState<{customer: any, address: any} | null>(null);
 
-  const toggleStatus = (id: number) => {
-    setCustomers(customers.map(c => c.id === id ? { ...c, status: c.status === 'Aktif' ? 'Suspend' : 'Aktif' } : c));
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch("http://127.0.0.1:8000/customers", {
+          credentials: "include",
+          headers: { Accept: "application/json" }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setCustomers(data);
+        } else {
+          console.error("Gagal mengambil data customer");
+        }
+      } catch (error) {
+        console.error("Error jaringan:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
+  const handleSelectCustomer = (customer: any, address: any) => {
+    setSelectedData({ customer, address });
   };
 
-  const filtered = customers.filter(c => c.nama.toLowerCase().includes(search.toLowerCase()));
+  const filtered = customers.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   return (
-    <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
-      
-      {/* ================= HEADER SECTION ================= */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+    <div className="space-y-6 max-w-[1500px] mx-auto text-slate-700">
+      <div className="flex justify-between items-end">
         <div>
-          <p className="text-[#C5A059] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Manajemen Data</p>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#2D1A11]">Direktori Pelanggan</h1>
-          <p className="text-gray-500 font-sans text-sm mt-3 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#C5A059] rounded-full"></span>
-            Daftar lengkap mitra dan pelanggan setia UpToYou
-          </p>
+          <h1 className="text-3xl font-bold text-slate-800">Data Customer</h1>
+          <p className="text-sm text-slate-500 mt-1">Pantau lokasi dan informasi detail pelanggan Anda.</p>
         </div>
-
-        <div className="relative group w-full md:w-80">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-[#C5A059]">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </span>
-          <input 
-            type="text" 
-            placeholder="Cari pelanggan..." 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
-            className="bg-white/80 backdrop-blur-md border border-gray-100 text-[#2D1A11] pl-12 pr-6 py-4 rounded-full shadow-[0_5px_15px_rgba(45,26,17,0.03)] focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] w-full transition-all font-sans text-sm placeholder:text-gray-400 group-hover:shadow-[0_8px_20px_rgba(197,160,89,0.1)]"
-          />
-        </div>
+        <input type="text" placeholder="Cari nama..." value={search} onChange={e => setSearch(e.target.value)} className="bg-white/60 backdrop-blur-md border border-white px-6 py-3 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-72 text-sm" />
       </div>
 
-      {/* ================= MAIN DATA SECTION ================= */}
-      <div className="relative w-full overflow-hidden pb-10 pt-2">
+      <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-sm border border-white/80 p-2 relative overflow-hidden h-[350px]">
+        <CustomerMap customers={customers} onSelectCustomer={handleSelectCustomer} />
+      </div>
 
-        <div 
-          className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none"
-          style={{ 
-              backgroundImage: `url('${megaMendungUrl}')`, 
-              backgroundSize: 'contain', 
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right bottom'
-          }}
-        ></div>
-
-        <div className="overflow-x-auto px-2">
-          <table className="w-full text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
-            
-            {/* ================= TABLE HEADER MEWAH ================= */}
-            <thead className="text-[#C5A059] uppercase text-[11px] font-bold tracking-[0.25em] shadow-xl">
-               <tr>
-                 <th 
-                    className="py-5 pl-8 pr-4 text-left rounded-l-2xl w-[30%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Profil Pelanggan
-                 </th>
-                 <th 
-                    className="py-5 px-4 text-left w-[20%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Kontak Utama
-                 </th>
-                 <th 
-                    className="py-5 px-4 text-center w-[15%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Total Pesanan
-                 </th>
-                 <th 
-                    className="py-5 px-4 text-center w-[15%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Pendaftaran
-                 </th>
-                 <th 
-                    className="py-5 px-4 text-center w-[10%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Status
-                 </th>
-                 <th 
-                    className="py-5 pr-8 pl-4 text-right rounded-r-2xl w-[10%]"
-                    style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.94), rgba(45, 26, 17, 0.94)), url('${brownBatikUrl}')`, backgroundSize: '250px' }}
-                 >
-                    Kelola Data
-                 </th>
-               </tr>
-            </thead>
-            
-            {/* ================= TABLE BODY ================= */}
-            <tbody>
-              {filtered.length > 0 ? filtered.map((c) => (
-                <tr key={c.id} className="group transition-all duration-300 hover:-translate-y-1">
-
-                  <td className="py-4 pl-8 pr-4 text-left bg-white rounded-l-2xl shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-full bg-[#F8F3E9] border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059] font-bold shadow-inner shrink-0">
-                        {c.nama.charAt(0)}
-                      </div>
-                      <div>
-                        <span className="font-bold text-[#2D1A11] text-base block truncate max-w-[200px] xl:max-w-[250px]">{c.nama}</span>
-                        <span className="text-gray-400 text-[10px] font-bold tracking-widest mt-0.5 block uppercase">ID: UTS-{String(c.id).padStart(4, '0')}</span>
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td className="py-4 px-4 text-left bg-white text-gray-500 font-medium shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                    {c.email}
-                  </td>
-
-                  <td className="py-4 px-4 text-center bg-white shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                      <span className="font-black text-[#C5A059] text-lg bg-[#C5A059]/5 px-4 py-1.5 rounded-lg border border-[#C5A059]/10">
-                        {c.pesanan}
-                      </span>
-                  </td>
-
-                  <td className="py-4 px-4 text-center bg-white text-gray-400 font-medium shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                    {c.joined || "-"}
-                  </td>
-                  
-                  <td className="py-4 px-4 text-center bg-white shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                      <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold border ${
-                        c.status === 'Aktif' 
-                          ? 'bg-green-50/50 text-green-600 border-green-200' 
-                          : 'bg-red-50/50 text-red-500 border-red-100'
-                      }`}>
-                          {c.status === 'Aktif' ? (
-                            <span className="relative flex h-2 w-2 mr-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                            </span>
-                          ) : (
-                            <span className="w-1.5 h-1.5 bg-red-400 rounded-full mr-2"></span>
-                          )}
-                          {c.status}
-                      </div>
-                  </td>
-
-                  <td className="py-4 pr-8 pl-4 text-right bg-white rounded-r-2xl shadow-[0_5px_20px_rgba(45,26,17,0.03)] group-hover:shadow-[0_10px_25px_rgba(197,160,89,0.1)] transition-shadow">
-                    <button 
-                      onClick={() => toggleStatus(c.id)} 
-                      className={`ml-auto px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm flex items-center justify-center gap-2 w-[110px] ${
-                          c.status === 'Aktif' 
-                            ? 'bg-gray-50 border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50' 
-                            : 'bg-[#C5A059] border border-[#C5A059] text-white hover:bg-[#a88647] hover:shadow-lg hover:shadow-[#C5A059]/20'
-                        }`}
-                    >
-                      {c.status === 'Aktif' ? 'Bekukan' : 'Pulihkan'}
-                    </button>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={6} className="py-24 text-center bg-white rounded-3xl shadow-sm border border-gray-50">
-                    <div className="flex flex-col items-center justify-center">
-                      <span className="text-5xl mb-4 opacity-40">𓍯</span>
-                      <p className="text-[#2D1A11] font-bold text-xl font-serif">Tidak Ada Data Pelanggan</p>
-                      <p className="text-gray-400 mt-2 font-sans text-sm">Coba sesuaikan kata kunci pencarian Anda.</p>
-                    </div>
-                  </td>
-                </tr>
+      {selectedData && (
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl shadow-lg p-6 text-white flex items-center justify-between animate-soft-fade">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30 text-2xl font-bold relative">
+              {selectedData.customer.name.charAt(0)}
+              {/* Indikator Online di Detail Card */}
+              {selectedData.customer.is_online && (
+                <span className="absolute bottom-1 right-0 w-3 h-3 bg-green-400 border-2 border-indigo-600 rounded-full animate-pulse"></span>
               )}
-            </tbody>
-          </table>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                {selectedData.customer.name}
+              </h3>
+              <p className="text-blue-100 text-sm flex items-center gap-2 mt-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                {selectedData.customer.email}
+              </p>
+            </div>
+          </div>
+          <div className="text-right max-w-sm">
+            <p className="text-xs text-blue-200 font-bold uppercase tracking-wider mb-1">Lokasi Pengiriman</p>
+            <p className="text-sm font-medium">{selectedData.address.street}</p>
+            <p className="text-xs text-blue-100 mt-0.5">{selectedData.address.region}</p>
+          </div>
+          <button onClick={() => setSelectedData(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors ml-4">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
+      )}
+
+      <div className="bg-white/60 backdrop-blur-2xl rounded-[2rem] shadow-sm border border-white/80 p-8">
+        <table className="w-full text-left text-sm text-slate-600">
+          <thead className="text-slate-400 border-b border-white/50">
+             <tr>
+               <th className="pb-4">Nama Pelanggan</th>
+               <th className="pb-4">Email</th>
+               <th className="pb-4">Wilayah Utama</th>
+               <th className="pb-4 text-center">Tgl. Bergabung</th>
+               {/* 👇 Header Status 👇 */}
+               <th className="pb-4 text-center">Status Aktivitas</th>
+             </tr>
+          </thead>
+          <tbody className="divide-y divide-white/50">
+            {isLoading ? (
+               <tr><td colSpan={5} className="py-10 text-center text-slate-400">Memuat data pelanggan...</td></tr>
+            ) : filtered.length === 0 ? (
+               <tr><td colSpan={5} className="py-10 text-center text-slate-400">Tidak ada pelanggan ditemukan.</td></tr>
+            ) : filtered.map(c => {
+              const primaryAddress = c.addresses?.find((a: any) => a.is_primary) || c.addresses?.[0];
+              
+              return (
+                <tr key={c.id} className={`transition cursor-pointer ${selectedData?.customer.id === c.id ? 'bg-blue-50/50' : 'hover:bg-white/40'}`} onClick={() => primaryAddress && handleSelectCustomer(c, primaryAddress)}>
+                  <td className="py-4 font-bold text-slate-800 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">{c.name.charAt(0)}</div>
+                    {c.name}
+                  </td>
+                  <td className="py-4">{c.email}</td>
+                  <td className="py-4 text-xs">
+                    {primaryAddress ? (
+                      <span className="flex items-center gap-1.5"><svg className="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg> {primaryAddress.region.split(',')[0]}</span>
+                    ) : <span className="text-slate-400 italic">Belum ada alamat</span>}
+                  </td>
+                  <td className="py-4 text-center">{new Date(c.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  
+                  {/* 👇 Kolom Status Active/Inactive 👇 */}
+                  <td className="py-4 text-center">
+                    {c.is_online ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-600">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
+                        <span className="w-2 h-2 bg-slate-400 rounded-full"></span> Inactive
+                      </span>
+                    )}
+                  </td>
+                  
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

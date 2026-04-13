@@ -11,6 +11,8 @@ use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Middleware\LogUserActivity;
 
 
 Route::get('/', function () {
@@ -71,7 +73,7 @@ Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middlew
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(function () {
     // Rute Role & Permission - Dilindungi oleh kunci spesifik (Spatie / Gate)
     Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
     Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');
@@ -82,6 +84,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/admins', [AdminController::class, 'store'])->middleware('can:create_users');
     Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
     Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
+
+    Route::get('/customers', [CustomerController::class, 'index'])->middleware('can:view_customers');
+    Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
 });
 
     // Admin dan Super Admin bisa lihat data customer

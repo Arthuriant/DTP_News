@@ -17,7 +17,9 @@ class Address extends Model
         'street',
         'details',
         'label',
-        'is_primary'
+        'is_primary',
+        'latitude',   // 👈 Tambahkan ini
+        'longitude',
     ];
 
     // Relasi balik ke User
