@@ -20,8 +20,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     pin: profile?.pin || "",
   });
 
-  const megaMendungUrl = "https://static.vecteezy.com/system/resources/previews/024/036/944/large_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
-
   const handleEditClick = (field: string) => {
     setFormData({
       name: user?.name || "",
@@ -55,39 +53,75 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     }
   };
 
-  const inputClasses = "w-full bg-[#FFFDF5] border border-[#C5A059]/30 text-[#2D1A11] px-5 py-3 rounded-2xl outline-none focus:border-[#C5A059] transition-all font-sans text-sm shadow-inner";
-
-  const DataRow = ({ id, label, value, type = "text" }: any) => (
-    <div className="group/row py-8 border-b border-gray-50 last:border-none">
-      <div className="flex flex-col sm:flex-row sm:items-center">
-        <span className="w-full sm:w-1/3 text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-0">
-          {label}
-        </span>
+  // Komponen Helper untuk Baris Data
+  const DataRow = ({ id, label, value, type = "text", placeholder = "Belum dikonfigurasi" }: any) => (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-[#FFFDF5] transition-colors group">
+      <div className="mb-2 sm:mb-0 w-1/3 shrink-0">
+        <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">{label}</p>
+      </div>
+      
+      <div className="flex-1 w-full">
         {editingField === id ? (
-          <div className="w-full sm:w-2/3 flex items-center gap-4 animate-soft-fade">
+          // === MODE EDIT ===
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 animate-fadeIn">
             {type === "select" ? (
-              <select value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })} className={inputClasses}>
-                <option value="">Pilih</option>
+              <select 
+                value={formData.gender} 
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })} 
+                className="w-full bg-[#FFFDF5] border border-[#D9B35A]/30 text-[#2A1B14] px-4 py-2.5 rounded-xl outline-none focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] transition-all font-sans text-sm shadow-inner"
+              >
+                <option value="">Pilih Gender</option>
                 <option value="Laki-laki">Laki-laki</option>
                 <option value="Perempuan">Perempuan</option>
               </select>
             ) : (
-              <input type={type} value={formData[id as keyof typeof formData]} onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} className={inputClasses} autoFocus />
+              <input 
+                type={type} 
+                value={formData[id as keyof typeof formData]} 
+                onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} 
+                className="w-full bg-[#FFFDF5] border border-[#D9B35A]/30 text-[#2A1B14] px-4 py-2.5 rounded-xl outline-none focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] transition-all font-serif font-bold text-base shadow-inner" 
+                autoFocus 
+              />
             )}
-            <div className="flex gap-2 shrink-0">
-              <button onClick={handleSave} className="bg-[#2D1A11] text-[#D4AF37] px-5 py-3 rounded-xl text-xs font-black uppercase hover:scale-105 transition-transform">
-                {isSaving ? "..." : "Save"}
+            <div className="flex items-center gap-2 shrink-0">
+              <button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70"
+              >
+                {isSaving ? "..." : "Simpan"}
               </button>
-              <button onClick={() => setEditingField(null)} className="text-gray-400 hover:text-red-600 px-3 text-xs font-bold uppercase">Cancel</button>
+              <button 
+                onClick={() => setEditingField(null)} 
+                className="text-[#8B7355] hover:text-rose-600 px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-colors"
+              >
+                Batal
+              </button>
             </div>
           </div>
         ) : (
-          <div className="w-full sm:w-2/3 flex justify-between items-center group/item">
-            <span className="text-[#2D1A11] font-semibold text-lg">
-              {id === 'pin' ? (value ? "••••••" : "—") : (value || "—")}
-            </span>
-            <button onClick={() => handleEditClick(id)} className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.2em] opacity-0 group-hover/item:opacity-100 transition-all hover:tracking-[0.3em]">
-              Ubah
+          // === MODE VIEW ===
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {value ? (
+                <p className={`text-[#2A1B14] font-bold ${id === 'name' ? 'text-lg font-serif' : 'text-base font-sans'}`}>
+                  {id === 'pin' ? "••••••" : value}
+                </p>
+              ) : (
+                <p className="text-gray-400 italic text-sm">{placeholder}</p>
+              )}
+              
+              {/* Badge Terverifikasi Khusus Email */}
+              {id === 'email' && value && (
+                <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest">Terverifikasi</span>
+              )}
+            </div>
+            
+            <button 
+              onClick={() => handleEditClick(id)} 
+              className="text-[#D9B35A] text-xs font-bold uppercase tracking-widest hover:text-[#2A1B14] transition-colors opacity-0 group-hover:opacity-100 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-[#D9B35A]/20"
+            >
+              {value ? "Ubah" : "Tambah"}
             </button>
           </div>
         )}
@@ -96,27 +130,41 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
   );
 
   return (
-    <div className="space-y-10 animate-fadeIn">
-      {/* DATA PERSONAL */}
-      <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-[#C5A059]/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.02] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain' }}></div>
-        <h2 className="text-3xl font-bold text-[#2D1A11] mb-10 tracking-tight font-serif italic">Detail Biografi</h2>
-        <div className="font-sans">
-          <DataRow id="name" label="Nama Lengkap" value={user?.name} />
+    <div className="w-full font-sans animate-fadeIn">
+      
+      {/* SECTION: IDENTITAS RESMI */}
+      <div className="mb-12">
+        <h3 className="text-[11px] font-black tracking-[0.2em] uppercase text-[#D9B35A] mb-4 flex items-center gap-3">
+          <span className="w-8 h-[1.5px] bg-[#D9B35A]"></span> Identitas Resmi
+        </h3>
+        <div className="flex flex-col gap-1">
+          <DataRow id="name" label="Nama Lengkap" value={user?.name} placeholder="Nama belum diisi" />
           <DataRow id="date_of_birth" label="Tanggal Lahir" value={profile?.date_of_birth} type="date" />
           <DataRow id="gender" label="Jenis Kelamin" value={profile?.gender} type="select" />
         </div>
       </div>
 
-      {/* KONTAK & KEAMANAN */}
-      <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-[#C5A059]/10 relative overflow-hidden">
-        <h2 className="text-3xl font-bold text-[#2D1A11] mb-10 tracking-tight font-serif italic">Keamanan Akun</h2>
-        <div className="font-sans">
-          <DataRow id="email" label="Email Korespondensi" value={user?.email} />
-          <DataRow id="phone" label="Nomor Telepon" value={profile?.phone} />
-          <DataRow id="pin" label="PIN Transaksi" value={profile?.pin} type="password" />
+      {/* SECTION: INFORMASI KONTAK */}
+      <div className="mb-12">
+        <h3 className="text-[11px] font-black tracking-[0.2em] uppercase text-[#D9B35A] mb-4 flex items-center gap-3">
+          <span className="w-8 h-[1.5px] bg-[#D9B35A]"></span> Informasi Kontak
+        </h3>
+        <div className="flex flex-col gap-1">
+          <DataRow id="email" label="Alamat Email" value={user?.email} type="email" placeholder="Email belum diisi" />
+          <DataRow id="phone" label="Nomor Ponsel" value={profile?.phone} type="tel" placeholder="Belum terhubung" />
         </div>
       </div>
+
+      {/* SECTION: KEAMANAN (Bisa dihilangkan jika ditaruh di sidebar kiri) */}
+      <div>
+        <h3 className="text-[11px] font-black tracking-[0.2em] uppercase text-[#D9B35A] mb-4 flex items-center gap-3">
+          <span className="w-8 h-[1.5px] bg-[#D9B35A]"></span> Autentikasi
+        </h3>
+        <div className="flex flex-col gap-1">
+          <DataRow id="pin" label="PIN Transaksi" value={profile?.pin} type="password" placeholder="PIN belum diatur" />
+        </div>
+      </div>
+
     </div>
   );
 }

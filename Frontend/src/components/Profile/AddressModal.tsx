@@ -19,27 +19,34 @@ const API_WILAYAH = "https://ibnux.github.io/data-indonesia";
 
 export default function AddressModal({ isOpen, onClose, onSuccess, editData }: AddressModalProps) {
   const [isLoading, setIsLoading] = useState(false);
-  
   const [formData, setFormData] = useState({
     recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false,
   });
 
   const [isChangingRegion, setIsChangingRegion] = useState(false); 
-  
   const [provinces, setProvinces] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [villages, setVillages] = useState<any[]>([]);
 
   const [selectedRegion, setSelectedRegion] = useState({
-    provId: "", provName: "",
-    cityId: "", cityName: "",
-    distId: "", distName: "",
-    villId: "", villName: ""
+    provId: "", provName: "", cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: ""
   });
 
   // State Peta
   const [mapPosition, setMapPosition] = useState<[number, number]>([-6.9175, 107.6191]);
+
+  // LOCK SCROLL: Mencegah halaman belakang di-scroll
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -59,10 +66,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
         setIsChangingRegion(true);  
         setMapPosition([-6.9175, 107.6191]);
       }
-      
       setSelectedRegion({ provId: "", provName: "", cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: "" });
-      setCities([]); setDistricts([]); setVillages([]);
-      
       fetch(`${API_WILAYAH}/provinsi.json`)
         .then(res => res.json())
         .then(data => setProvinces(data))
@@ -109,8 +113,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     setSelectedRegion(prev => ({ ...prev, villId: id, villName: name }));
   };
 
-  if (!isOpen) return null;
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setFormData({ ...formData, [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value });
@@ -118,7 +120,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     let finalRegion = formData.region;
     if (isChangingRegion) {
       if (!selectedRegion.villId) {
@@ -127,7 +128,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       }
       finalRegion = `${selectedRegion.provName}, ${selectedRegion.cityName}, Kecamatan ${selectedRegion.distName}, Kelurahan ${selectedRegion.villName}`;
     }
-
     setIsLoading(true);
     const payload = { 
       ...formData, 
@@ -139,24 +139,14 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     
     const url = editData ? `http://127.0.0.1:8000/addresses/${editData.id}` : "http://127.0.0.1:8000/addresses";
     const method = editData ? "PUT" : "POST";
-
     try {
       const res = await fetch(url, {
         method, credentials: "include",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (res.ok) {
-        onSuccess(); onClose();
-      } else {
-        alert("Gagal menyimpan alamat.");
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+      if (res.ok) { onSuccess(); onClose(); } else { alert("Gagal menyimpan alamat."); }
+    } catch (error) { console.error(error); } finally { setIsLoading(false); }
   };
 
   return (
