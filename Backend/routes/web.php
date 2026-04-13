@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
 use App\Http\Middleware\LogUserActivity;
-
+use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
@@ -72,7 +72,7 @@ Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middlew
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
 
-Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(function () {
+Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
     // Rute Role & Permission - Dilindungi oleh kunci spesifik (Spatie / Gate)
     Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
     Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');
@@ -92,4 +92,24 @@ Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(
     
     // Fitur toggle status milikmu
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
+
+});
+
+Route::get('/generate-token', function () {
+    // 1. Cari user Lintang (misalnya emailnya lintang@mail.com atau ID-nya 1)
+    // Ganti angka 1 dengan ID akun Lintang di database Anda
+    $user = User::find(3); 
+
+    if (!$user) {
+        return "User tidak ditemukan!";
+    }
+
+    // 2. Buat token baru bernama 'postman-test'
+    $token = $user->createToken('postman-test');
+
+    // 3. Tampilkan tokennya di layar browser
+    return response()->json([
+        'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
+        'token' => $token->plainTextToken
+    ]);
 });
