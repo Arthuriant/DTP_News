@@ -6,14 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('product_dimensions', function (Blueprint $table) {
-            // product_id menjadi Primary Key sekaligus Foreign Key (Relasi One-to-One)
-            $table->string('product_id', 50)->primary();
+            // 1. product_id menjadi Primary Key sekaligus Foreign Key menggunakan UUID
+            $table->uuid('product_id')->primary();
 
             $table->string('product_style', 50)->nullable();
             $table->integer('total_volumes')->nullable();
@@ -25,9 +22,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('product_dimensions');

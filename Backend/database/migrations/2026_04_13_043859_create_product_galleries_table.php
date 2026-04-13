@@ -6,15 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('product_galleries', function (Blueprint $table) {
-            $table->string('id', 50)->primary(); // Primary Key
-            $table->string('product_id', 50);    // Foreign Key ke products
-            $table->integer('sort_order')->default(0); // Default 0 jika urutan tidak diisi
+            $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
+            $table->uuid('product_id');          // 👈 Foreign Key wajib UUID
+            
+            // 👇 INI YANG TERLEWAT: Kolom untuk menyimpan nama file / link gambar
+            $table->text('image_url'); 
+            
+            $table->integer('sort_order')->default(0); 
             $table->timestamps();
 
             // Relasi Foreign Key
@@ -22,9 +23,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('product_galleries');

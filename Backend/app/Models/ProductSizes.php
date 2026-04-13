@@ -3,19 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 
 class ProductSizes extends Model
 {
+    use HasUuids; // 👈 Auto-pilot UUID aktif!
+
     protected $table = 'product_sizes';
 
-    protected $primaryKey = 'id';
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
+    // 'id' dihapus dari fillable
     protected $fillable = [
-        'id',
         'product_id',
         'title',
         'short_desc',
@@ -27,10 +24,22 @@ class ProductSizes extends Model
         'unit',
     ];
 
-    protected $casts = [
-        'price'  => 'integer',
-        'width'  => 'integer',
-        'height' => 'integer',
-        'depth'  => 'integer',
-    ];
+    /**
+     * Konversi tipe data otomatis menggunakan metode modern
+     */
+    protected function casts(): array
+    {
+        return [
+            'price'  => 'decimal:2', // 👈 Sesuaikan dengan migration (decimal)
+            'width'  => 'integer',
+            'height' => 'integer',
+            'depth'  => 'integer',
+        ];
+    }
+
+    // --- RELASI ---
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 }

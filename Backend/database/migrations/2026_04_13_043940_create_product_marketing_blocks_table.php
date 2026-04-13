@@ -6,14 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up(): void
+    public function up(): void
     {
         Schema::create('product_marketing_blocks', function (Blueprint $table) {
-            $table->string('id', 50)->primary(); // Primary Key
-            $table->string('product_id', 50);    // Foreign Key ke products
+            $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
+            $table->uuid('product_id');          // 👈 Foreign Key UUID
+            
             $table->string('title', 25);
             $table->string('subtitle', 50)->nullable();
             $table->text('description')->nullable();
@@ -24,9 +22,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('product_marketing_blocks');

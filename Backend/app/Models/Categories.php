@@ -3,22 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 
 class Categories extends Model
 {
-     protected $table = 'categories';
-     // Primary key bukan integer
-    protected $primaryKey = 'id';
+    use HasUuids; // 👈 Auto-pilot UUID aktif!
 
-    // Karena bukan auto increment
-    public $incrementing = false;
+    protected $table = 'categories';
 
-    // Karena tipe primary key adalah string
-    protected $keyType = 'string';
-
-    // Kolom yang boleh diisi (Mass Assignment)
+    // id sudah dihapus dari sini
     protected $fillable = [
-        'id',
         'name',
         'description',
     ];

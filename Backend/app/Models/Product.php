@@ -3,21 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 
 class Product extends Model
 {
-    protected $guarded = [];
+    use HasUuids; // 👈 Auto-pilot UUID aktif!
 
     protected $table = 'products';
 
-    protected $primaryKey = 'id';
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
+    // id sudah dihapus dari fillable
     protected $fillable = [
-        'id',
         'sub_categories_id',
         'name',
         'description',
@@ -25,4 +20,24 @@ class Product extends Model
         'base_price',
         'is_active',
     ];
+
+    /**
+     * Konversi tipe data otomatis saat ditarik dari database
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'base_price' => 'decimal:2', 
+        ];
+    }
+
+    /**
+     * Relasi balik ke SubCategories
+     */
+    public function subCategory()
+    {
+        // Pastikan nama class SubCategories sesuai dengan file model Anda
+        return $this->belongsTo(SubCategories::class, 'sub_categories_id');
+    }
 }

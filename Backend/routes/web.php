@@ -59,12 +59,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update']);
 }); // ← tutup di sini
 
-Route::middleware(['auth', 'role:super_admin'])->group(function () {
-    Route::get('/admins', [AdminController::class, 'index']);
-    Route::post('/admins', [AdminController::class, 'store']);
-    Route::put('/admins/{id}', [AdminController::class, 'update']);
-    Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
-});
+// Route::middleware(['auth', 'role:super_admin'])->group(function () {
+//     Route::get('/admins', [AdminController::class, 'index']);
+//     Route::post('/admins', [AdminController::class, 'store']);
+//     Route::put('/admins/{id}', [AdminController::class, 'update']);
+//     Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
+// });
 
 Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth');
 Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth');
@@ -72,7 +72,7 @@ Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middlew
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
 
-Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(function () {
     // Rute Role & Permission - Dilindungi oleh kunci spesifik (Spatie / Gate)
     Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
     Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');

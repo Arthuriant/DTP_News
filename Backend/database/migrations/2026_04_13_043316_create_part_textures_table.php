@@ -6,16 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('part_textures', function (Blueprint $table) {
-            $table->string('id', 50)->primary();   // Primary Key
-            $table->string('part_id', 50);         // Foreign Key ke product_parts
-            $table->string('product_id', 50);      // Foreign Key ke products
-            $table->string('variant_id', 50);      // Foreign Key ke part_variants
+            $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
+            $table->uuid('part_id');             // 👈 Foreign Key UUID
+            $table->uuid('product_id');          // 👈 Foreign Key UUID
+            $table->uuid('variant_id');          // 👈 Foreign Key UUID
+            
             $table->string('name', 100);
             $table->decimal('price', 12, 2);
             $table->timestamps();
@@ -27,9 +25,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('part_textures');

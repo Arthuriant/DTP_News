@@ -3,26 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class SubCategories extends Model
 {
+    use HasUuids;
+
     protected $table = 'sub_categories';
 
-    protected $primaryKey = 'id';
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
     protected $fillable = [
-        'id',
         'categories_id',
         'name',
         'description',
     ];
 
-     public function category()
+    public function category()
     {
-        return $this->belongsTo(Category::class, 'categories_id');
+        // 👈 Perbaikan nama class menjadi Categories::class (sesuai nama file modelnya)
+        return $this->belongsTo(Categories::class, 'categories_id');
     }
 }
