@@ -84,14 +84,12 @@ Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(
     Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
     Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
 
+    // -- KELOLA CUSTOMERS (Dihapus duplikatnya, digabung dengan fungsi CRUD dari temanmu) --
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('can:view_customers');
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('can:create_customers'); 
+    Route::put('/customers/{id}', [CustomerController::class, 'update'])->middleware('can:edit_customers'); 
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers'); 
+    
+    // Fitur toggle status milikmu
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
 });
-
-    // Admin dan Super Admin bisa lihat data customer
-    Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
-        Route::get('/customers', [CustomerController::class, 'index']);
-        Route::post('/customers', [CustomerController::class, 'store']);
-        Route::put('/customers/{id}', [CustomerController::class, 'update']);
-        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
-    });
