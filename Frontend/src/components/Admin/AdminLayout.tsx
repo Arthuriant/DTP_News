@@ -26,6 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         if (res.ok) {
           const data = await res.json();
+          // Memastikan hanya user dengan role (selain customer) yang bisa masuk
           if (data.roles && data.roles.length > 0 && !data.roles.includes("customer")) {
             setUserData({ 
               name: data.name, 
@@ -54,21 +55,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/logout", { method: "GET", credentials: "include" });
-      if (res.ok || res.status === 204) window.location.replace("/signin");
-      else window.location.replace("/signin");
+      window.location.replace("/signin");
     } catch (err) {
       window.location.replace("/signin");
     }
   };
 
+  /**
+   * FILTER MENU: 
+   * Hanya menampilkan yang sudah fungsional sesuai instruksi:
+   * 1. Dashboard (Dummy/Kosong)
+   * 2. Kelola Pengguna
+   * 3. Manajemen Role
+   */
   const allMenuItems = [
-    { title: 'Dashboard', path: '/admin', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', permissionKey: 'view_dashboard' },
-    { title: 'Produk & Kustom', path: '/admin/produk', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', permissionKey: 'view_products' },
-    { title: 'Pesanan Custom', path: '/admin/pesanan', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2', permissionKey: 'view_orders' },
-    { title: 'Data Customer', path: '/admin/customer', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', permissionKey: 'view_customers' },
-    { title: 'Mitra Pengrajin', path: '/admin/pengrajin', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0', permissionKey: 'view_dashboard' }, 
-    { title: 'Kelola Pengguna', path: '/admin/admin', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', permissionKey: 'view_users' },
-    { title: 'Manajemen Role', path: '/admin/roles', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', permissionKey: 'view_roles' },
+    { 
+      title: 'Dashboard', 
+      path: '/admin', 
+      icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', 
+      permissionKey: 'view_dashboard' 
+    },
+    { 
+      title: 'Kelola Pengguna', 
+      path: '/admin/admin', 
+      icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', 
+      permissionKey: 'view_users' 
+    },
+    { 
+      title: 'Manajemen Role', 
+      path: '/admin/roles', 
+      icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 
+      permissionKey: 'view_roles' 
+    },
   ];
 
   const menuItems = allMenuItems.filter(item => {
@@ -78,53 +96,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const displayRole = userData.roles.length > 0 ? userData.roles[0].replace('_', ' ') : 'Administrator';
 
-  // ================= TAMPILAN LOADING ELEGAN (PRELOADER CUSTOM) =================
+  // Loading state remains the same...
   if (isLoading || !isAuthorized) {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0D0806] overflow-hidden">
-        
-        <div 
-          className="absolute inset-0 opacity-[0.02] mix-blend-screen pointer-events-none"
-          style={{ 
-            backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`,
-            backgroundSize: '400px',
-            backgroundPosition: 'center'
-          }}
-        ></div>
-
-
+        <div className="absolute inset-0 opacity-[0.02] mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '400px', backgroundPosition: 'center' }}></div>
         <div className="absolute w-[400px] h-[400px] bg-[#C5A059] opacity-5 rounded-full blur-[100px] animate-pulse"></div>
-
         <div className="relative flex flex-col items-center z-10">
           <div className="relative flex items-center justify-center w-32 h-32 mb-8">
             <div className="absolute inset-0 border-[1px] border-dashed border-[#C5A059]/30 rounded-full animate-[spin_12s_linear_infinite]"></div>
-            <div className="absolute inset-2 border-[0.5px] border-[#C5A059]/20 rounded-full"></div>
-            <div className="absolute inset-4 bg-[#C5A059]/5 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
             <div className="relative w-12 h-14 flex items-center justify-center animate-[pulse_4s_ease-in-out_infinite]">
-              <img 
-                src="https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png" 
-                alt="Loading" 
-                className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]"
-              />
+              <img src={gununganUrl} alt="Loading" className="w-full h-full object-contain" />
             </div>
           </div>
-
-          <div className="flex flex-col items-center">
-            <h2 
-              className="text-[#C5A059] text-sm md:text-base tracking-[0.4em] uppercase font-light drop-shadow-sm"
-              style={{ fontFamily: "'Cinzel', 'Playfair Display', serif" }}
-            >
-              Mempersiapkan
-            </h2>
-            
-            <div className="w-8 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent my-4"></div>
-            
-            <p className="text-[#8B7355] text-[9px] uppercase tracking-[0.3em] font-sans font-medium">
-              Ruang Kendali UpToYou
-            </p>
-          </div>
+          <h2 className="text-[#C5A059] text-sm tracking-[0.4em] uppercase font-light" style={{ fontFamily: "'Cinzel', serif" }}>Mempersiapkan</h2>
         </div>
-
       </div>
     );
   }
@@ -134,16 +120,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen bg-[#F8F3E9] font-sans overflow-hidden text-[#2D1A11] relative" style={{ fontFamily: "'Playfair Display', serif" }}>
 
+      {/* Background Decor */}
       <div className="absolute right-[-5%] top-0 w-[600px] h-[800px] pointer-events-none z-0 opacity-[0.03] mix-blend-multiply grayscale fixed" style={{ backgroundImage: `url('${gununganUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right top' }}></div>
-      <div className="absolute left-[-5%] bottom-10 w-[400px] h-[600px] pointer-events-none z-0 opacity-[0.02] mix-blend-multiply grayscale fixed" style={{ backgroundImage: `url('${wayangUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'left bottom' }}></div>
 
+      {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-50 h-screen bg-[#2D1A11] shadow-[20px_0_60px_-15px_rgba(45,26,17,0.4)] transition-all duration-500 ease-in-out w-20 hover:w-72 overflow-hidden group flex flex-col border-r border-[#C5A059]/20 rounded-r-[2rem]">
-
+        
         <div className="absolute bottom-0 left-0 w-full h-64 opacity-[0.15] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom left' }}></div>
 
         <div className="h-28 flex items-center px-5 shrink-0 relative z-10 border-b border-[#C5A059]/10">
-          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/40 flex items-center justify-center font-black text-xl text-[#C5A059] shrink-0 shadow-[0_0_15px_rgba(197,160,89,0.2)]">U</div>
-          <span className="ml-4 font-bold text-xl text-[#F8F3E9] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap tracking-widest uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/40 flex items-center justify-center font-black text-xl text-[#C5A059] shrink-0">U</div>
+          <span className="ml-4 font-bold text-xl text-[#F8F3E9] opacity-0 group-hover:opacity-100 transition-opacity duration-300 tracking-widest uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
             UpToYou<span className="text-[#C5A059]">.</span>
           </span>
         </div>
@@ -158,7 +145,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
                   </svg>
                   <span className={`ml-5 text-sm font-bold font-sans tracking-wide transition-opacity duration-300 whitespace-nowrap ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>{item.title}</span>
-                  {isActive && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs opacity-0 group-hover:opacity-100 transition-opacity">✦</span>}
                 </Link>
               </li>
             );
@@ -177,13 +163,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* ================= MAIN CONTENT AREA ================= */}
+      {/* Main Content */}
       <div className="flex-1 ml-20 flex flex-col h-screen overflow-hidden relative z-10">
-
         <header className="h-24 bg-[#F8F3E9]/80 backdrop-blur-xl border-b border-[#C5A059]/20 flex items-center justify-between px-8 sm:px-12 z-20 shrink-0 shadow-sm">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#2D1A11]" style={{ fontFamily: "'Cinzel', serif" }}>
-              {menuItems.find(item => item.path === pathname)?.title || 'UpToYou Panel'}
+              {menuItems.find(item => item.path === pathname)?.title || 'Admin Panel'}
             </h2>
             <p className="text-sm text-[#C5A059] font-medium mt-1 tracking-wide font-sans">
               Selamat datang kembali, {firstName}
@@ -196,22 +181,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <p className="text-sm font-bold text-[#2D1A11] truncate max-w-[150px] font-sans">{userData.name}</p>
                 <p className="text-[10px] text-[#C5A059] font-bold tracking-[0.15em] uppercase">{displayRole}</p>
               </div>
-              <div className="w-12 h-12 rounded-xl border-2 border-[#C5A059] shadow-[0_5px_15px_rgba(197,160,89,0.3)] overflow-hidden bg-[#2D1A11] p-0.5 shrink-0 transform transition hover:scale-105 cursor-pointer">
-                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=C5A059&color=2D1A11&rounded=false&bold=true`} alt="Profile" className="rounded-lg w-full h-full object-cover" />
+              <div className="w-12 h-12 rounded-xl border-2 border-[#C5A059] overflow-hidden bg-[#2D1A11] p-0.5">
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=C5A059&color=2D1A11&bold=true`} alt="Profile" className="rounded-lg w-full h-full object-cover" />
               </div>
             </div>
           </div>
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 sm:p-10 scroll-smooth">
-          <div className="max-w-[1600px] mx-auto">
-            <div className="relative">
+          <div className="max-w-[1600px] mx-auto relative">
               {children}
-            </div>
           </div>
         </main>
       </div>
-      
     </div>
   );
 }

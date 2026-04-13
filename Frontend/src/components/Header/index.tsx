@@ -97,9 +97,8 @@ const Header = () => {
   }, [dispatch]);
 
   // 3. Fungsi untuk Logout
-  // 3. Fungsi untuk Logout
   const handleLogout = async () => {
-    console.log("Tombol logout ditekan..."); // Memastikan tombol merespons klik
+    console.log("Tombol logout ditekan..."); 
 
     try {
       const res = await fetch("http://127.0.0.1:8000/logout", {
@@ -111,7 +110,6 @@ const Header = () => {
         console.log("Logout berhasil di server!");
         window.location.href = "/signin"; 
       } else {
-        // Ini akan dieksekusi jika server menolak (misal error 404 atau 405)
         console.error("Logout ditolak oleh server. Status HTTP:", res.status);
         alert(`Gagal logout! Kode error: ${res.status}`);
       }
@@ -140,7 +138,8 @@ const Header = () => {
       }`}
     >
       <div className="max-w-[1200px] mx-auto px-4 sm:px-7.5 xl:px-0">
-        {/* --- Header Top Section --- */}
+        
+        {/* ================= Header Top Section ================= */}
         <div
           className={`flex flex-col lg:flex-row gap-4 items-end lg:items-center justify-between transition-all duration-500 ${
             stickyMenu ? "py-3 lg:py-4" : "py-5 lg:py-8"
@@ -159,7 +158,7 @@ const Header = () => {
             </Link>
 
             {/* Search Bar - Gaya Eksklusif */}
-            <div className={`max-w-[500px] w-full transition-all duration-500 ${stickyMenu ? 'scale-95 origin-left' : ''}`}>
+            <div className={`max-w-[500px] w-full transition-all duration-500 ${stickyMenu ? 'scale-[0.98] origin-left' : ''}`}>
               <form>
                 <div className="flex items-center shadow-sm rounded-[5px] hover:shadow-md transition-shadow duration-300">
                   <div className="bg-white rounded-l-[5px] border border-r-0 border-[#C5A059]/30">
@@ -191,7 +190,7 @@ const Header = () => {
             
             {/* Support - Disembunyikan saat scroll */}
             {!stickyMenu && (
-              <div className="hidden xl:flex items-center gap-3 transition-opacity duration-300 group cursor-pointer">
+              <div className="hidden xl:flex items-center gap-3 transition-opacity duration-300 group cursor-pointer animate-fadeIn">
                 <div className="p-2.5 bg-[#C5A059]/10 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-300 shadow-sm border border-[#C5A059]/20">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.7 3.1C5.9 1.8 8 2 9 3.5l1.2 1.8c.8 1.1.7 2.7-.3 3.7l-.2.3c-.4.4-.3.9-.1 1.4 1.4 1.5 2.3 1.9 2.7 2 .4.1.6-.1.6-.2l.4-.4c.9-.9 2.2-1.1 3.3-.5l1.9 1.1c1.6.9 2 3.2.7 4.6l-1.4 1.5c-.4.5-1 .9-1.7 1-1.8.2-6 0-10.4-4.7C3.1 12.6 2.3 8.8 2.2 7l.7-.1c-.1-.9.3-1.7.9-2.2l1.6-1.6z"/></svg>
                 </div>
@@ -202,11 +201,10 @@ const Header = () => {
               </div>
             )}
 
-<div className="flex items-center gap-6">
+            <div className="flex items-center gap-6">
               
-              {/* AREA ACCOUNT / LOGIN (Gabungan Logika Bayu & Desain Main) */}
+              {/* AREA ACCOUNT / LOGIN */}
               {userData ? (
-                // JIKA SUDAH LOGIN: Tampilkan Nama & Dropdown dengan style baru
                 <div className="relative group z-50">
                   <div className="flex items-center gap-3 cursor-pointer">
                     <div className="text-[#2D1A11] group-hover:text-[#C5A059] group-hover:scale-110 transition-all duration-300">
@@ -234,7 +232,6 @@ const Header = () => {
                   </div>
                 </div>
               ) : (
-                // JIKA BELUM LOGIN: Tampilkan link Sign In murni desain dari main
                 <Link href="/signin" className="group flex items-center gap-3">
                   <div className="text-[#2D1A11] group-hover:text-[#C5A059] group-hover:scale-110 transition-all duration-300">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -245,7 +242,6 @@ const Header = () => {
                   </div>
                 </Link>
               )}
-              {/* AKHIR PERUBAHAN AREA ACCOUNT */}
               
               {/* Cart Button */}
               <button onClick={handleOpenCartModal} className="group flex items-center gap-3">
@@ -279,15 +275,22 @@ const Header = () => {
         </div>
       </div>
 
-      {/* --- Main Navigation Section --- */}
-      <div className={`border-t transition-all duration-500 ${stickyMenu ? 'border-transparent' : 'border-[#C5A059]/20'}`}>
+      {/* ================= Main Navigation Section (Yang Bisa Menghilang) ================= */}
+      <div className={`transition-all duration-500 ease-in-out ${stickyMenu ? 'border-transparent' : 'border-t border-[#C5A059]/20'}`}>
         <div className="max-w-[1200px] mx-auto px-4 sm:px-7.5 xl:px-0">
-          <div className="flex items-center justify-between">
+          
+          {/* Wrapper yang akan menciut (collapse) saat stickyMenu aktif */}
+          <div className={`flex items-center justify-between transition-all duration-500 origin-top ease-in-out ${
+            stickyMenu 
+              ? 'xl:max-h-0 xl:opacity-0 xl:pointer-events-none xl:overflow-hidden' 
+              : 'xl:max-h-[100px] xl:opacity-100 xl:pointer-events-auto xl:overflow-visible'
+          }`}>
+            
             <nav className={`
-              absolute right-4 top-full xl:static bg-[#F8F3E9] xl:bg-transparent shadow-xl xl:shadow-none rounded-b-xl xl:rounded-none overflow-hidden transition-all duration-500 border border-[#C5A059]/20 xl:border-0
-              ${navigationOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 xl:max-h-none opacity-0 xl:opacity-100'}
+              absolute right-4 top-full xl:static bg-[#F8F3E9] xl:bg-transparent shadow-xl xl:shadow-none rounded-b-xl xl:rounded-none transition-all duration-500 border border-[#C5A059]/20 xl:border-0 z-50
+              ${navigationOpen ? 'max-h-[500px] opacity-100 py-5 xl:py-0 overflow-visible' : 'max-h-0 opacity-0 xl:max-h-none xl:opacity-100 py-0 overflow-hidden'}
             `}>
-              <ul className="flex flex-col xl:flex-row xl:items-center p-5 xl:p-0 gap-4 xl:gap-10">
+              <ul className="flex flex-col xl:flex-row xl:items-center px-5 xl:px-0 gap-4 xl:gap-10">
                 {menuData.map((menuItem, i) => (
                   <li key={i} className="group relative">
                     {menuItem.submenu ? (
@@ -295,8 +298,7 @@ const Header = () => {
                     ) : (
                       <Link
                         href={menuItem.path}
-                        className={`text-sm md:text-base font-serif font-medium text-[#2D1A11] hover:text-[#C5A059] transition-all duration-300 relative
-                          ${stickyMenu ? 'py-3' : 'py-5'} inline-block tracking-wide
+                        className={`text-sm md:text-base font-serif font-medium text-[#2D1A11] hover:text-[#C5A059] transition-all duration-300 relative py-5 inline-block tracking-wide
                           after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-[2px] after:bg-[#C5A059] after:transition-all after:duration-300 hover:after:w-full
                         `}
                       >
@@ -308,12 +310,13 @@ const Header = () => {
               </ul>
             </nav>
 
-            {/* Quick Links Kanan (Mewah) */}
-            <div className={`hidden xl:flex items-center gap-8 text-xs tracking-widest font-serif font-medium uppercase text-[#C5A059] ${stickyMenu ? 'opacity-0 translate-x-10 pointer-events-none' : 'opacity-100 translate-x-0'} transition-all duration-500`}>
+            {/* Quick Links Kanan (Hanya terlihat di Desktop) */}
+            <div className={`hidden xl:flex items-center gap-8 text-xs tracking-widest font-serif font-medium uppercase text-[#C5A059]`}>
                 <Link href="#" className="hover:text-[#2D1A11] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[1px] after:bg-[#2D1A11] hover:after:w-full after:transition-all">Terakhir Dilihat</Link>
                 <span className="w-1 h-1 rounded-full bg-[#C5A059]/40"></span>
                 <Link href="/wishlist" className="hover:text-[#2D1A11] transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[1px] after:bg-[#2D1A11] hover:after:w-full after:transition-all">Wishlist</Link>
             </div>
+
           </div>
         </div>
       </div>
