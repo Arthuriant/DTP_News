@@ -4,11 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class PartTextures extends Model
 {
-    protected $guarded = [];
-
-    protected $table = 'products';
+    protected $table = 'part_textures';
 
     protected $primaryKey = 'id';
 
@@ -18,11 +16,14 @@ class Product extends Model
 
     protected $fillable = [
         'id',
-        'sub_categories_id',
+        'part_id',
+        'product_id',
+        'variant_id',
         'name',
-        'description',
-        'summary',
-        'base_price',
-        'is_active',
+        'price',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
     ];
 }

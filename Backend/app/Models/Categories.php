@@ -4,25 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class Categories extends Model
 {
-    protected $guarded = [];
-
-    protected $table = 'products';
-
+     protected $table = 'categories';
+     // Primary key bukan integer
     protected $primaryKey = 'id';
 
+    // Karena bukan auto increment
     public $incrementing = false;
 
+    // Karena tipe primary key adalah string
     protected $keyType = 'string';
 
+    // Kolom yang boleh diisi (Mass Assignment)
     protected $fillable = [
         'id',
-        'sub_categories_id',
         'name',
         'description',
-        'summary',
-        'base_price',
-        'is_active',
     ];
 }
