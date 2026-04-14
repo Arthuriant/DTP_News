@@ -7,23 +7,23 @@ const AVAILABLE_PERMISSIONS = [
     module: "Akses Utama (Wajib)",
     actions: [{ id: "view_dashboard", label: "Akses Dashboard" }],
   },
-  {
-    module: "Manajemen Produk",
-    actions: [
-      { id: "view_products", label: "Lihat Produk" },
-      { id: "create_products", label: "Tambah Produk" },
-      { id: "edit_products", label: "Ubah Produk" },
-      { id: "delete_products", label: "Hapus Produk" },
-    ],
-  },
-  {
-    module: "Pesanan Custom",
-    actions: [
-      { id: "view_orders", label: "Lihat Pesanan" },
-      { id: "update_orders", label: "Update Status" },
-      { id: "delete_orders", label: "Hapus Pesanan" },
-    ],
-  },
+  // {
+  //   module: "Manajemen Produk",
+  //   actions: [
+  //     { id: "view_products", label: "Lihat Produk" },
+  //     { id: "create_products", label: "Tambah Produk" },
+  //     { id: "edit_products", label: "Ubah Produk" },
+  //     { id: "delete_products", label: "Hapus Produk" },
+  //   ],
+  // },
+  // {
+  //   module: "Pesanan Custom",
+  //   actions: [
+  //     { id: "view_orders", label: "Lihat Pesanan" },
+  //     { id: "update_orders", label: "Update Status" },
+  //     { id: "delete_orders", label: "Hapus Pesanan" },
+  //   ],
+  // },
   {
     module: "Data Customer",
     actions: [
