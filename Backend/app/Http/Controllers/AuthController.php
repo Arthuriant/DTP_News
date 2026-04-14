@@ -37,12 +37,22 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $request->session()->regenerate(); // Keamanan ekstra untuk session
+            $user = Auth::user();
+            
+            // Hapus session()->regenerate()
+            // Generate token menggunakan Sanctum
+            $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login berhasil',
-                'user' => Auth::user()
+                'user' => $user,
+                'token' => $token // Kirim token ke client
             ]);
         }
 

@@ -33,7 +33,7 @@ return new class extends Migration
             $table->softDeletes(); 
         });
 
-        // 2. TABEL PASSWORD RESET TOKENS (Bawaan Laravel)
+        // 2. TABEL PASSWORD RESET TOKENS (Bcawaan Laravel)
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

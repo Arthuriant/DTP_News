@@ -20,14 +20,18 @@ Route::get('/', function () {
 
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-// Pastikan menggunakan ::get, bukan ::post
-Route::get('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
 
-    return response()->json(['message' => 'Logout berhasil']);
-});
+// [UPDATE] Penyesuaian Logout untuk Sanctum
+// Route ini harus dilindungi middleware agar sistem tahu token siapa yang mau dihapus
+Route::get('/logout', function (Request $request) {
+    // Hapus token yang sedang digunakan untuk request ini
+    $request->user()->currentAccessToken()->delete();
+
+    return response()->json(['message' => 'Logout berhasil, token telah dihapus']);
+})->middleware('auth:sanctum');
+
+
+// [UPDATE] Ubah auth menjadi auth:sanctum
 Route::get('/user', function (Request $request) {
     $user = $request->user();
 
@@ -35,15 +39,15 @@ Route::get('/user', function (Request $request) {
         'id' => $user->id,
         'name' => $user->name,
         'email' => $user->email,
-        // 👇 Ini dia kunci utamanya! Mengambil daftar pangkat dari Spatie
         'roles' => $user->getRoleNames(),
         'permissions' => $user->getAllPermissions()->pluck('name')
     ]);
-})->middleware('auth');
+})->middleware('auth:sanctum');
 
-Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth');
-Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('auth');
-Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth');
+// [UPDATE] Ubah auth menjadi auth:sanctum
+Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth:sanctum');
+Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('auth:sanctum');
+Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth:sanctum');
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -51,29 +55,26 @@ Route::post('/login', [AuthController::class, 'login']);
 // Simpan kustomisasi tas
 Route::post('/save-bag', [SaveBagController::class, 'store']);
 
-// Ambil daftar tas yang disimpan
-Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth');
+// Ambil daftar tas yang disimpan - [UPDATE] auth:sanctum
+Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:sanctum');
 
-Route::middleware('auth')->group(function () {
+// [UPDATE] Group Middleware auth:sanctum
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::post('/profile', [ProfileController::class, 'update']);
-}); // ← tutup di sini
+}); 
 
-// Route::middleware(['auth', 'role:super_admin'])->group(function () {
-//     Route::get('/admins', [AdminController::class, 'index']);
-//     Route::post('/admins', [AdminController::class, 'store']);
-//     Route::put('/admins/{id}', [AdminController::class, 'update']);
-//     Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
-// });
+// [UPDATE] Ubah auth menjadi auth:sanctum
+Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth:sanctum');
+Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middleware('auth:sanctum');
+Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth:sanctum');
+Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth:sanctum');
 
-Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth');
-Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth');
-Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middleware('auth');
-Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth');
-Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth');
-
-Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(function () {
-    // Rute Role & Permission - Dilindungi oleh kunci spesifik (Spatie / Gate)
+// [UPDATE] Group Middleware ditambahkan :sanctum
+Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
+    
+    // Rute Role & Permission
     Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
     Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');
     Route::put('/roles/{id}', [RoleController::class, 'update'])->middleware('can:edit_roles');
@@ -84,30 +85,25 @@ Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(
     Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
     Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
 
-    // -- KELOLA CUSTOMERS (Dihapus duplikatnya, digabung dengan fungsi CRUD dari temanmu) --
+    // -- KELOLA CUSTOMERS --
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('can:view_customers');
     Route::post('/customers', [CustomerController::class, 'store'])->middleware('can:create_customers'); 
     Route::put('/customers/{id}', [CustomerController::class, 'update'])->middleware('can:edit_customers'); 
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers'); 
-    
-    // Fitur toggle status milikmu
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
 
 });
 
 Route::get('/generate-token', function () {
-    // 1. Cari user Lintang (misalnya emailnya lintang@mail.com atau ID-nya 1)
-    // Ganti angka 1 dengan ID akun Lintang di database Anda
+    // Pastikan ID di bawah ini valid dengan format UUID v7 milikmu jika ID 3 tidak ada
     $user = User::find(3); 
 
     if (!$user) {
         return "User tidak ditemukan!";
     }
 
-    // 2. Buat token baru bernama 'postman-test'
     $token = $user->createToken('postman-test');
 
-    // 3. Tampilkan tokennya di layar browser
     return response()->json([
         'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
         'token' => $token->plainTextToken
