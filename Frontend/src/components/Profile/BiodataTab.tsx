@@ -20,6 +20,10 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     pin: profile?.pin || "",
   });
 
+  // State khusus untuk Modal PIN
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+
   const handleEditClick = (field: string) => {
     setFormData({
       name: user?.name || "",
@@ -32,6 +36,7 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     setEditingField(field);
   };
 
+  // Handler simpan untuk data umum (kecuali PIN via modal)
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -53,7 +58,42 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     }
   };
 
-  // Komponen Helper untuk Baris Data
+  // --- LOGIKA KHUSUS PIN ---
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Hanya izinkan angka (replace semua karakter non-digit)
+    const val = e.target.value.replace(/\D/g, "");
+    if (val.length <= 6) {
+      setPinInput(val);
+    }
+  };
+
+  const handleSavePin = async () => {
+    if (pinInput.length !== 6) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedData = { ...formData, pin: pinInput };
+      const res = await fetch("http://127.0.0.1:8000/profile", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (res.ok) {
+        onUpdate({ name: formData.name, email: formData.email }, { ...updatedData });
+        setFormData(updatedData); // update state form lokal
+        setIsPinModalOpen(false);
+        setPinInput(""); // reset input
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Komponen Helper untuk Baris Data (Standar)
   const DataRow = ({ id, label, value, type = "text", placeholder = "Belum dikonfigurasi" }: any) => (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-[#FFFDF5] transition-colors group">
       <div className="mb-2 sm:mb-0 w-1/3 shrink-0">
@@ -105,7 +145,7 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
             <div className="flex items-center gap-3">
               {value ? (
                 <p className={`text-[#2A1B14] font-bold ${id === 'name' ? 'text-lg font-serif' : 'text-base font-sans'}`}>
-                  {id === 'pin' ? "••••••" : value}
+                  {value}
                 </p>
               ) : (
                 <p className="text-gray-400 italic text-sm">{placeholder}</p>
@@ -155,15 +195,91 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
         </div>
       </div>
 
-      {/* SECTION: KEAMANAN (Bisa dihilangkan jika ditaruh di sidebar kiri) */}
+      {/* SECTION: KEAMANAN */}
       <div>
         <h3 className="text-[11px] font-black tracking-[0.2em] uppercase text-[#D9B35A] mb-4 flex items-center gap-3">
           <span className="w-8 h-[1.5px] bg-[#D9B35A]"></span> Autentikasi
         </h3>
         <div className="flex flex-col gap-1">
-          <DataRow id="pin" label="PIN Transaksi" value={profile?.pin} type="password" placeholder="PIN belum diatur" />
+          {/* Baris Khusus untuk PIN yang memicu Modal */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-[#FFFDF5] transition-colors group">
+            <div className="mb-2 sm:mb-0 w-1/3 shrink-0">
+              <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">PIN Transaksi</p>
+            </div>
+            
+            <div className="flex-1 w-full flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {profile?.pin ? (
+                  <p className="text-[#2A1B14] font-bold text-xl tracking-[0.3em] mt-1">••••••</p>
+                ) : (
+                  <p className="text-gray-400 italic text-sm">PIN belum diatur</p>
+                )}
+              </div>
+              
+              <button 
+                onClick={() => {
+                  setPinInput(""); // Kosongkan input setiap kali buka modal
+                  setIsPinModalOpen(true);
+                }} 
+                className="text-[#D9B35A] text-xs font-bold uppercase tracking-widest hover:text-[#2A1B14] transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-[#D9B35A]/30 hover:border-[#D9B35A]"
+              >
+                {profile?.pin ? "Ganti PIN" : "Buat PIN"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* ========================================= */}
+      {/* MODAL GANTI PIN DENGAN DESAIN NUSANTARA  */}
+      {/* ========================================= */}
+      {isPinModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2A1B14]/40 backdrop-blur-sm animate-fadeIn p-4">
+          <div className="bg-[#FFFDF5] w-full max-w-sm p-8 rounded-3xl shadow-2xl border border-[#D9B35A]/30 transform transition-all relative overflow-hidden">
+            
+            {/* Ornamen Desain (Opsional untuk estetika) */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D9B35A] to-transparent"></div>
+
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-serif font-bold text-[#2A1B14] mb-2">
+                {profile?.pin ? "Ubah PIN Transaksi" : "Buat PIN Baru"}
+              </h4>
+              <p className="text-xs text-[#8B7355] leading-relaxed">
+                Masukkan <strong className="text-[#D9B35A]">6 digit angka</strong> untuk mengamankan transaksi Anda.
+              </p>
+            </div>
+
+            <div className="flex justify-center mb-8">
+              <input
+                type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={pinInput}
+                onChange={handlePinChange}
+                placeholder="••••••"
+                autoFocus
+                className="w-4/5 bg-white border-2 border-[#D9B35A]/40 text-[#2A1B14] px-4 py-3 rounded-2xl outline-none focus:border-[#D9B35A] focus:ring-4 focus:ring-[#D9B35A]/10 transition-all font-sans text-3xl text-center tracking-[0.5em] shadow-inner placeholder:text-gray-300"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsPinModalOpen(false)}
+                className="flex-1 py-3.5 text-[#8B7355] hover:text-[#2A1B14] text-[11px] font-black uppercase tracking-widest transition-colors border border-[#8B7355]/20 hover:bg-[#8B7355]/5 rounded-xl"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSavePin}
+                disabled={isSaving || pinInput.length !== 6}
+                className="flex-1 bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-white py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none disabled:cursor-not-allowed"
+              >
+                {isSaving ? "Memproses..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

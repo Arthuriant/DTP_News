@@ -14,7 +14,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // URL Aksen Nusantara
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
-  const wayangUrl = "https://www.shutterstock.com/shutterstock/photos/1411052360/display_1500/stock-photo-puppet-or-wayang-kulit-one-of-the-traditional-art-of-java-indonesia-mahabharata-and-ramayana-1411052360.jpg";
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -63,10 +62,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   /**
    * FILTER MENU: 
-   * Hanya menampilkan yang sudah fungsional sesuai instruksi:
-   * 1. Dashboard (Dummy/Kosong)
-   * 2. Kelola Pengguna
-   * 3. Manajemen Role
    */
   const allMenuItems = [
     { 
@@ -104,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const displayRole = userData.roles.length > 0 ? userData.roles[0].replace('_', ' ') : 'Administrator';
 
-  // Loading state remains the same...
+  // Loading state
   if (isLoading || !isAuthorized) {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0D0806] overflow-hidden">
@@ -136,12 +131,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         <div className="absolute bottom-0 left-0 w-full h-64 opacity-[0.15] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom left' }}></div>
 
-        <div className="h-28 flex items-center px-5 shrink-0 relative z-10 border-b border-[#C5A059]/10">
-          <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/40 flex items-center justify-center font-black text-xl text-[#C5A059] shrink-0">U</div>
-          <span className="ml-4 font-bold text-xl text-[#F8F3E9] opacity-0 group-hover:opacity-100 transition-opacity duration-300 tracking-widest uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-            UpToYou<span className="text-[#C5A059]">.</span>
-          </span>
+        {/* ============================================================ */}
+        {/* AREA LOGO DENGAN EFEK SWAP & UKURAN LEBIH BESAR & TENGAH     */}
+        {/* ============================================================ */}
+        <div className="h-28 flex items-center justify-center w-full shrink-0 relative z-10 border-b border-[#C5A059]/10 transition-all duration-500 overflow-hidden px-4">
+          <div className="relative w-full h-full flex items-center justify-center">
+            
+            {/* LOGO SAAT DITUTUP (HANYA ICON U) */}
+            <img 
+              src="/icon.png" 
+              alt="Icon Logo" 
+              // Menghilang saat group (sidebar) di-hover
+              className="w-14 h-14 object-contain transition-all duration-500 absolute opacity-100 group-hover:opacity-0 group-hover:scale-50" 
+            />
+            
+            {/* LOGO SAAT DIBUKA (TULISAN LENGKAP) */}
+            <img 
+              src="/images/logo/logo1.png" 
+              alt="Full Logo" 
+              // Muncul saat group (sidebar) di-hover
+              className="h-14 w-auto max-w-[200px] object-contain transition-all duration-500 absolute opacity-0 group-hover:opacity-100 group-hover:scale-100 scale-125" 
+            />
+          </div>
         </div>
+        {/* ============================================================ */}
 
         <nav className="flex-1 mt-6 px-3 space-y-2 overflow-y-auto relative z-10 no-scrollbar pb-10">
           {menuItems.map((item) => {
@@ -204,4 +217,4 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </div>
   );
-}
+} 
