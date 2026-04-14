@@ -12,6 +12,8 @@ import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { PRODUCTS_CONFIG } from "@/config/products";
+import { AuthService } from "@/services/AuthService";
+import { CartService } from "@/services/CartService";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,73 +47,58 @@ const Header = () => {
 
   // 2. Fetch data user dari Laravel saat komponen dimuat
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserData = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/user", {
-          credentials: "include",
-          cache: "no-store",
-        });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.name) {
-            setUserData(data);
+        const userData = await AuthService.getUser();
+        
+        if (userData && userData.name) {
+          setUserData(userData);
+          const dbCartItems = await CartService.getCart();
 
-            // 👇 JIKA LOGIN BERHASIL, TARIK DATA KERANJANG DARI DATABASE 👇
-            const cartRes = await fetch("http://127.0.0.1:8000/cart", {
-              credentials: "include",
+          if (Array.isArray(dbCartItems)) {
+            dbCartItems.forEach((dbItem: any) => {
+              const baseProduct = PRODUCTS_CONFIG[dbItem.product_id];
+              if (baseProduct) {
+                dispatch(
+                  addItemToCart({
+                    id: dbItem.id, 
+                    title: `Kustom ${baseProduct.name}`,
+                    price: dbItem.price,
+                    discountedPrice: dbItem.price,
+                    quantity: dbItem.quantity,
+                    imgs: {
+                      previews: [baseProduct.gallery?.[0] || ""],
+                      thumbnails: [baseProduct.gallery?.[0] || ""],
+                    },
+                    customizations: dbItem.customizations,
+                  } as any)
+                );
+              }
             });
-
-            if (cartRes.ok) {
-              const dbCartItems = await cartRes.json();
-
-              // Masukkan data dari database ke Redux satu per satu
-              dbCartItems.forEach((dbItem: any) => {
-                const baseProduct = PRODUCTS_CONFIG[dbItem.product_id];
-                if (baseProduct) {
-                  dispatch(
-                    addItemToCart({
-                      id: dbItem.id, // Gunakan ID asli dari database
-                      title: `Kustom ${baseProduct.name}`,
-                      price: dbItem.price,
-                      discountedPrice: dbItem.price,
-                      quantity: dbItem.quantity,
-                      imgs: {
-                        previews: [baseProduct.gallery?.[0] || ""],
-                        thumbnails: [baseProduct.gallery?.[0] || ""]
-                      },
-                      customizations: dbItem.customizations
-                    } as any)
-                  );
-                }
-              });
-            }
           }
         }
       } catch (error) {
-        console.error("Belum login atau server mati:", error);
+        console.log("Pengunjung belum login (Guest Mode).");
       }
     };
 
-    fetchUser();
+    fetchUserData();
   }, [dispatch]);
 
   // 3. Fungsi untuk Logout
   const handleLogout = async () => {
-    console.log("Tombol logout ditekan..."); 
+    console.log("Tombol logout ditekan...");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/logout", {
-        method: "GET", 
-        credentials: "include",
-      });
+      const res = await AuthService.logout();
 
       if (res.ok) {
-        console.log("Logout berhasil di server!");
-        window.location.href = "/signin"; 
+        console.log("Logout berhasil! Membersihkan sesi...");
+        localStorage.removeItem("user");
+        window.location.href = "/signin";
       } else {
-        console.error("Logout ditolak oleh server. Status HTTP:", res.status);
-        alert(`Gagal logout! Kode error: ${res.status}`);
+        alert("Gagal logout dari server.");
       }
     } catch (error) {
       console.error("Error jaringan saat mencoba logout", error);

@@ -13,4 +13,11 @@ export const AuthService = {
       method: "GET",
     });
   },
+
+  logout: async () => {
+    return await fetch("/api/auth/logout", {
+      method: "POST", 
+    });
+  },
+
 };

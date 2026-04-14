@@ -57,8 +57,9 @@ export const api = async <T>(
       localStorage.removeItem("user");
       localStorage.removeItem("privileges");
 
-      // Redirect ke halaman signin
-      window.location.href = "/signin";
+      if (window.location.pathname !== "/signin") {
+        window.location.href = "/signin";
+      }
     }
     throw new Error("Unauthorized: Session expired");
   }

@@ -50,6 +50,7 @@ async function handleProxy(request: NextRequest, context: Context) {
       method: request.method,
       headers: headers,
       body: body,
+      cache: "no-store",
     });
 
     const responseData = await backendResponse.arrayBuffer();
