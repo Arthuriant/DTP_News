@@ -10,6 +10,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Middleware\LogUserActivity;
 use App\Models\User;
@@ -70,6 +71,10 @@ Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth
 Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->middleware('auth:sanctum');
 Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrimary'])->middleware('auth:sanctum');
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth:sanctum');
+
+
+// Rute untuk produk
+Route::get('/products', [ProductController::class, 'index']);
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
 Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {

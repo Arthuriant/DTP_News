@@ -1,0 +1,153 @@
+// src/lib/api.ts
+
+export const api = async <T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> => {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+
+  // Set Content-Type ke application/json secara otomatis jika bukan FormData
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  // --- LOGIKA PENENTUAN URL PROXY ---
+  let finalUrl = "";
+
+  if (endpoint.startsWith("/api-fe/auth")) {
+    finalUrl = endpoint;
+  } else if (endpoint.startsWith("/api/auth")) {
+    finalUrl = endpoint.replace("/api/auth", "/api-fe/auth");
+  } else {
+    // Arahkan ke route handler Next.js (Proxy) agar Bearer Token diurus di server-side
+    const cleanEndpoint = endpoint.startsWith("/")
+      ? endpoint.slice(1)
+      : endpoint;
+    finalUrl = `/api-fe/proxy/${cleanEndpoint}`;
+  }
+
+  const response = await fetch(finalUrl, {
+    ...options,
+    headers,
+  });
+
+  // --- ERROR HANDLING (Unauthenticated / Session Expired) ---
+  if (response.status === 401) {
+    const isLoginRequest = endpoint.includes("login");
+
+    if (isLoginRequest) {
+      // Jika login gagal, lemparkan error agar ditangkap oleh form login
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Email atau Password salah");
+    }
+
+    // Jika BUKAN request login (token habis/tidak valid) -> Force Logout
+    if (typeof window !== "undefined") {
+      try {
+        // Panggil endpoint logout Next.js untuk menghapus HTTP-only cookie
+        await fetch("/api-fe/auth/logout", { method: "POST" });
+      } catch (e) {
+        console.error("Gagal menghapus sesi server", e);
+      }
+
+      // Bersihkan data lokal
+      localStorage.removeItem("user");
+      localStorage.removeItem("privileges");
+
+      // Redirect ke halaman signin
+      window.location.href = "/signin";
+    }
+    throw new Error("Unauthorized: Session expired");
+  }
+
+  // --- ERROR HANDLING UMUM (Laravel Validation dsb.) ---
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    let errorMessage = `API Error: ${response.statusText}`;
+
+    if (errorData.errors) {
+      // Menangkap format validasi Laravel: { errors: { field: ["message1"] } }
+      const firstField = Object.keys(errorData.errors)[0];
+      if (firstField && Array.isArray(errorData.errors[firstField])) {
+        errorMessage = errorData.errors[firstField][0];
+      }
+    } else if (errorData.message) {
+      errorMessage = errorData.message;
+    }
+
+    const error = new Error(errorMessage);
+    (error as any).data = errorData;
+    throw error;
+  }
+
+  return response.json();
+};
+
+export const apiBlob = async (
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<Blob> => {
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
+  };
+
+  let finalUrl = "";
+
+  if (endpoint.startsWith("/api-fe/auth")) {
+    finalUrl = endpoint;
+  } else {
+    const cleanEndpoint = endpoint.startsWith("/")
+      ? endpoint.slice(1)
+      : endpoint;
+    finalUrl = `/api-fe/proxy/${cleanEndpoint}`;
+  }
+
+  const response = await fetch(finalUrl, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    if (typeof window !== "undefined") {
+      try {
+        await fetch("/api-fe/auth/logout", { method: "POST" });
+      } catch (e) {
+        console.error("Gagal logout server-side", e);
+      }
+
+      localStorage.removeItem("user");
+      localStorage.removeItem("privileges");
+
+      window.location.href = "/signin";
+    }
+    throw new Error("Unauthorized: Session expired");
+  }
+
+  if (!response.ok) {
+    let errorMessage = `Download Failed: ${response.statusText}`;
+
+    try {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json();
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } else {
+        const text = await response.text();
+        if (text) {
+          errorMessage = text.substring(0, 200);
+        }
+      }
+    } catch (e) {
+      // Gunakan status text bawaan jika JSON parsing gagal
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  return response.blob();
+};

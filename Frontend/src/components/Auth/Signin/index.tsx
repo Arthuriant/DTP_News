@@ -3,13 +3,7 @@
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-
-const handleGoogleLogin = () => {
-  const currentUrl = window.location.href;
-  window.location.href =
-    "http://127.0.0.1:8000/auth/google?redirect=" +
-    encodeURIComponent(currentUrl);
-};
+import { AuthService } from "@/services/AuthService"; 
 
 const Signin = () => {
   const [email, setEmail] = useState("");
@@ -20,69 +14,69 @@ const Signin = () => {
   const brownBatikUrl =
     "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
+  const handleGoogleLogin = () => {
+    const currentUrl = window.location.href;
+    // URL backend untuk Google OAuth bisa tetap menembak langsung
+    window.location.href =
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") + 
+      "/auth/google?redirect=" +
+      encodeURIComponent(currentUrl);
+  };
+
   // Pengecekan jika sudah login
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/user", {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // 👇 LOGIKA REDIREKSI BERDASARKAN ROLE
-          if (
-            data.roles &&
-            (data.roles.includes("admin") || data.roles.includes("super_admin"))
-          ) {
-            window.location.href = "/admin";
-          } else {
-            window.location.href = "/";
-          }
+        const data = await AuthService.getUser();
+        
+        // LOGIKA REDIREKSI BERDASARKAN ROLE
+        if (
+          data.roles &&
+          (data.roles.includes("admin") || data.roles.includes("super_admin"))
+        ) {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
         }
       } catch (err) {
-        console.error("Belum login");
+        // Jika error (misal 401), biarkan di halaman login
+        console.log("Belum login atau sesi habis");
       }
     };
+    
     checkLogin();
   }, []);
 
-  // FUNGSI BARU: Mesin pemroses login manual
-  const handleSubmit = async (e) => {
+  // FUNGSI BARU: Mesin pemroses login manual menggunakan Service
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const loginRes = await fetch("http://127.0.0.1:8000/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // 1. Tembak API Login (Error dari api.ts akan otomatis terlempar ke catch)
+      const loginRes = await AuthService.login({ email, password });
 
-      if (!loginRes.ok) {
-        const errData = await loginRes.json();
-        setError(errData.message || "Login gagal");
-        return;
+      // Jika berhasil, kita bisa simpan data user ringan ke localStorage (opsional, untuk UI statis)
+      if (loginRes.user) {
+        localStorage.setItem("user", JSON.stringify(loginRes.user));
       }
 
-      // 👇 SETELAH LOGIN SUKSES, AMBIL DATA USER UNTUK CEK ROLE
-      const userRes = await fetch("http://127.0.0.1:8000/user", {
-        credentials: "include",
-        headers: { "Accept": "application/json" }
-      });
+      // 2. Ambil data user lengkap untuk cek Role
+      const userData = await AuthService.getUser();
 
-      if (userRes.ok) {
-        const userData = await userRes.json();
-
-        // 👇 UBAH BARIS INI JUGA: Tambahkan OR (||) untuk super_admin
-        if (userData.roles && (userData.roles.includes("admin") || userData.roles.includes("super_admin"))) {
-          window.location.href = "/admin"; // Langsung ke Dashboard Admin
-        } else {
-          window.location.href = "/"; // Customer ke Beranda
-        }
+      // 3. Arahkan berdasarkan role
+      if (
+        userData.roles &&
+        (userData.roles.includes("admin") || userData.roles.includes("super_admin"))
+      ) {
+        window.location.href = "/admin"; // Langsung ke Dashboard Admin
+      } else {
+        window.location.href = "/"; // Customer ke Beranda
       }
-    } catch (err) {
-      setError("Terjadi kesalahan server");
+      
+    } catch (err: any) {
+      // Error validation dari Laravel akan ditangkap di sini berkat file api.ts
+      setError(err.message || "Terjadi kesalahan server");
     }
   };
 
@@ -90,13 +84,10 @@ const Signin = () => {
     <>
       <Breadcrumb title={"Signin"} pages={["Signin"]} />
 
-      {/* SECTION UTAMA DENGAN BACKGROUND CREAM */}
       <section
         className="relative overflow-hidden py-20 bg-[#F8F3E9] min-h-screen flex items-center"
         style={{ fontFamily: "'Cinzel', 'Playfair Display', serif" }}
       >
-        {/* ================= ORNAMEN BACKGROUND MEWAH ================= */}
-        {/* Siluet Gunungan Pudar di Kanan */}
         <div
           className="absolute right-[-10%] top-0 w-[600px] h-[800px] pointer-events-none z-0 opacity-[0.04] mix-blend-multiply grayscale contrast-125"
           style={{
@@ -107,7 +98,6 @@ const Signin = () => {
           }}
         ></div>
 
-        {/* Siluet Wayang Pudar di Kiri */}
         <div
           className="absolute left-[-5%] bottom-10 w-[400px] h-[600px] pointer-events-none z-0 opacity-[0.03] mix-blend-multiply grayscale contrast-125"
           style={{
@@ -119,9 +109,7 @@ const Signin = () => {
         ></div>
 
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0 relative z-10">
-          {/* ================= CARD FORM LOGIN ================= */}
           <div className="relative overflow-hidden max-w-[570px] w-full mx-auto rounded-[1.5rem] bg-[#2D1A11] shadow-[0_20px_50px_rgba(45,26,17,0.2)] border border-[#C5A059]/30 p-6 sm:p-10 xl:p-12">
-            {/* Background Batik Transparan di dalam Card */}
             <div
               className="absolute inset-0 z-0 opacity-[0.15] mix-blend-overlay pointer-events-none"
               style={{
@@ -131,11 +119,9 @@ const Signin = () => {
               }}
             ></div>
 
-            {/* Aksen Sudut Emas */}
             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#C5A059]/20 to-transparent rounded-tr-[1.5rem] z-0"></div>
             <div className="absolute top-6 right-6 w-5 h-5 border-t border-r border-[#C5A059]/60 z-0"></div>
 
-            {/* Konten Utama */}
             <div className="relative z-10">
               <div className="text-center mb-10">
                 <h2 className="font-semibold text-2xl sm:text-3xl xl:text-4xl text-[#C5A059] mb-2 tracking-wide">
@@ -147,7 +133,6 @@ const Signin = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="font-sans">
-                {/* Pesan Error */}
                 {error && (
                   <p className="text-[#C5A059] text-sm mb-6 text-center bg-[#C5A059]/10 border border-[#C5A059]/30 p-3 rounded-lg">
                     {error}
@@ -207,7 +192,6 @@ const Signin = () => {
                   Lupa password Anda?
                 </a>
 
-                {/* Garis Pemisah */}
                 <div className="relative flex items-center justify-center mt-8 mb-8">
                   <span className="absolute w-full h-px bg-[#C5A059]/20"></span>
                   <span className="relative bg-[#2D1A11] px-4 text-sm text-[#F8F3E9]/50 font-medium">
