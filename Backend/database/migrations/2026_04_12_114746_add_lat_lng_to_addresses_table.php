@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('addresses', function (Blueprint $table) {
-            Schema::table('addresses', function (Blueprint $table) {
-            // Menggunakan decimal dengan presisi tinggi untuk koordinat GPS
-            $table->decimal('latitude', 10, 8)->nullable()->after('is_primary');
-            $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
-        });
-        });
+        //     Schema::table('addresses', function (Blueprint $table) {
+        //     // Menggunakan decimal dengan presisi tinggi untuk koordinat GPS
+        //     $table->decimal('latitude', 10, 8)->nullable()->after('is_primary');
+        //     $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
+        // });
     }
 
     /**
@@ -25,8 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('addresses', function (Blueprint $table) {
-            $table->dropColumn(['latitude', 'longitude']);
-        });
+        // Schema::table('addresses', function (Blueprint $table) {
+        //     $table->dropColumn(['latitude', 'longitude']);
+        // });
     }
 };

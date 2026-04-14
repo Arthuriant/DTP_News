@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('save_bag', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('product_id');
-            $table->string('size_id');
-            $table->jsonb('selected_parts');
-            $table->decimal('total_price', 12, 2);
-            $table->string('design_name')->nullable();
-            $table->timestamps();
-        });
+        // Schema::create('save_bag', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        //     $table->string('product_id');
+        //     $table->string('size_id');
+        //     $table->jsonb('selected_parts');
+        //     $table->decimal('total_price', 12, 2);
+        //     $table->string('design_name')->nullable();
+        //     $table->timestamps();
+        // });
     }
 
     /**
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('save_bag');
+        // Schema::dropIfExists('save_bag');
     }
 };

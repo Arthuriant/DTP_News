@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
 use App\Http\Middleware\LogUserActivity;
-
+use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
@@ -59,12 +59,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update']);
 }); // ← tutup di sini
 
-Route::middleware(['auth', 'role:super_admin'])->group(function () {
-    Route::get('/admins', [AdminController::class, 'index']);
-    Route::post('/admins', [AdminController::class, 'store']);
-    Route::put('/admins/{id}', [AdminController::class, 'update']);
-    Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
-});
+// Route::middleware(['auth', 'role:super_admin'])->group(function () {
+//     Route::get('/admins', [AdminController::class, 'index']);
+//     Route::post('/admins', [AdminController::class, 'store']);
+//     Route::put('/admins/{id}', [AdminController::class, 'update']);
+//     Route::delete('/admins/{id}', [AdminController::class, 'destroy']);
+// });
 
 Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth');
 Route::post('/addresses', [AddressController::class, 'store'])->middleware('auth');
@@ -84,14 +84,32 @@ Route::middleware(['auth', \App\Http\Middleware\LogUserActivity::class])->group(
     Route::put('/admins/{id}', [AdminController::class, 'update'])->middleware('can:edit_users');
     Route::delete('/admins/{id}', [AdminController::class, 'destroy'])->middleware('can:delete_users');
 
+    // -- KELOLA CUSTOMERS (Dihapus duplikatnya, digabung dengan fungsi CRUD dari temanmu) --
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('can:view_customers');
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('can:create_customers'); 
+    Route::put('/customers/{id}', [CustomerController::class, 'update'])->middleware('can:edit_customers'); 
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers'); 
+    
+    // Fitur toggle status milikmu
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
+
 });
 
-    // Admin dan Super Admin bisa lihat data customer
-    Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
-        Route::get('/customers', [CustomerController::class, 'index']);
-        Route::post('/customers', [CustomerController::class, 'store']);
-        Route::put('/customers/{id}', [CustomerController::class, 'update']);
-        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
-    });
+Route::get('/generate-token', function () {
+    // 1. Cari user Lintang (misalnya emailnya lintang@mail.com atau ID-nya 1)
+    // Ganti angka 1 dengan ID akun Lintang di database Anda
+    $user = User::find(3); 
+
+    if (!$user) {
+        return "User tidak ditemukan!";
+    }
+
+    // 2. Buat token baru bernama 'postman-test'
+    $token = $user->createToken('postman-test');
+
+    // 3. Tampilkan tokennya di layar browser
+    return response()->json([
+        'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
+        'token' => $token->plainTextToken
+    ]);
+});

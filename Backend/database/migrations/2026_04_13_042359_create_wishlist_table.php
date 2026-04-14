@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('wishlist', function (Blueprint $table) {
+            // 1. Primary Key wajib UUID
+            $table->uuid('id')->primary();
+
+            // 2. Foreign Key ke tabel products (Gunakan UUID)
+            $table->uuid('product_id'); 
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+
+            // 3. Foreign Key ke tabel users (Gunakan UUID) - INI SOLUSI ERRORNYA
+            $table->uuid('user_id'); 
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('wishlist');
+    }
+};

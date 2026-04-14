@@ -1,5 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+
+// 👇 IMPORT KOMPONEN PETA SECARA DINAMIS (KODE BAYU) 👇
+const MapPicker = dynamic(() => import("./MapPicker"), { 
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full bg-white/50 animate-pulse rounded-xl flex items-center justify-center text-[#8B7355] text-xs font-bold tracking-widest uppercase">Memuat Peta...</div>
+});
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -16,6 +23,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false,
   });
 
+  // State Peta (KODE BAYU)
+  const [mapPosition, setMapPosition] = useState<[number, number]>([-6.9175, 107.6191]);
+
   const [isChangingRegion, setIsChangingRegion] = useState(false); 
   const [provinces, setProvinces] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
@@ -27,7 +37,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   });
 
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
-  const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
 
   // LOCK SCROLL: Mencegah halaman belakang di-scroll
   useEffect(() => {
@@ -50,11 +59,20 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
           label: editData.label || "", is_primary: editData.is_primary == 1,
         });
         setIsChangingRegion(false); 
+
+        // Pasang koordinat lama di peta jika ada (KODE BAYU)
+        if (editData.latitude && editData.longitude) {
+          setMapPosition([parseFloat(editData.latitude), parseFloat(editData.longitude)]);
+        } else {
+          setMapPosition([-6.9175, 107.6191]); // Default Bandung
+        }
       } else {
         setFormData({ recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false });
         setIsChangingRegion(true);  
+        setMapPosition([-6.9175, 107.6191]); // Reset ke Bandung (KODE BAYU)
       }
       setSelectedRegion({ provId: "", provName: "", cityId: "", cityName: "", distId: "", distName: "", villId: "", villName: "" });
+      
       fetch(`${API_WILAYAH}/provinsi.json`)
         .then(res => res.json())
         .then(data => setProvinces(data))
@@ -114,9 +132,19 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       finalRegion = `${selectedRegion.provName}, ${selectedRegion.cityName}, Kecamatan ${selectedRegion.distName}, Kelurahan ${selectedRegion.villName}`;
     }
     setIsLoading(true);
-    const payload = { ...formData, region: finalRegion, label: formData.label === "" ? null : formData.label };
+    
+    // 👇 Gabungkan Data Form + Koordinat Peta (KODE BAYU) 👇
+    const payload = { 
+        ...formData, 
+        region: finalRegion, 
+        label: formData.label === "" ? null : formData.label,
+        latitude: mapPosition[0],   
+        longitude: mapPosition[1]   
+    };
+
     const url = editData ? `http://127.0.0.1:8000/addresses/${editData.id}` : "http://127.0.0.1:8000/addresses";
     const method = editData ? "PUT" : "POST";
+    
     try {
       const res = await fetch(url, {
         method, credentials: "include",
@@ -136,11 +164,10 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       className="fixed inset-0 z-[99999999] flex items-center justify-center p-4 bg-[#2D1A11]/60 backdrop-blur-md animate-fadeIn transition-all duration-300 font-sans"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* CARD UTAMA: max-h dikurangi menjadi 70vh agar lebih pendek */}
-      <div className="relative bg-[#F8F3E9] rounded-[1.5rem] shadow-[0_20px_50px_rgba(45,26,17,0.4)] w-full max-w-4xl flex flex-col overflow-hidden max-h-[70vh] border-none">
+      <div className="relative bg-[#F8F3E9] rounded-[1.5rem] shadow-[0_20px_50px_rgba(45,26,17,0.4)] w-full max-w-4xl flex flex-col overflow-hidden max-h-[85vh] border-none">
         
-        {/* HEADER: Dibuat lebih tipis (py-3) */}
-        <div className="relative z-10 bg-[#2D1A11] px-6 py-3 shadow-[0_5px_15px_rgba(0,0,0,0.2)] flex justify-between items-center shrink-0 border-none">
+        {/* HEADER */}
+        <div className="relative z-10 bg-[#2D1A11] px-6 py-4 shadow-[0_5px_15px_rgba(0,0,0,0.2)] flex justify-between items-center shrink-0 border-none">
           <div className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none" style={{ backgroundImage: `url('${brownBatikUrl}')`, backgroundSize: 'cover' }}></div>
           <div className="relative z-10">
             <h2 className="text-[#C5A059] text-lg font-serif font-bold tracking-wide flex items-center gap-2">
@@ -151,9 +178,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
           <button onClick={onClose} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all cursor-pointer">✕</button>
         </div>
 
-        {/* CONTENT: Spacing space-y-3 agar lebih rapat */}
-        <div className="relative z-10 p-5 sm:px-8 sm:py-5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#D9B35A]/50 scrollbar-track-transparent">
-          <form id="addressForm" onSubmit={handleSubmit} className="space-y-3">
+        {/* CONTENT */}
+        <div className="relative z-10 p-5 sm:px-8 sm:py-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#D9B35A]/50 scrollbar-track-transparent">
+          <form id="addressForm" onSubmit={handleSubmit} className="space-y-4">
             
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="w-full">
@@ -169,12 +196,12 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
             <div>
               <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest mb-1 pl-1">Wilayah</label>
               {!isChangingRegion && formData.region ? (
-                <div className="flex items-center justify-between bg-white px-4 py-2 rounded-xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)] border-none">
-                  <span className="text-xs text-[#2D1A11] font-semibold truncate pr-3">{formData.region}</span>
-                  <button type="button" onClick={() => setIsChangingRegion(true)} className="text-[#D9B35A] text-[9px] font-black uppercase tracking-wider hover:text-[#2D1A11] cursor-pointer">Ubah</button>
+                <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)] border-none">
+                  <span className="text-sm text-[#2D1A11] font-semibold truncate pr-3">{formData.region}</span>
+                  <button type="button" onClick={() => setIsChangingRegion(true)} className="text-[#D9B35A] text-[10px] font-black uppercase tracking-wider hover:text-[#2D1A11] cursor-pointer bg-[#D9B35A]/10 px-3 py-1 rounded-md">Ubah</button>
                 </div>
               ) : (
-                <div className="space-y-2 bg-white p-3 rounded-xl shadow-inner border-none">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#EFE8DC] p-4 rounded-xl shadow-inner border-none">
                   <select required={isChangingRegion} value={selectedRegion.provId} onChange={handleProvChange} className={inputClass}>
                     <option value="" disabled>1. Provinsi</option>
                     {provinces.map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}
@@ -195,44 +222,58 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               )}
             </div>
 
-            <div>
-              <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest mb-1 pl-1">Detail Alamat</label>
-              <textarea required name="street" placeholder="Jalan, No. Rumah..." rows={2} value={formData.street} onChange={handleInputChange} className={inputClass + " resize-none"} />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full sm:w-2/3">
+                <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest mb-1 pl-1">Detail Jalan</label>
+                <textarea required name="street" placeholder="Nama Jalan, No. Rumah / RT RW..." rows={2} value={formData.street} onChange={handleInputChange} className={inputClass + " resize-none h-[52px]"} />
+              </div>
+              <div className="w-full sm:w-1/3">
+                <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest mb-1 pl-1">Patokan</label>
+                <textarea name="details" placeholder="Cth: Rumah Pagar Hitam..." rows={2} value={formData.details} onChange={handleInputChange} className={inputClass + " resize-none h-[52px]"} />
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-1">
-               <div className="flex-1">
-                  <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest mb-1 pl-1">Patokan</label>
-                  <input type="text" name="details" placeholder="Cth: Gerbang Biru..." value={formData.details} onChange={handleInputChange} className={inputClass} />
-               </div>
-               <div className="w-1/3 pt-4">
-                  <button type="button" onClick={() => alert("G-Maps API Required")} className="w-full bg-white text-[#8B7355] text-[8px] font-black uppercase tracking-tighter py-2.5 rounded-xl shadow-md flex items-center justify-center gap-1 hover:text-[#D9B35A]">📍 Maps</button>
-               </div>
+            {/* 👇 IMPLEMENTASI PETA MAPS (KODE BAYU - DISESUAIKAN TEMA) 👇 */}
+            <div className="pt-2">
+              <div className="flex justify-between items-center mb-2 px-1">
+                <label className="block text-[#8B7355] text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
+                  📍 Tandai Titik Koordinat Pengiriman
+                </label>
+                <span className="text-[9px] bg-white text-[#2D1A11] px-2 py-0.5 rounded shadow-sm font-mono font-bold tracking-widest border border-[#D9B35A]/30">
+                  {mapPosition[0].toFixed(5)}, {mapPosition[1].toFixed(5)}
+                </span>
+              </div>
+              
+              <div className="h-[200px] w-full rounded-xl overflow-hidden border-2 border-[#D9B35A]/20 shadow-inner relative z-0 bg-[#EFE8DC]">
+                <MapPicker position={mapPosition} setPosition={setMapPosition} />
+              </div>
+              <p className="text-[9px] text-[#8B7355]/80 italic mt-1.5 px-1 font-semibold">*Geser atau klik pada area peta untuk menempatkan pin lokasi yang lebih akurat.</p>
             </div>
+            {/* 👆 ==================================================== 👆 */}
 
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+            <div className="pt-4 pb-2 flex flex-wrap items-center justify-between gap-3 border-t border-[#8B7355]/10">
               <div className="flex gap-2">
                 {['Rumah', 'Kantor'].map(label => (
-                  <button key={label} type="button" onClick={() => setFormData({ ...formData, label: formData.label === label ? "" : label })} className={`px-4 py-1.5 text-[9px] uppercase tracking-widest rounded-full font-black transition-all ${formData.label === label ? 'bg-[#2D1A11] text-[#D9B35A]' : 'bg-white text-[#8B7355]'}`}>
+                  <button key={label} type="button" onClick={() => setFormData({ ...formData, label: formData.label === label ? "" : label })} className={`px-5 py-2 text-[10px] uppercase tracking-widest rounded-full font-black transition-all ${formData.label === label ? 'bg-[#2D1A11] text-[#D9B35A] shadow-md' : 'bg-white text-[#8B7355] shadow-sm hover:bg-[#EFE8DC]'}`}>
                     {label}
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2 cursor-pointer" onClick={() => setFormData(prev => ({ ...prev, is_primary: !prev.is_primary }))}>
-                <div className={`w-4 h-4 rounded flex items-center justify-center transition-all ${formData.is_primary ? 'bg-[#D9B35A]' : 'bg-white shadow-inner'}`}>
+              <div className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-full shadow-sm hover:bg-[#EFE8DC] transition-colors" onClick={() => setFormData(prev => ({ ...prev, is_primary: !prev.is_primary }))}>
+                <div className={`w-4 h-4 rounded flex items-center justify-center transition-all ${formData.is_primary ? 'bg-[#D9B35A]' : 'bg-[#EFE8DC] shadow-inner'}`}>
                   {formData.is_primary && <span className="text-[#2D1A11] text-[10px] font-bold">✓</span>}
                 </div>
-                <span className="text-[9px] font-bold text-[#8B7355] uppercase tracking-widest">Utama</span>
+                <span className="text-[10px] font-bold text-[#8B7355] uppercase tracking-widest pt-0.5">Jadikan Utama</span>
               </div>
             </div>
           </form>
         </div>
 
-        {/* FOOTER: Dibuat lebih tipis (py-3) */}
-        <div className="p-4 sm:px-8 py-3 border-t border-[#8B7355]/10 flex justify-end items-center gap-4 bg-[#F8F3E9] shrink-0">
-          <button onClick={onClose} className="text-[#8B7355] font-black text-[10px] uppercase tracking-widest hover:text-[#2D1A11]">Batal</button>
-          <button type="submit" form="addressForm" disabled={isLoading} className="bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] px-8 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50">
-            {isLoading ? "..." : "Simpan"}
+        {/* FOOTER */}
+        <div className="p-4 sm:px-8 py-4 border-t border-[#8B7355]/10 flex justify-end items-center gap-4 bg-[#EFE8DC] shrink-0">
+          <button onClick={onClose} className="text-[#8B7355] font-black text-[10px] uppercase tracking-widest hover:text-[#2D1A11] px-4 py-2 rounded-full hover:bg-white/50 transition-colors">Batal</button>
+          <button type="submit" form="addressForm" disabled={isLoading} className="bg-gradient-to-r from-[#2D1A11] to-[#3d2417] text-[#D9B35A] px-10 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-50">
+            {isLoading ? "Menyimpan..." : "Simpan Alamat"}
           </button>
         </div>
       </div>
