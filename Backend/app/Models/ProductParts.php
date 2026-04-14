@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class ProductParts extends Model 
 {
-    use HasUuids; // 👈 Auto-pilot UUID aktif!
+    use HasUuids;
 
     protected $table = 'product_parts';
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
-    // 'id' sudah dihapus dari fillable
     protected $fillable = [
         'product_id',
         'name',
@@ -24,7 +26,7 @@ class ProductParts extends Model
     protected function casts(): array
     {
         return [
-            'z_index' => 'integer',
+            'z_index' => 'array',
         ];
     }
 

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('product_id');    // 👈 Foreign Key wajib UUID
 
             $table->string('name', 100);
-            $table->integer('z_index')->default(0); 
+            $table->json('z_index');; 
             $table->timestamps();
 
             // Relasi Foreign Key

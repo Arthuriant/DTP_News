@@ -19,7 +19,6 @@ class SubCategories extends Model
 
     public function category()
     {
-        // 👈 Perbaikan nama class menjadi Categories::class (sesuai nama file modelnya)
         return $this->belongsTo(Categories::class, 'categories_id');
     }
 }

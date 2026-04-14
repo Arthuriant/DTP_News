@@ -13,7 +13,6 @@ class ProductGalleries extends Model
 
     protected $fillable = [
         'product_id',
-        'image_url',   // 👈 Tambahkan ini agar bisa disimpan dari Controller
         'sort_order',
     ];
 

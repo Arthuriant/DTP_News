@@ -10,6 +10,9 @@ class Product extends Model
     use HasUuids; // 👈 Auto-pilot UUID aktif!
 
     protected $table = 'products';
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     // id sudah dihapus dari fillable
     protected $fillable = [

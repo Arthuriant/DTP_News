@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 
 class Categories extends Model
 {
-    use HasUuids; // 👈 Auto-pilot UUID aktif!
+    use HasUuids; 
 
     protected $table = 'categories';
 
