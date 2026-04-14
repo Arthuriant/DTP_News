@@ -8,6 +8,7 @@ use App\Http\Controllers\SavebagController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RoleController;
@@ -94,6 +95,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
 });
 
+    Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+});
 Route::get('/generate-token', function () {
     // Pastikan ID di bawah ini valid dengan format UUID v7 milikmu jika ID 3 tidak ada
     $user = User::find(3);

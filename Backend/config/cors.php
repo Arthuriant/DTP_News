@@ -2,7 +2,7 @@
 
 return [
 
-    'paths' => ['login', 'api/*', 'logout', 'user', 'cart','cart/*', 'sanctum/csrf-cookie', 'auth/*', 'register', 'profile','addresses','addresses/*','roles', 'roles/*','admins','admins/*','customers','customers/*', 'profile/update-password'],
+    'paths' => ['login', 'api/*', 'logout', 'user', 'cart','cart/*', 'sanctum/csrf-cookie', 'auth/*', 'register', 'profile','addresses','addresses/*','roles', 'roles/*','admins','admins/*','customers','customers/*', 'profile/update-password', 'dashboard',],
 
     'allowed_methods' => ['*'],
 
