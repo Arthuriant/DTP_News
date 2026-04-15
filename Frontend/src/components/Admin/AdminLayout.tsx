@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const data = await AuthService.getUser(tr);
+        const data = await AuthService.getUser();
 
         if (data && data.roles && (data.roles.includes("admin") || data.roles.includes("super_admin"))) {
           setUserData({ 

@@ -18,12 +18,12 @@ export const AuthService = {
     return await api<any>("/user", {
       method: "GET",
       cache: "no-store",
-      headers: headers, 
+      skipRedirect: silent, 
     });
   },
 
   logout: async () => {
-    return await fetch("/api/auth/logout", {
+    return await fetch("/api-fe/auth/logout", {
       method: "POST", 
     });
   },

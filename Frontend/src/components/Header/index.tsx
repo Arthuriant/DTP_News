@@ -50,7 +50,7 @@ const Header = () => {
     const fetchUserData = async () => {
       try {
 
-        const userData = await AuthService.getUser();
+        const userData = await AuthService.getUser(true);
         
         if (userData && userData.name) {
           setUserData(userData);

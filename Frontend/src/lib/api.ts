@@ -1,9 +1,14 @@
 // src/lib/api.ts
+export interface CustomRequestInit extends RequestInit {
+  skipRedirect?: boolean;
+}
 
 export const api = async <T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: CustomRequestInit = {},
 ): Promise<T> => {
+  const { skipRedirect = false, ...fetchOptions } = options;
+
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(options.headers as Record<string, string>),
@@ -30,7 +35,7 @@ export const api = async <T>(
   }
 
   const response = await fetch(finalUrl, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
@@ -45,24 +50,23 @@ export const api = async <T>(
     }
 
     // Jika BUKAN request login (token habis/tidak valid) -> Force Logout
-    if (typeof window !== "undefined") {
-      try {
-        // Panggil endpoint logout Next.js untuk menghapus HTTP-only cookie
-        await fetch("/api-fe/auth/logout", { method: "POST" });
-      } catch (e) {
-        console.error("Gagal menghapus sesi server", e);
-      }
+    if (typeof window !== "undefined" && !skipRedirect) {
+        try {
+          await fetch("/api-fe/auth/logout", { method: "POST" });
+        } catch (e) {
+          console.error("Gagal menghapus sesi server", e);
+        }
 
-      // Bersihkan data lokal
-      localStorage.removeItem("user");
-      localStorage.removeItem("privileges");
+        localStorage.removeItem("user");
+        localStorage.removeItem("privileges");
 
-      if (window.location.pathname !== "/signin") {
-        window.location.href = "/signin";
+        if (window.location.pathname !== "/signin") {
+          window.location.href = "/signin";
+        }
       }
+      
+      throw new Error("Unauthorized: Session expired");
     }
-    throw new Error("Unauthorized: Session expired");
-  }
 
   // --- ERROR HANDLING UMUM (Laravel Validation dsb.) ---
   if (!response.ok) {
