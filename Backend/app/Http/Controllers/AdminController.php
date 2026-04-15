@@ -26,7 +26,7 @@ class AdminController extends Controller
                 'created_at' => $user->created_at,
                 // Ambil role pertama (karena 1 user biasanya 1 role di sistem ini)
             ];
-        });
+        }); 
 
         return response()->json($formattedAdmins);
     }
