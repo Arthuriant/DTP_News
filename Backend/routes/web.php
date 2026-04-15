@@ -83,8 +83,16 @@ Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrima
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth:sanctum');
 
 
-// Rute untuk produk
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+
+// Admin & Super Admin - bisa CRUD
+Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    Route::patch('/products/{id}/toggle', [ProductController::class, 'toggle']);
+});
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
 Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
