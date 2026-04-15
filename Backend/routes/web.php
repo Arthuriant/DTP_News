@@ -8,6 +8,7 @@ use App\Http\Controllers\SavebagController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
@@ -71,8 +72,8 @@ Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:s
 // [UPDATE] Group Middleware auth:sanctum
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
-    Route::post('/profile', [ProfileController::class, 'update']);
-}); 
+    Route::put('/profile', [ProfileController::class, 'update']);
+});
 
 // [UPDATE] Ubah auth menjadi auth:sanctum
 Route::get('/addresses', [AddressController::class, 'index'])->middleware('auth:sanctum');
@@ -87,7 +88,7 @@ Route::get('/products', [ProductController::class, 'index']);
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
 Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
-    
+
     // Rute Role & Permission
     Route::get('/roles', [RoleController::class, 'index'])->middleware('can:view_roles');
     Route::post('/roles', [RoleController::class, 'store'])->middleware('can:create_roles');
@@ -101,25 +102,13 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
     // -- KELOLA CUSTOMERS --
     Route::get('/customers', [CustomerController::class, 'index'])->middleware('can:view_customers');
-    Route::post('/customers', [CustomerController::class, 'store'])->middleware('can:create_customers'); 
-    Route::put('/customers/{id}', [CustomerController::class, 'update'])->middleware('can:edit_customers'); 
-    Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers'); 
+    Route::post('/customers', [CustomerController::class, 'store'])->middleware('can:create_customers');
+    Route::put('/customers/{id}', [CustomerController::class, 'update'])->middleware('can:edit_customers');
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers');
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
 
 });
 
-// Route::get('/generate-token', function () {
-//     // Pastikan ID di bawah ini valid dengan format UUID v7 milikmu jika ID 3 tidak ada
-//     $user = User::find(3); 
-
-//     if (!$user) {
-//         return "User tidak ditemukan!";
-//     }
-
-//     $token = $user->createToken('postman-test');
-
-//     return response()->json([
-//         'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
-//         'token' => $token->plainTextToken
-//     ]);
-// });
+    Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+});

@@ -25,7 +25,6 @@ class AdminController extends Controller
                 'email' => $user->email,
                 'created_at' => $user->created_at,
                 // Ambil role pertama (karena 1 user biasanya 1 role di sistem ini)
-                'role' => $user->roles->first()->name ?? 'Tanpa Role' 
             ];
         });
 
@@ -39,7 +38,6 @@ class AdminController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|string|exists:roles,name' // 👈 Validasi: Role harus ada di database
         ]);
 
         $user = User::create([
@@ -49,7 +47,7 @@ class AdminController extends Controller
         ]);
 
         // 👈 Terapkan role sesuai pilihan dari Frontend
-        $user->assignRole($request->role); 
+        $user->assignRole($request->role);
 
         return response()->json([
             'message' => 'Pengguna berhasil dibuat',
@@ -72,7 +70,7 @@ class AdminController extends Controller
             'name'     => 'sometimes|string|max:255',
             'email'    => 'sometimes|email|unique:users,email,' . $id,
             'password' => 'sometimes|string|min:6',
-            'role'     => 'sometimes|string|exists:roles,name' // 👈 Validasi role
+
         ]);
 
         $user->update([

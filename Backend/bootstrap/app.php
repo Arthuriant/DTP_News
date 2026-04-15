@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
 
+
+        // Tambahkan baris ini
         $middleware->validateCsrfTokens(except: [
             '/cart',
             '/cart/*',
@@ -34,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/profile/update-password',
             '/customers',
             '/customers/*',
+            'dashboard',
         ]);
         
         $middleware->alias([
