@@ -20,23 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Tambahkan baris ini
         $middleware->validateCsrfTokens(except: [
-            '/cart',
-            '/cart/*',
-            '/logout',
-            '/register',
-            '/login',
-            '/save-bag',
-            '/profile',
-            '/addresses',
-            '/addresses/*',
-            '/roles',
-            '/roles/*',
-            '/admins',
-            '/admins/*',
-            '/profile/update-password',
-            '/customers',
-            '/customers/*',
-            'dashboard',
+            '/*'
         ]);
 
         $middleware->alias([
