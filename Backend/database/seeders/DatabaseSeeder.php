@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class, // Baru jalan ini untuk membuat user & memberi pangkat
             CategorySeeder::class, // Wajib jalan duluan untuk membuat kategori
             SubCategorySeeder::class, // Baru jalan ini untuk membuat sub kategori yang butuh referensi kategori
-            // ProductSeeder::class, // Baru jalan ini untuk membuat produk yang butuh referensi sub kategori
+            ProductSeeder::class, // Baru jalan ini untuk membuat produk yang butuh referensi sub kategori
             // ProductPartSeeder::class, // Baru jalan ini untuk membuat part yang butuh referensi produk
             // PartVariantSeeder::class, // Baru jalan ini untuk membuat varian yang butuh refer
             // PartTextureSeeder::class, // Baru jalan ini untuk membuat texture yang butuh referensi produk, part, dan varian
