@@ -22,6 +22,7 @@ class ProductSizes extends Model
         'height',
         'depth',
         'unit',
+        'img',
     ];
 
     /**

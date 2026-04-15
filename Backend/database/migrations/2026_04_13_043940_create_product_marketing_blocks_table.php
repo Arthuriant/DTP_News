@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('title', 25);
             $table->string('subtitle', 50)->nullable();
             $table->text('description')->nullable();
+            $table->text('img')->nullable();
             $table->timestamps();
 
             // Relasi Foreign Key

@@ -14,6 +14,7 @@ class ProductGalleries extends Model
     protected $fillable = [
         'product_id',
         'sort_order',
+        'img',
     ];
 
     protected function casts(): array

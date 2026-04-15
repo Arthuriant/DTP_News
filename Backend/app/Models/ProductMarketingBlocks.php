@@ -16,6 +16,7 @@ class ProductMarketingBlocks extends Model
         'title',
         'subtitle',
         'description',
+        'img',
     ];
 
     // --- RELASI ---

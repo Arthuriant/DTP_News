@@ -16,6 +16,7 @@ return new class extends Migration
             
             $table->string('name', 100);
             $table->decimal('price', 12, 2);
+            $table->text('img')->nullable();
             $table->timestamps();
 
             // Relasi Foreign Key

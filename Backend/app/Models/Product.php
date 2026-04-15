@@ -21,6 +21,7 @@ class Product extends Model
         'description',
         'summary',
         'base_price',
+        'img',
         'is_active',
     ];
 
