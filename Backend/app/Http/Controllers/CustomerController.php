@@ -12,8 +12,10 @@ class CustomerController extends Controller
     // GET /customers
     public function index()
     {
-        // 1. Ambil user dengan role customer, gabungkan relasi profile dan addresses (dengan urutan is_primary)
-        $customers = User::role('customer')
+        // 1. Ambil user dengan role customer (BYPASS GUARD SPATIE)
+        $customers = User::whereHas('roles', function ($query) {
+                $query->where('name', 'customer');
+            })
             ->with([
                 'profile', 
                 'addresses' => function ($query) {
@@ -32,17 +34,17 @@ class CustomerController extends Controller
                 'email'         => $user->email,
                 'created_at'    => $user->created_at,
                 
-                // Data dari relasi Profile (Kode Temanmu)
+                // Data dari relasi Profile
                 'phone'         => $user->profile?->phone,
                 'date_of_birth' => $user->profile?->date_of_birth,
                 'gender'        => $user->profile?->gender,
 
-                // Data Status & Logika (Kode Kamu)
+                // Data Status & Logika
                 'total_orders'  => rand(0, 10), // Simulasi total pesanan
                 'is_active'     => $user->is_active ?? true, 
                 'is_online'     => Cache::has('user-is-online-' . $user->id),
 
-                // Data dari relasi Address yang di-mapping rapi (Gabungan)
+                // Data dari relasi Address yang di-mapping rapi
                 'addresses'     => $user->addresses->map(function ($address) {
                     return [
                         'id'             => $address->id,
@@ -64,10 +66,12 @@ class CustomerController extends Controller
     }
 
     // PUT /customers/{id}/toggle-status
-    // Fitur ekstra untuk tombol "Suspend / Aktifkan" di tabel (Kode Kamu dipertahankan)
     public function toggleStatus($id)
     {
-        $customer = User::role('customer')->findOrFail($id);
+        // BYPASS GUARD SPATIE DI SINI JUGA
+        $customer = User::whereHas('roles', function ($query) {
+                $query->where('name', 'customer');
+            })->findOrFail($id);
         
         // Membalikkan status (true jadi false, false jadi true)
         $customer->update([

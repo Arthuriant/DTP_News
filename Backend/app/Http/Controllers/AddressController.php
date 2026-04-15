@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
+    
     // Mengambil semua alamat milik user yang sedang login
     public function index()
     {
@@ -73,16 +74,26 @@ class AddressController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+    $address = Address::where('id', $id)->where('user_id', $user->id)->first();
 
-        $address = Address::where('id', $id)->where('user_id', $user->id)->first();
-        
-        if ($address) {
-            $address->delete();
-            return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
-        }
+    $user = Auth::user();
+    $address = Address::findOrFail($id); // cari global, bukan per user
 
-        return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+
+    if ($address) {
+        $address->delete();
+        return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
+    }
+    return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+
+    // bukan pemilik DAN bukan admin → tolak
+    if ($address->user_id !== $user->id && !$user->can('delete_customers')) {
+        return response()->json(['message' => 'Tidak memiliki akses'], 403);
+    }
+
+    $address->delete();
+    return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
     }
 
     // Mengubah alamat menjadi Utama
@@ -113,6 +124,7 @@ class AddressController extends Controller
 
         $address = Address::where('id', $id)->where('user_id', $user->id)->first();
         if (!$address) return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+        
 
         $request->validate([
             'recipient_name' => 'required|string|max:255',

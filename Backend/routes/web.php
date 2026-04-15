@@ -25,11 +25,20 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 // [UPDATE] Penyesuaian Logout untuk Sanctum
 // Route ini harus dilindungi middleware agar sistem tahu token siapa yang mau dihapus
 Route::get('/logout', function (Request $request) {
-    // Hapus token yang sedang digunakan untuk request ini
-    $request->user()->currentAccessToken()->delete();
+    // 1. Jika menggunakan Autentikasi berbasis Web/Cookie (Session)
+    Auth::guard('web')->logout();
 
-    return response()->json(['message' => 'Logout berhasil, token telah dihapus']);
-})->middleware('auth:sanctum');
+    // 2. Jika menggunakan API Token (Sanctum), hapus tokennya
+    if ($request->user()) {
+        $request->user()->currentAccessToken()->delete();
+    }
+
+    // 3. Hancurkan dan buat ulang sesi agar benar-benar bersih
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return response()->json(['message' => 'Logout berhasil']);
+});
 
 
 // [UPDATE] Ubah auth menjadi auth:sanctum
@@ -99,18 +108,18 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
 });
 
-Route::get('/generate-token', function () {
-    // Pastikan ID di bawah ini valid dengan format UUID v7 milikmu jika ID 3 tidak ada
-    $user = User::find(3); 
+// Route::get('/generate-token', function () {
+//     // Pastikan ID di bawah ini valid dengan format UUID v7 milikmu jika ID 3 tidak ada
+//     $user = User::find(3); 
 
-    if (!$user) {
-        return "User tidak ditemukan!";
-    }
+//     if (!$user) {
+//         return "User tidak ditemukan!";
+//     }
 
-    $token = $user->createToken('postman-test');
+//     $token = $user->createToken('postman-test');
 
-    return response()->json([
-        'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
-        'token' => $token->plainTextToken
-    ]);
-});
+//     return response()->json([
+//         'pesan' => 'Berikan token ini ke teman Anda untuk di-paste di Postman',
+//         'token' => $token->plainTextToken
+//     ]);
+// });

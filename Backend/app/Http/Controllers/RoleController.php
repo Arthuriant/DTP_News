@@ -35,7 +35,10 @@ class RoleController extends Controller
             'permissions' => 'array'
         ]);
 
-        $role = Role::create(['name' => strtolower($request->name)]);
+        $role = Role::create([
+            'name' => strtolower($request->name),
+            'guard_name' => 'web' // Ini kunci untuk mencegah error "null class"
+        ]);
         
         // Pasangkan hak akses ke role ini
         if ($request->has('permissions')) {
