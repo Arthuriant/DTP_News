@@ -87,7 +87,7 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
 // Admin & Super Admin - bisa CRUD
-Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
