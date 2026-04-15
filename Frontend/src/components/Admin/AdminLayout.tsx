@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AuthService } from '@/services/AuthService';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,34 +16,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
 
+ // JANGAN LUPA IMPORT INI DI ATAS:
+  // import { AuthService } from "@/services/AuthService";
+
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/user", {
-          credentials: "include",
-          headers: { "Accept": "application/json" }
-        });
+        const data = await AuthService.getUser(tr);
 
-        if (res.ok) {
-          const data = await res.json();
-          // Memastikan hanya user dengan role (selain customer) yang bisa masuk
-          if (data.roles && data.roles.length > 0 && !data.roles.includes("customer")) {
-            setUserData({ 
-              name: data.name, 
-              email: data.email, 
-              roles: data.roles,
-              permissions: data.permissions || [] 
-            });
-            setIsAuthorized(true);
-          } else {
-            window.location.replace("/");
-          }
+        if (data && data.roles && (data.roles.includes("admin") || data.roles.includes("super_admin"))) {
+          setUserData({ 
+            name: data.name, 
+            email: data.email, 
+            roles: data.roles,
+            permissions: data.permissions || [] 
+          });
+          setIsAuthorized(true);
         } else {
-          window.location.replace("/signin");
+          window.location.replace("/");
         }
-      } catch (error) {
-        console.error("Gagal mengecek akses:", error);
-        window.location.replace("/");
+
+      } catch (error: any) {
+        console.error("Gagal mengecek akses:", error.message);
+        if (error.message !== "Unauthorized: Session expired") {
+          window.location.replace("/");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -53,9 +51,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/logout", { method: "GET", credentials: "include" });
-      window.location.replace("/signin");
+      await AuthService.logout();
     } catch (err) {
+      console.error("Gagal logout dari server:", err);
+    } finally {
+      localStorage.removeItem("user");
       window.location.replace("/signin");
     }
   };

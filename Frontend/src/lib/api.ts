@@ -95,6 +95,13 @@ export const apiBlob = async (
     ...(options.headers as Record<string, string>),
   };
 
+  const skipRedirect = headers["X-Skip-Redirect"] === "true";
+  delete headers["X-Skip-Redirect"];
+
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
   let finalUrl = "";
 
   if (endpoint.startsWith("/api-fe/auth")) {
@@ -112,20 +119,30 @@ export const apiBlob = async (
   });
 
   if (response.status === 401) {
-    if (typeof window !== "undefined") {
-      try {
-        await fetch("/api-fe/auth/logout", { method: "POST" });
-      } catch (e) {
-        console.error("Gagal logout server-side", e);
+      const isLoginRequest = endpoint.includes("login");
+
+      if (isLoginRequest) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Email atau Password salah");
       }
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("privileges");
+      if (typeof window !== "undefined" && !skipRedirect) {
+        try {
+          await fetch("/api-fe/auth/logout", { method: "POST" });
+        } catch (e) {
+          console.error("Gagal menghapus sesi server", e);
+        }
 
-      window.location.href = "/signin";
+        localStorage.removeItem("user");
+        localStorage.removeItem("privileges");
+
+        if (window.location.pathname !== "/signin") {
+          window.location.href = "/signin";
+        }
+      }
+      
+      throw new Error("Unauthorized: Session expired");
     }
-    throw new Error("Unauthorized: Session expired");
-  }
 
   if (!response.ok) {
     let errorMessage = `Download Failed: ${response.statusText}`;

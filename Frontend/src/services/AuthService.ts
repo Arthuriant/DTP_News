@@ -8,9 +8,17 @@ export const AuthService = {
     });
   },
 
-  getUser: async () => {
+  getUser: async (silent: boolean = false) => {
+    const headers: Record<string, string> = {};
+    
+    if (silent) {
+      headers["X-Skip-Redirect"] = "true";
+    }
+
     return await api<any>("/user", {
       method: "GET",
+      cache: "no-store",
+      headers: headers, 
     });
   },
 
