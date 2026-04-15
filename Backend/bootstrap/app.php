@@ -22,9 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/cart',
             '/cart/*',
-            '/logout', 
-            '/register', 
-            '/login',  
+            '/logout',
+            '/register',
+            '/login',
             '/save-bag',
             '/profile',
             '/addresses',
@@ -38,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/customers/*',
             'dashboard',
         ]);
-        
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
