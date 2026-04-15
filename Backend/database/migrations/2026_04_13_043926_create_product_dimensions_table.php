@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('product_style', 50)->nullable();
             $table->integer('total_volumes')->nullable();
             $table->integer('weight')->nullable();
+            $table->text('img')->nullable();
             $table->timestamps();
 
             // Relasi Foreign Key

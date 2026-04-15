@@ -22,6 +22,7 @@ class ProductDimensions extends Model
         'product_style',
         'total_volumes',
         'weight',
+        'img',
     ];
 
     /**

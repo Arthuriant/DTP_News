@@ -28,6 +28,7 @@ return new class extends Migration
             $table->integer('height')->nullable();
             $table->integer('depth')->nullable();
             $table->string('unit', 10)->nullable(); // 'cm', 'mm', 'inch'
+            $table->text('img')->nullable();
 
             $table->timestamps(); 
 

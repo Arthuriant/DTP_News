@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('summary', 100)->nullable();
             $table->decimal('base_price', 12, 2); // DECIMAL(12,2) sudah sangat tepat
+            $table->text('img')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

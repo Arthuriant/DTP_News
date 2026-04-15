@@ -12,6 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
             $table->uuid('product_id');          // 👈 Foreign Key wajib UUID
             $table->integer('sort_order')->default(0); 
+            $table->text('img')->nullable();
             $table->timestamps();
 
             // Relasi Foreign Key
