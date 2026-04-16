@@ -10,6 +10,8 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
+use App\Http\Controllers\ProductPartsController;
+use App\Http\Controllers\PartVariantsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -90,15 +92,6 @@ Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware(
 
 
 // Admin & Super Admin - bisa CRUD
-Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
-    
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/{id}', [ProductController::class, 'show']);
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::put('/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-    Route::patch('/products/{id}/toggle', [ProductController::class, 'toggle']);
-});
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
 Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
@@ -144,6 +137,26 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::post('/product-sizes', [ProductSizeController::class, 'store']);
     Route::put('/product-sizes/{id}', [ProductSizeController::class, 'update']); 
     Route::delete('/product-sizes/{id}', [ProductSizeController::class, 'destroy']);
+    
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    Route::patch('/products/{id}/toggle', [ProductController::class, 'toggle']);
+
+    Route::get('/product-parts', [ProductPartsController::class, 'index']);
+    Route::get('/product-parts/{id}', [ProductPartsController::class, 'show']);
+    Route::post('/product-parts', [ProductPartsController::class, 'store']);
+    Route::put('/product-parts/{id}', [ProductPartsController::class, 'update']);
+    Route::delete('/product-parts/{id}', [ProductPartsController::class, 'destroy']);
+
+    Route::get('/part-variants', [PartVariantsController::class, 'index']);
+    Route::get('/part-variants/{id}', [PartVariantsController::class, 'show']);
+    Route::post('/part-variants', [PartVariantsController::class, 'store']);
+    Route::put('/part-variants/{id}', [PartVariantsController::class, 'update']);
+    Route::delete('/part-variants/{id}', [PartVariantsController::class, 'destroy']);
+
 });
 
     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
