@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import AddressTab from "./AddressTab";
 import BiodataTab from "./BiodataTab";
+import { AuthService } from "@/services/AuthService";
+import { ProfileService } from "@/services/ProfileService";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("biodata");
@@ -13,22 +15,26 @@ export default function ProfilePage() {
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
 
   useEffect(() => {
-    const loadAllData = async () => {
-      try {
-        const [resUser, resProfile] = await Promise.all([
-          fetch("http://127.0.0.1:8000/user", { credentials: "include" }),
-          fetch("http://127.0.0.1:8000/profile", { credentials: "include" })
-        ]);
-        if (resUser.ok) setUser(await resUser.json());
-        if (resProfile.ok) setProfile(await resProfile.json());
-      } catch (err) {
-        console.error("Gagal mengambil data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadAllData();
-  }, []);
+      const loadAllData = async () => {
+        try {
+
+          const [userData, profileData] = await Promise.all([
+            AuthService.getUser(),
+            ProfileService.getProfile()
+          ]);
+
+          if (userData) setUser(userData);
+          if (profileData) setProfile(profileData);
+
+        } catch (err) {
+          console.error("Gagal mengambil data:", err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadAllData();
+    }, []);
 
   if (isLoading) {
     return (
