@@ -17,7 +17,10 @@ class PartTextures extends Model
         'variant_id',
         'name',
         'price',
-        'img',
+        'img_top',
+        'img_back',
+        'img_front',
+        'img_thumb',
     ];
 
     protected function casts(): array

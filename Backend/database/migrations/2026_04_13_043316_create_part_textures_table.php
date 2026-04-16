@@ -13,10 +13,13 @@ return new class extends Migration
             $table->uuid('part_id');             // 👈 Foreign Key UUID
             $table->uuid('product_id');          // 👈 Foreign Key UUID
             $table->uuid('variant_id');          // 👈 Foreign Key UUID
-            
+
             $table->string('name', 100);
             $table->decimal('price', 12, 2);
-            $table->text('img')->nullable();
+            $table->string('img_top')->nullable();
+            $table->string('img_back')->nullable();
+            $table->string('img_front')->nullable();
+            $table->string('img_thumb')->nullable();
             $table->timestamps();
 
             // Relasi Foreign Key
