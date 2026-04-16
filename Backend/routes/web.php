@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ProductPartsController;
+use App\Http\Controllers\PartVariantsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -120,6 +121,12 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::post('/product-parts', [ProductPartsController::class, 'store']);
     Route::put('/product-parts/{id}', [ProductPartsController::class, 'update']);
     Route::delete('/product-parts/{id}', [ProductPartsController::class, 'destroy']);
+
+    Route::get('/part-variants', [PartVariantsController::class, 'index']);
+    Route::get('/part-variants/{id}', [PartVariantsController::class, 'show']);
+    Route::post('/part-variants', [PartVariantsController::class, 'store']);
+    Route::put('/part-variants/{id}', [PartVariantsController::class, 'update']);
+    Route::delete('/part-variants/{id}', [PartVariantsController::class, 'destroy']);
 
 });
 
