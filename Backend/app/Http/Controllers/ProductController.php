@@ -44,55 +44,42 @@ class ProductController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        try {
-            return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request) {
 
-                // 1️⃣ Create product first
-                $product = Product::create([
-                    'sub_categories_id' => $request->sub_categories_id,
-                    'name'              => $request->name,
-                    'description'       => $request->description,
-                    'summary'           => $request->summary,
-                    'base_price'        => $request->base_price,
-                    'is_active'         => $request->is_active ?? true,
-                    'img'               => 'temporary' // isi sementara dulu
-                ]);
+            // 1️⃣ Buat product dulu
+            $product = Product::create([
+                'sub_categories_id' => $request->sub_categories_id,
+                'name'              => $request->name,
+                'description'       => $request->description,
+                'summary'           => $request->summary,
+                'base_price'        => $request->base_price,
+                'is_active'         => $request->is_active ?? true,
+                'img'               => 'temporary'
+            ]);
 
-                // 2️⃣ Define folder
-                $folderPath = "private/{$product->id}/cover";
-                $fileName   = "cover.webp";
+            // 2️⃣ Folder di storage/app/public
+            $folderPath = "products/{$product->id}/cover";
 
-                // 3️⃣ Paksa buat folder walaupun belum ada file
-                Storage::disk('local')->makeDirectory($folderPath);
+            Storage::disk('public')->makeDirectory($folderPath);
 
-                // 4️⃣ Simpan file
-                $request->file('img')->storeAs(
-                    $folderPath,
-                    $fileName,
-                    'local'
-                );
+            // 3️⃣ Simpan file sebagai cover.webp
+            $request->file('img')->storeAs(
+                $folderPath,
+                'cover.webp',
+                'public'
+            );
 
-                // 5️⃣ Set path otomatis
-                $imagePath = "{$folderPath}/{$fileName}";
-
-                $product->update([
-                    'img' => $imagePath
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Product created successfully',
-                    'data'    => $product
-                ], 201);
-            });
-
-        } catch (\Exception $e) {
+            // 4️⃣ Simpan path ke DB
+            $product->update([
+                'img' => "storage/{$folderPath}/cover.webp"
+            ]);
 
             return response()->json([
-                'message' => 'Failed to create product',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+                'success' => true,
+                'message' => 'Product created successfully',
+                'data'    => $product
+            ], 201);
+        });
     }
 
     /**
@@ -141,49 +128,37 @@ class ProductController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        try {
-            DB::beginTransaction();
+        return DB::transaction(function () use ($request, $product) {
 
-            // 1️⃣ Update basic fields
+            // 1️⃣ Update field biasa
             $product->update($request->except('img'));
 
-            // 2️⃣ Replace image if uploaded
+            // 2️⃣ Jika upload gambar baru
             if ($request->hasFile('img')) {
 
-                $folderPath = "private/{$product->id}/cover";
-                $fileName   = "cover.webp";
-                $fullPath   = $folderPath . '/' . $fileName;
+                $folderPath = "products/{$product->id}/cover";
 
-                // delete old image
-                if (Storage::disk('local')->exists($fullPath)) {
-                    Storage::disk('local')->delete($fullPath);
-                }
+                // Hapus cover lama
+                Storage::disk('public')->delete("{$folderPath}/cover.webp");
 
-                $path = $request->file('img')
-                    ->storeAs($folderPath, $fileName, 'local');
+                // Simpan cover baru
+                $request->file('img')->storeAs(
+                    $folderPath,
+                    'cover.webp',
+                    'public'
+                );
 
                 $product->update([
-                    'img' => $path
+                    'img' => "storage/{$folderPath}/cover.webp"
                 ]);
             }
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Product updated successfully',
                 'data'    => $product
             ], 200);
-
-        } catch (\Exception $e) {
-
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Failed to update product',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+        });
     }
 
     /**
@@ -199,33 +174,18 @@ class ProductController extends Controller
             ], 404);
         }
 
-        try {
-            DB::beginTransaction();
+        return DB::transaction(function () use ($product) {
 
-            // delete entire folder
-            $directory = "private/{$product->id}";
-
-            if (Storage::disk('local')->exists($directory)) {
-                Storage::disk('local')->deleteDirectory($directory);
-            }
+            // Hapus seluruh folder product
+            Storage::disk('public')
+                ->deleteDirectory("products/{$product->id}");
 
             $product->delete();
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Product deleted successfully'
             ], 200);
-
-        } catch (\Exception $e) {
-
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Failed to delete product',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
+        });
     }
 }
