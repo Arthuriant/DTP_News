@@ -15,6 +15,11 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Middleware\LogUserActivity;
 use App\Models\User;
+use App\Http\Controllers\ProductGalleryController;
+use App\Http\Controllers\ProductDimensionController;
+use App\Http\Controllers\ProductMarketingBlockController;
+use App\Http\Controllers\ProductMarketingFeatureController;
+use App\Http\Controllers\ProductSizeController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -116,6 +121,29 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy'])->middleware('can:delete_customers');
     Route::put('/customers/{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->middleware('can:edit_customers');
 
+    Route::get('/product-galleries/{product_id}', [ProductGalleryController::class, 'index']);
+    Route::post('/product-galleries', [ProductGalleryController::class, 'store']);
+    Route::delete('/product-galleries/{id}', [ProductGalleryController::class, 'destroy']);
+    Route::put('/product-galleries/reorder', [ProductGalleryController::class, 'reorder']);
+
+    Route::get('/product-dimensions/{product_id}', [ProductDimensionController::class, 'show']);
+    Route::post('/product-dimensions/{product_id}', [ProductDimensionController::class, 'store']);
+    Route::delete('/product-dimensions/{product_id}', [ProductDimensionController::class, 'destroy']);
+
+    Route::get('/product-marketing-blocks/{product_id}', [ProductMarketingBlockController::class, 'index']);
+    Route::post('/product-marketing-blocks', [ProductMarketingBlockController::class, 'store']);
+Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::class, 'update']);
+    Route::delete('/product-marketing-blocks/{id}', [ProductMarketingBlockController::class, 'destroy']);
+
+    Route::get('/product-marketing-features/{block_id}', [ProductMarketingFeatureController::class, 'index']);
+    Route::post('/product-marketing-features', [ProductMarketingFeatureController::class, 'store']);
+    Route::put('/product-marketing-features/{id}', [ProductMarketingFeatureController::class, 'update']); 
+    Route::delete('/product-marketing-features/{id}', [ProductMarketingFeatureController::class, 'destroy']);
+
+    Route::get('/product-sizes/{product_id}', [ProductSizeController::class, 'index']);
+    Route::post('/product-sizes', [ProductSizeController::class, 'store']);
+    Route::put('/product-sizes/{id}', [ProductSizeController::class, 'update']); 
+    Route::delete('/product-sizes/{id}', [ProductSizeController::class, 'destroy']);
 });
 
     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
