@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ProductPartsController;
 use App\Http\Controllers\PartVariantsController;
+use App\Http\Controllers\PartTexturesController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -155,6 +156,12 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::post('/part-variants', [PartVariantsController::class, 'store']);
     Route::put('/part-variants/{id}', [PartVariantsController::class, 'update']);
     Route::delete('/part-variants/{id}', [PartVariantsController::class, 'destroy']);
+
+    Route::get('/part-textures', [PartTexturesController::class, 'index']);
+    Route::get('/part-textures/{id}', [PartTexturesController::class, 'show']);
+    Route::post('/part-textures', [PartTexturesController::class, 'store']);
+    Route::put('/part-textures/{id}', [PartTexturesController::class, 'update']);
+    Route::delete('/part-textures/{id}', [PartTexturesController::class, 'destroy']);
 
 });
 
