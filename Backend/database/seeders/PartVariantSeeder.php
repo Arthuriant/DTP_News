@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\ProductParts;
 use App\Models\PartVariants;
+use Illuminate\Support\Facades\Storage;
 
 class PartVariantSeeder extends Seeder
 {
@@ -24,12 +25,18 @@ class PartVariantSeeder extends Seeder
 
             if ($part) {
                 
-                PartVariants::create([
+                $variant = PartVariants::create([
                     'product_id' => $product->id, 
                     'part_id'    => $part->id,   
                     'name'       => 'Tubuh Tas Original',
                     'price'      => 0,           
                 ]);
+
+                $folderPath = 'products/' . $product->id . '/parts/' . $part->id . '/' . $variant->id;
+                if (!Storage::disk('public')->exists($folderPath)) {
+                    Storage::disk('public')->makeDirectory($folderPath);
+                    $this->command->info('Folder untuk varian berhasil dibuat: ' . $folderPath);
+                }
 
                 $this->command->info('Data Part Variant (Tubuh Tas Original) berhasil ditambahkan!');
                 

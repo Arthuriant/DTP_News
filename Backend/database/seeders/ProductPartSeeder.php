@@ -28,7 +28,7 @@ class ProductPartSeeder extends Seeder
                 ],
             ]);
 
-            $folderPath = 'products/' . $product->id . '/Parts/' . $part->id;
+            $folderPath = 'products/' . $product->id . '/parts/' . $part->id;
 
             if (!Storage::disk('public')->exists($folderPath)) {
                 Storage::disk('public')->makeDirectory($folderPath);

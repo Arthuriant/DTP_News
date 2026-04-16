@@ -5,8 +5,8 @@ export const ProductService = {
   getProducts: async () => {
     const response = await api<any>("/products", {
       method: "GET",
-      cache: "no-store",
+      cache: "no-store", 
     });
-    return response.data; // Kita hanya mengambil array di dalam 'data'
+    return response.data || [];
   },
 };

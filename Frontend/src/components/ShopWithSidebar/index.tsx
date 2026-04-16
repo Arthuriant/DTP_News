@@ -7,17 +7,17 @@ import GenderDropdown from "./GenderDropdown";
 import SizeDropdown from "./SizeDropdown";
 import ColorsDropdwon from "./ColorsDropdwon"; 
 import PriceDropdown from "./PriceDropdown";
-import { getShopCatalogList } from "@/config/products"; 
 import SingleGridItem from "../Shop/SingleGridItem";
 import SingleListItem from "../Shop/SingleListItem";
-
+import { ProductService } from "@/services/ProductService"; 
 const ShopWithSidebar = () => {
-  // Panggil fungsi untuk mendapatkan array produk
-  const shopData = getShopCatalogList();
-
   const [productStyle, setProductStyle] = useState("grid");
   const [productSidebar, setProductSidebar] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
+
+  // 👈 State untuk Data API
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleStickyMenu = () => {
     if (window.scrollY >= 80) {
@@ -34,6 +34,7 @@ const ShopWithSidebar = () => {
     { label: "Harga: Tinggi ke Rendah", value: "3" },
   ];
 
+  // CATATAN: Data filter di bawah ini dibiarkan statis karena API belum menyediakan data agregasinya
   const categories = [
     { name: "Tas Kerja", products: 12, isRefined: true },
     { name: "Ransel", products: 15, isRefined: false },
@@ -68,10 +69,26 @@ const ShopWithSidebar = () => {
     };
   }, [productSidebar]);
 
+  // 👈 Fetch Data dari API saat halaman dimuat
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await ProductService.getProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Gagal mengambil data produk:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // URL Ornamen Latar Belakang
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
   const wayangUrl = "https://www.shutterstock.com/shutterstock/photos/1411052360/display_1500/stock-photo-puppet-or-wayang-kulit-one-of-the-traditional-art-of-java-indonesia-mahabharata-and-ramayana-1411052360.jpg";
-  const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   return (
     <>
@@ -119,7 +136,6 @@ const ShopWithSidebar = () => {
                   : "-translate-x-full"
               }`}
             >
-              {/* Toggle Button for Mobile (Dipercantik Emas) */}
               <button
                 onClick={() => setProductSidebar(!productSidebar)}
                 aria-label="button for product sidebar toggle"
@@ -137,10 +153,7 @@ const ShopWithSidebar = () => {
 
               <form onSubmit={(e) => e.preventDefault()}>
                 <div className="flex flex-col gap-8">
-                  
-                  {/* Header Sidebar Mewah */}
                   <div className="bg-[#Fdfbf7] shadow-[0_10px_30px_-10px_rgba(45,26,17,0.06)] border border-[#E5D7C1] rounded-[1.25rem] py-5 px-6 relative overflow-hidden group">
-                    {/* Inner Frame */}
                     <div className="absolute inset-1.5 border border-[#E5D7C1]/40 rounded-xl pointer-events-none"></div>
                     <div className="flex items-center justify-between relative z-10">
                       <p className="font-serif font-medium text-xl text-[#2D1A11] tracking-wide">Penyaringan</p>
@@ -150,7 +163,6 @@ const ShopWithSidebar = () => {
                     </div>
                   </div>
 
-                  {/* Komponen Dropdown Bawaan */}
                   <div className="flex flex-col gap-6">
                     <CategoryDropdown categories={categories} />
                     <GenderDropdown genders={genders} />
@@ -158,7 +170,6 @@ const ShopWithSidebar = () => {
                     <ColorsDropdwon />
                     <PriceDropdown />
                   </div>
-
                 </div>
               </form>
             </div>
@@ -166,19 +177,18 @@ const ShopWithSidebar = () => {
             {/* ================= MAIN CONTENT AREA ================= */}
             <div className="xl:max-w-[870px] w-full">
               
-              {/* Top Bar Sort & View */}
               <div className="rounded-[1.25rem] bg-[#Fdfbf7] border border-[#E5D7C1] shadow-[0_10px_30px_-10px_rgba(45,26,17,0.06)] pl-5 pr-3 py-3 mb-8 relative overflow-hidden">
                 <div className="flex items-center justify-between relative z-10 flex-col sm:flex-row gap-4 sm:gap-0">
                   
                   <div className="flex flex-wrap items-center gap-4">
                     <CustomSelect options={options} />
+                    {/* 👈 Dibuat dinamis sesuai total data yang di-fetch */}
                     <p className="font-sans text-xs sm:text-sm text-[#6B442A]">
-                      Menampilkan <span className="font-semibold text-[#2D1A11]">8 dari 78</span> Mahakarya
+                      Menampilkan <span className="font-semibold text-[#2D1A11]">{products.length}</span> Mahakarya
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Tombol Grid View */}
                     <button
                       onClick={() => setProductStyle("grid")}
                       title="Tampilan Kotak"
@@ -196,7 +206,6 @@ const ShopWithSidebar = () => {
                       </svg>
                     </button>
 
-                    {/* Tombol List View */}
                     <button
                       onClick={() => setProductStyle("list")}
                       title="Tampilan Daftar"
@@ -228,20 +237,28 @@ const ShopWithSidebar = () => {
                     : "flex flex-col gap-8"
                 }`}
               >
-                {/* Catatan: Pastikan desain di dalam file SingleGridItem.tsx dan 
-                  SingleListItem.tsx sudah kamu percantik dengan background putih krem,
-                  border emas tipis, dan tombol-tombol yang elegan ya! 
-                */}
-                {shopData.map((item, key) =>
-                  productStyle === "grid" ? (
-                    <div key={key} className="relative group transition-transform duration-500 hover:-translate-y-2">
-                       <SingleGridItem item={item} />
-                    </div>
-                  ) : (
-                    <div key={key} className="relative group transition-transform duration-500 hover:-translate-x-1">
-                      <SingleListItem item={item} />
-                    </div>
+                {/* 👈 Cek Kondisi Loading di Sini */}
+                {loading ? (
+                  <div className="col-span-full py-20 flex flex-col items-center justify-center">
+                    <div className="w-10 h-10 border-4 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="mt-4 text-[#8B7355] font-semibold tracking-widest uppercase text-xs">Memuat Mahakarya...</p>
+                  </div>
+                ) : products.length > 0 ? (
+                  products.map((item, key) =>
+                    productStyle === "grid" ? (
+                      <div key={item.id || key} className="relative group transition-transform duration-500 hover:-translate-y-2">
+                         <SingleGridItem item={item} />
+                      </div>
+                    ) : (
+                      <div key={item.id || key} className="relative group transition-transform duration-500 hover:-translate-x-1">
+                        <SingleListItem item={item} />
+                      </div>
+                    )
                   )
+                ) : (
+                  <div className="col-span-full py-20 text-center text-[#8B7355] font-medium">
+                    Belum ada produk yang tersedia.
+                  </div>
                 )}
               </div>
 

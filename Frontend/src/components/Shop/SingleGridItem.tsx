@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { Product } from "@/types/product";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { updateQuickView } from "@/redux/features/quickView-slice";
 import { addItemToCart } from "@/redux/features/cart-slice";
@@ -11,40 +10,61 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const SingleGridItem = ({ item }: { item: Product }) => {
+// 1. Sesuaikan Interface dengan JSON API Laravel kamu
+export interface ProductAPI {
+  id: string;
+  name: string;
+  base_price: string;
+  img: string;
+  summary?: string;
+  sub_category?: {
+    name: string;
+  };
+}
+
+const SingleGridItem = ({ item }: { item: ProductAPI }) => {
   const { openModal } = useModalContext();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+
+  // 2. Format harga dengan aman untuk mencegah error "undefined"
+  const priceNumber = parseFloat(item.base_price || "0");
+  const formattedPrice = priceNumber.toLocaleString("id-ID");
 
   const handleQuickViewUpdate = () => {
     dispatch(updateQuickView({ ...item }));
   };
 
-  const handleAddToCart = () => {
-    dispatch(
-      addItemToCart({
-        ...item,
-        quantity: 1,
-      })
-    );
-  };
+  // const handleAddToCart = () => {
+  //   dispatch(
+  //     addItemToCart({
+  //       ...item,
+  //       quantity: 1,
+  //     })
+  //   );
+  // };
 
   const handleCustomize = () => {
-    router.push(`/Proto?productId=${item.idProduct}`);
+    // Sesuaikan ID dengan data API
+    router.push(`/Proto?productId=${item.id}`);
   };
 
-  const handleItemToWishList = () => {
-    dispatch(
-      addItemToWishlist({
-        ...item,
-        status: "available",
-        quantity: 1,
-      })
-    );
-  };
+  // const handleItemToWishList = () => {
+  //   dispatch(
+  //     addItemToWishlist({
+  //       ...item,
+  //       status: "available",
+  //       quantity: 1,
+  //     })
+  //   );
+  // };
 
-  // URL Batik untuk tekstur latar belakang
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
+  
+  // 3. Konfigurasi path gambar ke storage Laravel
+  const imageUrl = item.img 
+    ? `http://localhost:8000/storage/${item.img}` // 👈 Ganti 127.0.0.1 menjadi localhost
+    : "https://via.placeholder.com/220x220?text=No+Image";
 
   return (
     <div className="group flex flex-col h-full antialiased cursor-pointer">
@@ -52,7 +72,6 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       {/* ================= ETALASE GAMBAR (SQUARE) ================= */}
       <div className="relative overflow-hidden flex items-center justify-center rounded-[1.25rem] bg-white border border-[#E5D7C1] shadow-[0_10px_30px_-10px_rgba(45,26,17,0.06)] min-h-[260px] aspect-square mb-5 transition-all duration-[800ms] group-hover:shadow-[0_20px_40px_-15px_rgba(197,160,89,0.25)] group-hover:border-[#C5A059]/50">
         
-        {/* Tekstur Batik Tipis di Latar Belakang */}
         <div 
           className="absolute inset-0 z-0 opacity-[0.04] mix-blend-multiply pointer-events-none"
           style={{
@@ -62,22 +81,17 @@ const SingleGridItem = ({ item }: { item: Product }) => {
           }}
         ></div>
 
-        {/* Cahaya Latar Emas saat Hover */}
         <div className="absolute inset-0 bg-[#C5A059] blur-[60px] opacity-0 group-hover:opacity-[0.12] transition-opacity duration-[1000ms] rounded-full w-2/3 h-2/3 m-auto pointer-events-none z-0"></div>
 
-        {/* Gambar Produk (Sedikit membesar saat hover) */}
         <Image 
-          src={item.imgs?.previews[0] || ""} 
-          alt={item.title || "Product"} 
+          src={imageUrl} 
+          alt={item.name || "Product"} 
           width={220} 
           height={220} 
           className="object-contain relative z-10 drop-shadow-[0_10px_20px_rgba(45,26,17,0.1)] transform transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110"
         />
 
-        {/* ================= TOMBOL AKSI (MUNCUL DARI BAWAH) ================= */}
         <div className="absolute left-0 bottom-0 translate-y-[150%] w-full flex items-center justify-center gap-3 pb-6 ease-[cubic-bezier(0.25,1,0.5,1)] duration-700 group-hover:translate-y-0 z-20 px-4">
-          
-          {/* Tombol Kustomisasi (Pusat, Elegan, Bentuk Kapsul) */}
           <button
             onClick={(e) => { e.stopPropagation(); handleCustomize(); }}
             title="Kustomisasi Produk Ini"
@@ -86,7 +100,6 @@ const SingleGridItem = ({ item }: { item: Product }) => {
             Kustomisasi
           </button>
 
-          {/* Tombol Wishlist (Ikon Love) */}
           <button
             onClick={(e) => { e.stopPropagation(); handleItemToWishList(); }}
             aria-label="tombol untuk pilih favorit"
@@ -103,33 +116,23 @@ const SingleGridItem = ({ item }: { item: Product }) => {
       {/* ================= DESKRIPSI & HARGA (DI BAWAH ETALASE) ================= */}
       <div className="px-2 flex flex-col flex-grow">
         
-        {/* Bintang Emas & Review */}
-        <div className="flex items-center gap-2 mb-2.5">
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, index) => (
-              <svg key={index} className="w-3.5 h-3.5 text-[#C5A059]" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-              </svg>
-            ))}
-          </div>
-          <span className="font-sans text-[10px] text-[#C5A059] font-semibold tracking-wider mt-0.5">({item.reviews})</span>
-        </div>
+        {/* Kategori / Sub-Kategori */}
+        {item.sub_category && (
+          <p className="font-sans text-[10px] text-[#8B7355] font-bold tracking-widest uppercase mb-1">
+            {item.sub_category.name}
+          </p>
+        )}
 
         {/* Judul Produk (Font Serif) */}
-        <h3 className="font-serif font-medium text-lg text-[#2D1A11] transition-colors duration-300 hover:text-[#C5A059] mb-2 leading-snug line-clamp-1 antialiased">
-          <Link href="/shop-details"> {item.title} </Link>
+        <h3 className="font-serif font-medium text-lg text-[#2D1A11] transition-colors duration-300 hover:text-[#C5A059] mb-1.5 leading-snug line-clamp-1 antialiased">
+          <Link href={`/shop-details/${item.id}`}> {item.name} </Link>
         </h3>
 
-        {/* Harga (Font Serif & Sans) */}
+        {/* Harga (Font Serif) */}
         <div className="flex flex-wrap items-baseline gap-2.5 mt-auto pt-1">
           <span className="font-serif font-bold text-xl text-[#2D1A11]">
-            Rp {item.discountedPrice.toLocaleString("id-ID")}
+            Rp {formattedPrice}
           </span>
-          {item.price > item.discountedPrice && (
-            <span className="font-sans font-medium text-[11px] tracking-wider text-[#6B442A]/60 line-through">
-              Rp {item.price.toLocaleString("id-ID")}
-            </span>
-          )}
         </div>
       </div>
       
