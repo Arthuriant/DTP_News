@@ -17,11 +17,11 @@ async function handleProxy(request: NextRequest, context: Context) {
   console.log("Token yang dikirim ke Laravel:", token ? "ADA" : "KOSONG!");
   console.log("Menembak ke:", `${LARAVEL_API_URL}/${path}${searchParams}`);
 
-  // 2. Daftar endpoint yang BISA DIAKSES TANPA LOGIN (Sangat penting untuk E-Commerce!)
+
   const publicPaths = [
     "login", 
     "register", 
-    "products", // 👈 Agar katalog tas bisa dilihat publik
+    "products", 
     "categories",
     "password"
   ];
