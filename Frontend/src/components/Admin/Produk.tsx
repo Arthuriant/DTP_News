@@ -1,42 +1,102 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ProductService } from '@/services/ProductService'; 
 
 export default function Produk() {
   const [activeTab, setActiveTab] = useState('katalog');
   
   // State Data
-  const [products, setProducts] = useState([
-    { id: 1, nama: "Classic Tote Bag", kategori: "Kriya Tote Bag", harga: 1250000, status: "Aktif" },
-    { id: 2, nama: "Urban Sling Bag", kategori: "Kriya Sling Bag", harga: 850000, status: "Aktif" },
-  ]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // State Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ id: 0, nama: '', kategori: '', harga: 0, status: 'Aktif' });
+  const [editForm, setEditForm] = useState({ 
+    id: '', 
+    sub_categories_id: '', 
+    name: '', 
+    base_price: 0, 
+    status: 'Aktif',
+    img: null as File | null 
+  });
 
-  // URL Aksen Nusantara
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
-  const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
-  // Fungsi CRUD
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editForm.id === 0) {
-      setProducts([...products, { ...editForm, id: Date.now() }]);
-    } else {
-      setProducts(products.map(p => p.id === editForm.id ? editForm : p));
+  // 1. FUNGSI FETCH MENGGUNAKAN SERVICE
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await ProductService.getProducts();
+      setProducts(data || []); 
+    } catch (error: any) {
+      console.error("Gagal mengambil data produk:", error.message);
+    } finally {
+      setIsLoading(false);
     }
-    setIsModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // 2. FUNGSI SIMPAN (CREATE & UPDATE)
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('name', editForm.name);
+    formData.append('base_price', editForm.base_price.toString());
+    formData.append('sub_categories_id', editForm.sub_categories_id);
+    formData.append('is_active', editForm.status === 'Aktif' ? '1' : '0');
+
+    if (editForm.img) {
+      formData.append('img', editForm.img);
+    }
+
+    try {
+      if (editForm.id) {
+        await ProductService.updateProduct(editForm.id, formData);
+      } else {
+        await ProductService.createProduct(formData);
+      }
+      
+      await fetchProducts(); 
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error("Terjadi kesalahan simpan:", error);
+      alert("Gagal menyimpan data!");
+    }
   };
 
-  const handleEdit = (prod: any) => { setEditForm(prod); setIsModalOpen(true); };
-  const handleDelete = (id: number) => { if (confirm("Hapus produk mahakarya ini?")) setProducts(products.filter(p => p.id !== id)); };
+  const handleEdit = (prod: any) => { 
+    setEditForm({ 
+      id: prod.id, 
+      name: prod.name, 
+      sub_categories_id: prod.sub_categories_id, 
+      base_price: Number(prod.base_price), 
+      status: prod.is_active ? 'Aktif' : 'Nonaktif',
+      img: null 
+    }); 
+    setIsModalOpen(true); 
+  };
+
+  // 3. FUNGSI HAPUS MENGGUNAKAN SERVICE
+  const handleDelete = async (id: string) => { 
+    if (confirm("Hapus produk mahakarya ini secara permanen?")) {
+      try {
+        await ProductService.deleteProduct(id);
+        setProducts(products.filter(p => p.id !== id));
+      } catch (error) {
+        console.error("Gagal menghapus:", error);
+      }
+    } 
+  };
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
       
       {/* ================= HEADER SECTION ================= */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2 relative z-10">
         <div>
           <p className="text-[#D9B35A] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Inventaris Mahakarya</p>
           <h1 className="text-4xl font-bold tracking-tight">Manajemen Produk</h1>
@@ -47,7 +107,7 @@ export default function Produk() {
         </div>
 
         <button 
-          onClick={() => { setEditForm({ id: 0, nama: '', kategori: '', harga: 0, status: 'Aktif' }); setIsModalOpen(true); }} 
+          onClick={() => { setEditForm({ id: '', name: '', sub_categories_id: '', base_price: 0, status: 'Aktif', img: null }); setIsModalOpen(true); }} 
           className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#1A1A1A] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)]"
         >
           <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
@@ -75,98 +135,125 @@ export default function Produk() {
         ))}
       </div>
 
-      {/* ================= MAIN CONTENT SECTION ================= */}
+      {/* ================= MAIN CONTENT SECTION (CARD GRID) ================= */}
       <div className="relative w-full pb-10 pt-2">
-        
-        {/* Aksen Mega Mendung Halus */}
+        {/* Aksen Mega Mendung */}
         <div 
-          className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}
+          className="absolute -right-10 top-20 w-[500px] h-[500px] opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
         ></div>
 
-        <div className="overflow-x-auto px-4 -mx-4">
-          <table className="w-full min-w-[1000px] text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
-            
-            {/* ================= TABLE HEADER MEWAH (COKLAT BATIK) ================= */}
-            <thead className="text-[#D9B35A] uppercase text-[11px] font-bold tracking-[0.25em] shadow-xl">
-               <tr 
-                 className="bg-[#2D1A11] shadow-[0_10px_20px_rgba(45,26,17,0.2)]"
-                 style={{
-                   backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.95), rgba(45, 26, 17, 0.95)), url('${brownBatikUrl}')`,
-                   backgroundSize: '250px',
-                   backgroundRepeat: 'repeat'
-                 }}
-               >
-                 <th className="py-5 pl-8 pr-4 text-left rounded-l-2xl border-y border-l border-[#D9B35A]/20">Nama Produk</th>
-                 <th className="py-5 px-4 text-left border-y border-[#D9B35A]/20">Kategori</th>
-                 <th className="py-5 px-4 text-left border-y border-[#D9B35A]/20">Nilai Jual</th>
-                 <th className="py-5 px-4 text-center border-y border-[#D9B35A]/20">Status</th>
-                 <th className="py-5 pr-8 pl-4 text-right rounded-r-2xl border-y border-r border-[#D9B35A]/20">Kelola</th>
-               </tr>
-            </thead>
-            
-            {/* ================= TABLE BODY (FLOATING CARDS) ================= */}
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id} className="group transition-all duration-300 hover:-translate-y-1.5">
-                  <td className="py-5 pl-8 pr-4 text-left bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                    <span className="font-bold text-[#2D1A11] text-base">{p.nama}</span>
-                  </td>
-                  <td className="py-5 px-4 text-left bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                    <span className="text-[#8B7355] font-medium px-3 py-1 rounded-md bg-[#8B7355]/5 border border-[#8B7355]/10">{p.kategori}</span>
-                  </td>
-                  <td className="py-5 px-4 text-left bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                    <span className="font-black text-[#D9B35A] text-base">Rp {p.harga.toLocaleString('id-ID')}</span>
-                  </td>
-                  <td className="py-5 px-4 text-center bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
-                      {p.status}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-pulse flex flex-col items-center">
+              <span className="w-10 h-10 border-4 border-[#D9B35A] border-t-transparent rounded-full animate-spin mb-4"></span>
+              <p className="text-[#8B7355] font-sans text-sm font-bold tracking-widest uppercase">Memuat Mahakarya...</p>
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-20 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-white/60">
+            <p className="text-[#8B7355] font-sans">Belum ada mahakarya yang terdaftar di galeri.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2 relative z-10">
+            {products.map((p) => (
+              <div key={p.id} className="group bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_10px_30px_-15px_rgba(45,26,17,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(217,179,90,0.2)] hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
+                
+                {/* 1. Bagian Gambar & Status */}
+                <div className="relative h-64 w-full overflow-hidden bg-[#FFFDF5]">
+                  <img 
+                    src={
+                      p.img 
+                        ? (p.img.startsWith('storage/') 
+                            ? `http://127.0.0.1:8000/${p.img}` 
+                            : `http://127.0.0.1:8000/storage/${p.img}`)
+                        : '/placeholder.jpg'
+                    } 
+                    alt={p.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" 
+                  />
+                  {/* Overlay Gradient Halus */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Floating Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    <span className={`px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-md font-sans backdrop-blur-md ${p.is_active ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'}`}>
+                      {p.is_active ? 'Aktif' : 'Nonaktif'}
                     </span>
-                  </td>
-                  <td className="py-5 pr-8 pl-4 text-right bg-white/60 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                    <div className="flex justify-end gap-3">
-                      <button onClick={() => handleEdit(p)} className="p-2.5 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-[#D9B35A] text-[#D9B35A] transition-all">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                      </button>
-                      <button onClick={() => handleDelete(p.id)} className="p-2.5 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-rose-300 text-rose-400 transition-all">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+
+                {/* 2. Bagian Informasi Produk */}
+                <div className="p-6 flex-grow flex flex-col">
+                  <p className="text-[#8B7355] font-sans text-[10px] font-bold tracking-[0.2em] uppercase mb-1.5">
+                    {p.sub_category ? p.sub_category.name : 'Tanpa Kategori'}
+                  </p>
+                  <h3 className="text-xl font-bold text-[#2D1A11] mb-4 leading-tight group-hover:text-[#D9B35A] transition-colors">
+                    {p.name}
+                  </h3>
+                  
+                  <div className="mt-auto pt-4 border-t border-[#D9B35A]/10">
+                    <p className="text-[10px] uppercase font-bold text-[#8B7355] font-sans tracking-widest mb-1">Nilai Investasi</p>
+                    <p className="font-black text-[#D9B35A] text-xl">
+                      Rp {Number(p.base_price).toLocaleString('id-ID')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Tombol Aksi */}
+                <div className="flex gap-2 p-4 bg-gradient-to-b from-transparent to-[#FFFDF5]/80">
+                  <button 
+                    onClick={() => handleEdit(p)} 
+                    className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-[#D9B35A] bg-white border border-[#D9B35A]/30 rounded-xl hover:bg-[#D9B35A] hover:text-white transition-all duration-300 shadow-sm"
+                  >
+                    Ubah
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(p.id)} 
+                    className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
+                  >
+                    Hapus
+                  </button>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ================= MODAL CRUD (GLASSMORPHISM COKLAT) ================= */}
+      {/* ================= MODAL CRUD (GLASSMORPHISM) ================= */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-[#2D1A11]/40 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fadeIn">
-          <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] shadow-2xl p-10 w-full max-w-md relative overflow-hidden">
-            {/* Aksen Batik Modal */}
-            <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.05] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain' }}></div>
-            
+        <div className="fixed inset-0 bg-[#2D1A11]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fadeIn">
+          <div className="bg-white/95 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] shadow-2xl p-10 w-full max-w-md relative overflow-hidden">
             <h2 className="text-2xl font-bold text-[#2D1A11] mb-8 flex items-center gap-3">
-              <span className="text-[#D9B35A]">✧</span> {editForm.id === 0 ? 'Daftarkan Karya' : 'Perbarui Karya'}
+              <span className="text-[#D9B35A]">✧</span> {editForm.id === '' ? 'Daftarkan Karya' : 'Perbarui Karya'}
             </h2>
 
             <form onSubmit={handleSave} className="space-y-5 font-sans">
               <div>
                 <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Nama Produk</label>
-                <input required type="text" value={editForm.nama} onChange={e => setEditForm({...editForm, nama: e.target.value})} className="w-full bg-[#FFFDF5] border border-gray-100 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm shadow-inner" />
+                <input required type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all" />
               </div>
+              
               <div>
-                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Kategori</label>
-                <input required type="text" value={editForm.kategori} onChange={e => setEditForm({...editForm, kategori: e.target.value})} className="w-full bg-[#FFFDF5] border border-gray-100 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm shadow-inner" />
+                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">ID Sub-Kategori (Sementara)</label>
+                <input required type="text" placeholder="Masukkan UUID Sub Kategori" value={editForm.sub_categories_id} onChange={e => setEditForm({...editForm, sub_categories_id: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all" />
               </div>
+
               <div>
-                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Harga (Rp)</label>
-                <input required type="number" value={editForm.harga || ''} onChange={e => setEditForm({...editForm, harga: Number(e.target.value)})} className="w-full bg-[#FFFDF5] border border-gray-100 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm shadow-inner" />
+                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Harga Jual (Rp)</label>
+                <input required type="number" value={editForm.base_price || ''} onChange={e => setEditForm({...editForm, base_price: Number(e.target.value)})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all" />
+              </div>
+
+              {/* INPUT FILE UNTUK GAMBAR */}
+              <div>
+                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Gambar Sampul</label>
+                <input type="file" accept="image/*" onChange={e => setEditForm({...editForm, img: e.target.files ? e.target.files[0] : null})} className="w-full text-sm text-[#8B7355] file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D9B35A]/10 file:text-[#D9B35A] hover:file:bg-[#D9B35A]/20 transition-all cursor-pointer" />
               </div>
 
               <div className="flex space-x-4 pt-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 rounded-full bg-white text-[#8B7355] font-bold text-xs uppercase tracking-widest border border-gray-100 hover:shadow-md transition-all">Batal</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 rounded-full bg-white text-[#8B7355] font-bold text-xs uppercase tracking-widest border border-gray-200 hover:border-[#D9B35A]/50 hover:shadow-md transition-all">Batal</button>
                 <button type="submit" className="flex-1 py-4 rounded-full bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#D9B35A]/20 hover:-translate-y-0.5 transition-all">Simpan</button>
               </div>
             </form>
