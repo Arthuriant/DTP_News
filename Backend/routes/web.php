@@ -138,6 +138,7 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::post('/product-sizes', [ProductSizeController::class, 'store']);
     Route::put('/product-sizes/{id}', [ProductSizeController::class, 'update']); 
     Route::delete('/product-sizes/{id}', [ProductSizeController::class, 'destroy']);
+    
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/products', [ProductController::class, 'store']);
@@ -157,12 +158,15 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::put('/part-variants/{id}', [PartVariantsController::class, 'update']);
     Route::delete('/part-variants/{id}', [PartVariantsController::class, 'destroy']);
 
+<<<<<<< HEAD
     Route::get('/part-textures', [PartTexturesController::class, 'index']);
     Route::get('/part-textures/{id}', [PartTexturesController::class, 'show']);
     Route::post('/part-textures', [PartTexturesController::class, 'store']);
     Route::put('/part-textures/{id}', [PartTexturesController::class, 'update']);
     Route::delete('/part-textures/{id}', [PartTexturesController::class, 'destroy']);
 
+=======
+>>>>>>> da551fe73ed27c5b20442f334f34b94587ac3928
 });
 
     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
