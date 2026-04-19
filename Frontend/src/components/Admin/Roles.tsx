@@ -1,6 +1,9 @@
 "use client";
 
+import { AuthService } from "@/services/AuthService";
+import { RoleService } from "@/services/RoleService";
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 const AVAILABLE_PERMISSIONS = [
   {
@@ -71,35 +74,30 @@ export default function Roles() {
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   const fetchInitialData = async () => {
-    setIsLoading(true);
-    try {
-      const userRes = await fetch("http://127.0.0.1:8000/user", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
-        setMyPermissions(userData.permissions || []);
-      }
+      setIsLoading(true);
+      try {
+        const [userData, rolesData] = await Promise.all([
+          AuthService.getUser(),
+          RoleService.getRoles()
+        ]);
 
-      const rolesRes = await fetch("http://127.0.0.1:8000/roles", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (rolesRes.ok) {
-        setRoles(await rolesRes.json());
+        if (userData) {
+          setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
+          setMyPermissions(userData.permissions || []);
+        }
+        if (rolesData) {
+          setRoles(rolesData);
+        }
+      } catch (error: any) {
+        console.error("Gagal mengambil data:", error.message);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Gagal mengambil data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
+    useEffect(() => {
+      fetchInitialData();
+    }, []);
 
   const canCreate = isSuperAdmin || myPermissions.includes("create_roles");
   const canEdit = isSuperAdmin || myPermissions.includes("edit_roles");
@@ -134,44 +132,86 @@ export default function Roles() {
   };
 
   const handleSave = async () => {
-    if (!roleName.trim()) return alert("Nama role tidak boleh kosong!");
+    if (!roleName.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Nama role tidak boleh kosong!', confirmButtonColor: '#2A1B14' });
+      return;
+    }
+    
     setIsSaving(true);
     const payload = { name: roleName, permissions: selectedPermissions };
-    const url = editingRole ? `http://127.0.0.1:8000/roles/${editingRole.id}` : "http://127.0.0.1:8000/roles";
-    const method = editingRole ? "PUT" : "POST";
 
     try {
-      const res = await fetch(url, {
-        method: method,
-        credentials: "include",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        setIsModalOpen(false);
-        fetchInitialData();
+      if (editingRole) {
+        await RoleService.updateRole(editingRole.id, payload);
       } else {
-        const errData = await res.json();
-        alert(errData.message || "Gagal menyimpan role.");
+        await RoleService.createRole(payload);
       }
-    } catch (error) {
-      alert("Terjadi kesalahan jaringan.");
+      
+      setIsModalOpen(false);
+      fetchInitialData();
+
+      Swal.fire({
+        title: 'Berhasil!',
+        text: `Role berhasil ${editingRole ? 'diperbarui' : 'ditambahkan'}.`,
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    } catch (error: any) {
+      Swal.fire({
+        title: 'Gagal!',
+        text: error.message || 'Terjadi kesalahan saat menyimpan role.',
+        icon: 'error',
+        confirmButtonColor: '#2A1B14'
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Yakin ingin menghapus role ini?")) return;
+    const result = await Swal.fire({
+      title: 'Hapus Role?',
+      text: "Role yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi hak akses pengguna yang menggunakan role ini.",
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#F8F3E9',
+      color: '#2D1A11',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      buttonsStyling: false, 
+      customClass: {
+        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
+        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
+      }
+    });
+    
+
+    if (!result.isConfirmed) return;
+
     try {
-      const res = await fetch(`http://127.0.0.1:8000/roles/${id}`, {
-        method: "DELETE",
-        credentials: "include",
+      await RoleService.deleteRole(id);
+      fetchInitialData();
+      
+      Swal.fire({
+        title: 'Terhapus!',
+        text: 'Role berhasil dihapus dari sistem.',
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
       });
-      if (res.ok) fetchInitialData();
-      else alert("Gagal menghapus role.");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      Swal.fire({
+        title: 'Gagal!',
+        text: error.message || 'Gagal menghapus role.',
+        icon: 'error',
+        confirmButtonColor: '#2A1B14'
+      });
     }
   };
 

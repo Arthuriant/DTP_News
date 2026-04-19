@@ -1,5 +1,8 @@
 "use client";
+import { AdminManagementService } from '@/services/AdminManagementService';
+import { AuthService } from '@/services/AuthService';
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2'; 
 
 interface Admin {
   id: number;
@@ -9,8 +12,6 @@ interface Admin {
   role: string;
 }
 
-const BASE_URL = "http://127.0.0.1:8000";
-
 export default function KelolaAdmin() {
   const [search, setSearch] = useState('');
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -18,7 +19,7 @@ export default function KelolaAdmin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 1. STATE: Untuk menyimpan status akses orang yang sedang login
+  // STATE: Untuk menyimpan status akses orang yang sedang login
   const [myPermissions, setMyPermissions] = useState<string[]>([]);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
@@ -29,46 +30,39 @@ export default function KelolaAdmin() {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Konfirmasi hapus
-  const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
-
   // URL Ornamen (Sesuai Desain Role)
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
-  // 2. FUNGSI FETCH GABUNGAN
   const fetchInitialData = async () => {
-    setLoading(true);
-    try {
-      // A. Ambil data aku (User yang login)
-      const userRes = await fetch(`${BASE_URL}/user`, { credentials: 'include', headers: { Accept: 'application/json' } });
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        setIsSuperAdmin(userData.roles?.includes('super_admin') || false);
-        setMyPermissions(userData.permissions || []);
+      setLoading(true);
+      setError(''); 
+      try {
+        const [userData, adminData, roleData] = await Promise.all([
+          AuthService.getUser(),
+          AdminManagementService.getAdmins(),
+          AdminManagementService.getRoles()
+        ]);
+
+        if (userData) {
+          setIsSuperAdmin(userData.roles?.includes('super_admin') || false);
+          setMyPermissions(userData.permissions || []);
+        }
+        if (adminData) setAdmins(adminData);
+        if (roleData) setAvailableRoles(roleData);
+
+      } catch (e: any) {
+        setError(e.message || 'Terjadi kesalahan saat memuat data');
+      } finally {
+        setLoading(false);
       }
-
-      // B. Ambil data pengguna untuk tabel
-      const adminRes = await fetch(`${BASE_URL}/admins`, { credentials: 'include', headers: { Accept: 'application/json' } });
-      if (adminRes.ok) setAdmins(await adminRes.json());
-      else throw new Error('Gagal mengambil data pengguna');
-
-      // C. Ambil data role untuk dropdown form
-      const roleRes = await fetch(`${BASE_URL}/roles`, { credentials: 'include', headers: { Accept: 'application/json' } });
-      if (roleRes.ok) setAvailableRoles(await roleRes.json());
-
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   useEffect(() => { 
     fetchInitialData(); 
   }, []);
 
-  // 3. VARIABEL PEMBANTU
+  // VARIABEL PEMBANTU
   const canCreate = isSuperAdmin || myPermissions.includes('create_users');
   const canEdit = isSuperAdmin || myPermissions.includes('edit_users');
   const canDelete = isSuperAdmin || myPermissions.includes('delete_users');
@@ -87,9 +81,11 @@ export default function KelolaAdmin() {
     setShowModal(true);
   };
 
+  // --- FUNGSI CREATE / UPDATE ---
   const handleSubmit = async () => {
     if (!form.name || !form.email || !form.role) { setFormError('Nama, email, dan role wajib diisi'); return; }
     if (!editTarget && !form.password) { setFormError('Password wajib diisi'); return; }
+    
     setSubmitting(true);
     setFormError('');
     
@@ -97,20 +93,26 @@ export default function KelolaAdmin() {
       const body: any = { name: form.name, email: form.email, role: form.role };
       if (form.password) body.password = form.password;
       
-      const res = await fetch(
-        editTarget ? `${BASE_URL}/admins/${editTarget.id}` : `${BASE_URL}/admins`,
-        {
-          method: editTarget ? 'PUT' : 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify(body),
-        }
-      );
+      if (editTarget) {
+        await AdminManagementService.updateAdmin(editTarget.id, body);
+      } else {
+        await AdminManagementService.createAdmin(body);
+      }
       
-      if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Terjadi kesalahan saat menyimpan'); }
       setShowModal(false);
-      
-      fetchInitialData();
+      fetchInitialData(); 
+
+      // 👈 Popup Sukses Create/Update
+      Swal.fire({
+        title: 'Berhasil!',
+        text: `Data pengguna berhasil ${editTarget ? 'diperbarui' : 'ditambahkan'}.`,
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
+      });
+
     } catch (e: any) {
       setFormError(e.message);
     } finally {
@@ -118,16 +120,50 @@ export default function KelolaAdmin() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
+  // --- FUNGSI HAPUS ---
+  const handleDelete = async (admin: Admin) => {
+    const result = await Swal.fire({
+      title: 'Hapus Pengguna?',
+      text: `Pengguna "${admin.name}" akan dihapus permanen dari mahakarya sistem.`,
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#F8F3E9',
+      color: '#2D1A11',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      buttonsStyling: false, 
+      customClass: {
+        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
+        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
-      const res = await fetch(`${BASE_URL}/admins/${deleteTarget.id}`, { method: 'DELETE', credentials: 'include', headers: { Accept: 'application/json' } });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Gagal menghapus pengguna'); }
-      setDeleteTarget(null);
+      await AdminManagementService.deleteAdmin(admin.id);
+      fetchInitialData(); 
       
-      fetchInitialData();
+      // 👈 Popup Sukses Hapus
+      Swal.fire({
+        title: 'Terhapus!',
+        text: 'Pengguna berhasil dihapus dari sistem.',
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
+      });
     } catch (e: any) {
-      alert(e.message);
+      // 👈 Popup Error Hapus
+      Swal.fire({
+        title: 'Gagal!',
+        text: e.message || 'Terjadi kesalahan saat menghapus pengguna.',
+        icon: 'error',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        confirmButtonColor: '#2A1B14'
+      });
     }
   };
 
@@ -245,7 +281,7 @@ export default function KelolaAdmin() {
                         ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                         : "bg-[#F8F3E9] text-[#2A1B14] border-[#D9B35A]/30"
                     }`}>
-                      {a.role.replace('_', ' ')}
+                      {a.role?.replace('_', ' ') || 'Belum Ada Role'}
                     </span>
                   </td>
                   <td className="py-5 px-4 bg-white/60 backdrop-blur-xl border-y border-white/40 text-center font-bold text-[#8B7355] text-xs">
@@ -264,7 +300,7 @@ export default function KelolaAdmin() {
                       
                       {canDelete && a.role !== 'super_admin' && (
                         <button 
-                          onClick={() => setDeleteTarget(a)} 
+                          onClick={() => handleDelete(a)} 
                           className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-rose-500 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-rose-300 hover:bg-rose-50 transition-all"
                         >
                           Hapus
@@ -367,35 +403,6 @@ export default function KelolaAdmin() {
               >
                 {submitting && <div className="w-3.5 h-3.5 border-2 border-[#2A1B14]/30 border-t-[#2A1B14] rounded-full animate-spin"></div>}
                 {submitting ? 'Menyimpan...' : 'Simpan Pengguna'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL KONFIRMASI HAPUS ================= */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#2A1B14]/60 backdrop-blur-md">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-sm overflow-hidden text-center p-8 animate-fadeIn border border-[#D9B35A]/20">
-            <div className="w-16 h-16 bg-rose-50 border border-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            </div>
-            <h2 className="text-2xl font-bold text-[#2A1B14] mb-3 font-serif">Hapus Pengguna?</h2>
-            <p className="text-[#8B7355] text-sm mb-8 font-sans">
-              Tindakan ini bersifat permanen. Pengguna <span className="font-bold text-[#2A1B14]">"{deleteTarget.name}"</span> akan dihapus dari mahakarya sistem.
-            </p>
-            <div className="flex flex-col gap-3 font-sans">
-              <button 
-                onClick={handleDelete} 
-                className="w-full px-4 py-3.5 text-xs font-black uppercase tracking-widest text-white bg-rose-600 hover:bg-rose-700 rounded-2xl shadow-lg shadow-rose-600/20 transition-all transform hover:-translate-y-0.5"
-              >
-                Ya, Hapus Permanen
-              </button>
-              <button 
-                onClick={() => setDeleteTarget(null)} 
-                className="w-full px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-[#8B7355] bg-gray-50 hover:bg-gray-100 rounded-2xl transition-colors"
-              >
-                Batalkan
               </button>
             </div>
           </div>

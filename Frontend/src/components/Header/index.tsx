@@ -212,7 +212,7 @@ const Header = () => {
                     </Link>
                     <button 
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors rounded-b-md"
+                      className="block w-full text-left px-4 py-2 text-sm text-[#2D1A11] hover:bg-[#C5A059]/10 hover:text-[#C5A059] transition-colors rounded-b-md"
                     >
                       Logout
                     </button>

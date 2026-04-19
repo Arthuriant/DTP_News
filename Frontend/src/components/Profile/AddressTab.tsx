@@ -1,26 +1,23 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import AddressModal from "./AddressModal";
+import { AddressService } from "@/services/AddressService";
+import Swal from 'sweetalert2';
 
 export default function AddressTab() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any | null>(null);
 
-  // URL Gunungan Wayang Emas dengan Kualitas Bagus
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
+
 
   const fetchAddresses = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/addresses", {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAddresses(data);
-      }
-    } catch (error) {
-      console.error("Gagal mengambil alamat", error);
+      const data = await AddressService.getAddresses();
+      setAddresses(data);
+    } catch (error: any) {
+      console.error("Gagal mengambil alamat:", error.message);
     }
   };
 
@@ -29,27 +26,53 @@ export default function AddressTab() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Hapus lokasi pengiriman ini?")) return;
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/addresses/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) fetchAddresses();
-    } catch (error) {
-      console.error("Gagal menghapus alamat", error);
-    }
-  };
+  const result = await Swal.fire({
+      title: 'Hapus Alamat?',
+      text: "Data lokasi pengiriman ini akan dihapus secara permanen.",
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#F8F3E9',
+      color: '#2D1A11',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      buttonsStyling: false, 
+      customClass: {
+        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
+        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
+      }
+    });
+      if (!result.isConfirmed) return;
+
+      try {
+        await AddressService.deleteAddress(id);
+        fetchAddresses();
+
+        Swal.fire({
+          title: 'Terhapus!',
+          text: 'Alamat berhasil dihapus dari daftar.',
+          icon: 'success',
+          confirmButtonColor: '#D9B35A', 
+          background: '#F8F3E9',
+          color: '#2D1A11',
+        });
+        
+      } catch (error: any) {
+        console.error("Gagal menghapus alamat:", error.message);
+        Swal.fire({
+          title: 'Gagal!',
+          text: 'Terjadi kesalahan saat menghapus alamat.',
+          icon: 'error',
+          confirmButtonColor: '#2D1A11',
+        });
+      }
+    };
 
   const handleSetPrimary = async (id: number) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/addresses/${id}/set-primary`, {
-        method: "PATCH",
-        credentials: "include",
-      });
-      if (res.ok) fetchAddresses();
-    } catch (error) {
-      console.error("Gagal mengubah alamat utama", error);
+      await AddressService.setPrimaryAddress(id);
+      fetchAddresses();
+    } catch (error: any) {
+      console.error("Gagal mengubah alamat utama:", error.message);
     }
   };
 

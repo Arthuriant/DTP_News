@@ -1,5 +1,6 @@
 "use client";
 
+import { ProfileService } from "@/services/ProfileService";
 import { useState } from "react";
 
 interface BiodataTabProps {
@@ -40,19 +41,11 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/profile", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        onUpdate({ name: formData.name, email: formData.email }, { ...formData });
-        setEditingField(null);
-      }
-    } catch (err) {
-      console.error(err);
+      await ProfileService.updateProfile(formData);
+      onUpdate({ name: formData.name, email: formData.email }, { ...formData });
+      setEditingField(null);
+    } catch (err: any) {
+      console.error("Gagal menyimpan profil:", err.message);
     } finally {
       setIsSaving(false);
     }
@@ -69,25 +62,16 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
 
   const handleSavePin = async () => {
     if (pinInput.length !== 6) return;
-    
     setIsSaving(true);
     try {
       const updatedData = { ...formData, pin: pinInput };
-      const res = await fetch("http://127.0.0.1:8000/profile", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (res.ok) {
-        onUpdate({ name: formData.name, email: formData.email }, { ...updatedData });
-        setFormData(updatedData); // update state form lokal
-        setIsPinModalOpen(false);
-        setPinInput(""); // reset input
-      }
-    } catch (err) {
-      console.error(err);
+      await ProfileService.updateProfile(updatedData);
+      onUpdate({ name: formData.name, email: formData.email }, { ...updatedData });
+      setFormData(updatedData); 
+      setIsPinModalOpen(false);
+      setPinInput(""); 
+    } catch (err: any) {
+      console.error("Gagal menyimpan PIN:", err.message);
     } finally {
       setIsSaving(false);
     }
