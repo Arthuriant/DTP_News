@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class ProductParts extends Model 
+class ProductParts extends Model
 {
     use HasUuids;
 
@@ -36,5 +36,10 @@ class ProductParts extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(PartVariants::class, 'part_id');
     }
 }

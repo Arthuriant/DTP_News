@@ -69,6 +69,10 @@ Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('
 Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth:sanctum');
 
 Route::post('/register', [AuthController::class, 'register']);
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated'], 401);
+})->name('login'); // ← wajib ada ->name('login')
+
 Route::post('/login', [AuthController::class, 'login']);
 
 // Simpan kustomisasi tas
@@ -131,14 +135,14 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
 
     Route::get('/product-marketing-features/{block_id}', [ProductMarketingFeatureController::class, 'index']);
     Route::post('/product-marketing-features', [ProductMarketingFeatureController::class, 'store']);
-    Route::put('/product-marketing-features/{id}', [ProductMarketingFeatureController::class, 'update']); 
+    Route::put('/product-marketing-features/{id}', [ProductMarketingFeatureController::class, 'update']);
     Route::delete('/product-marketing-features/{id}', [ProductMarketingFeatureController::class, 'destroy']);
 
     Route::get('/product-sizes/{product_id}', [ProductSizeController::class, 'index']);
     Route::post('/product-sizes', [ProductSizeController::class, 'store']);
-    Route::put('/product-sizes/{id}', [ProductSizeController::class, 'update']); 
+    Route::put('/product-sizes/{id}', [ProductSizeController::class, 'update']);
     Route::delete('/product-sizes/{id}', [ProductSizeController::class, 'destroy']);
-    
+
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::post('/products', [ProductController::class, 'store']);
@@ -169,3 +173,5 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
 });
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/products/{id}', [ProductController::class, 'show']);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
+use App\Models\ProductParts;
 
 class Product extends Model
 {
@@ -32,7 +33,7 @@ class Product extends Model
     {
         return [
             'is_active' => 'boolean',
-            'base_price' => 'decimal:2', 
+            'base_price' => 'decimal:2',
         ];
     }
 
@@ -43,5 +44,10 @@ class Product extends Model
     {
         // Pastikan nama class SubCategories sesuai dengan file model Anda
         return $this->belongsTo(SubCategories::class, 'sub_categories_id');
+    }
+
+    public function parts()
+    {
+        return $this->hasMany(ProductParts::class, 'product_id');
     }
 }

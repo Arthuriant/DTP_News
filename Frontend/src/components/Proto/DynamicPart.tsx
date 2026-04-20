@@ -5,22 +5,21 @@ interface DynamicPartProps {
   pov: string;
   partName: string; 
   color: string;
-  texture: string; 
+  texture: string;
+  textureImageUrl?: string; // ← URL gambar dari API
   zIndex: number;
 }
 
-export default function DynamicPart({ productId, pov, partName, color, texture, zIndex }: DynamicPartProps) {
-  // POV dipastikan lowercase agar sesuai dengan nama folder (front, back, top, 360)
-  const basePath = `/assets/products/${productId}/${pov.toLowerCase()}`;
+export default function DynamicPart({ productId, pov, partName, color, texture, textureImageUrl, zIndex }: DynamicPartProps) {
+
+  // Jangan render kalau URL kosong
+  if (!textureImageUrl) return null;
 
   return (
     <div className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
-      {/* 1. Perbaikan .webo -> .webp
-          2. Perbaikan nama file: di folder kamu filenya adalah "partName-texture-base-base.webp"
-      */}
       <Image
-        src={`${basePath}/${partName}-${texture}-base.webp`}
-        alt={`${partName} Base`}
+        src={textureImageUrl}
+        alt={`${partName} ${pov}`}
         fill
         className="object-contain"
         priority
@@ -32,14 +31,6 @@ export default function DynamicPart({ productId, pov, partName, color, texture, 
         style={{
           backgroundColor: color,
           mixBlendMode: 'multiply',
-          WebkitMaskImage: `url(${basePath}/${partName}-mask.webp)`,
-          WebkitMaskSize: 'contain',
-          WebkitMaskRepeat: 'no-repeat',
-          WebkitMaskPosition: 'center',
-          maskImage: `url(${basePath}/${partName}-mask.webp)`,
-          maskSize: 'contain',
-          maskRepeat: 'no-repeat',
-          maskPosition: 'center',
         }}
       />
     </div>

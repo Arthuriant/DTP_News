@@ -35,4 +35,9 @@ class PartVariants extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+
+    public function textures()
+    {
+        return $this->hasMany(PartTextures::class, 'variant_id');
+    }
 }

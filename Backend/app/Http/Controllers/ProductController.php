@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManagerStatic as Image;
 use Intervention\Image\Drivers\Gd\Driver;
 
+
 class ProductController extends Controller
 {
     /**
@@ -67,10 +68,10 @@ class ProductController extends Controller
             // ==========================================
             // 1. Baca file mentah dari request
             $file = $request->file('img');
-            
+
             // 2. Kompres ke WebP 80% menggunakan ImageManagerStatic
             $image = Image::make($file)->encode('webp', 80);
-            
+
             // 3. Simpan ke Storage Laravel
             Storage::disk('public')->put("{$folderPath}/{$filename}", (string) $image);
             // ==========================================
@@ -90,9 +91,12 @@ class ProductController extends Controller
     /**
      * Show single product
      */
-    public function show($id)
+     public function show($id)
     {
-        $product = Product::with('subCategory')->find($id);
+        $product = Product::with([
+            'subCategory',
+            'parts.variants.textures', // ← load semua relasi sekaligus
+        ])->find($id);
 
         if (!$product) {
             return response()->json([
@@ -100,9 +104,46 @@ class ProductController extends Controller
             ], 404);
         }
 
+        // Format data sesuai kebutuhan BagCustomizer
+        $formattedParts = $product->parts->map(function ($part) {
+            return [
+                'id'       => $part->id,
+                'name'     => $part->name,
+                'z_index'  => $part->z_index,
+                'variants' => $part->variants->map(function ($variant) {
+                    return [
+                        'id'       => $variant->id,
+                        'name'     => $variant->name,
+                        'price'    => $variant->price,
+                        'textures' => $variant->textures->map(function ($texture) {
+                            return [
+                                'id'        => $texture->id,
+                                'name'      => $texture->name,
+                                'price'     => $texture->price,
+                                'img_top'   => $texture->img_top,
+                                'img_back'  => $texture->img_back,
+                                'img_front' => $texture->img_front,
+                                'img_thumb' => $texture->img_thumb,
+                            ];
+                        }),
+                    ];
+                }),
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'data'    => $product
+            'data'    => [
+                'id'           => $product->id,
+                'name'         => $product->name,
+                'description'  => $product->description,
+                'summary'      => $product->summary,
+                'base_price'   => $product->base_price,
+                'img'          => $product->img,
+                'is_active'    => $product->is_active,
+                'sub_category' => $product->subCategory,
+                'parts'        => $formattedParts,
+            ]
         ], 200);
     }
 
@@ -152,7 +193,7 @@ class ProductController extends Controller
                 // ==========================================
                 $file = $request->file('img');
                 $image = Image::make($file)->encode('webp', 80);
-                
+
                 Storage::disk('public')->put("{$folderPath}/{$filename}", (string) $image);
                 // ==========================================
 

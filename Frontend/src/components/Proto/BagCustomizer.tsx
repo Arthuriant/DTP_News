@@ -19,10 +19,98 @@ import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 
 
-export default function BagCustomizer() {
+    export default function BagCustomizer() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
-  const product = PRODUCTS_CONFIG[productId as string];
+  
+  const [product, setProduct] = useState<ProductConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!productId) {
+      setLoading(false);
+      return;
+    }
+    
+    const fetchProduct = async () => {
+      try {
+         const res = await fetch(`/api-fe/proxy/products/${productId}`);
+        if (res.ok) {
+          const json = await res.json();
+          const raw = json.data;
+
+          // ── Mapping API → ProductConfig ──────────────────────
+          const mapped: ProductConfig = {
+            id:             raw.id,
+            name:           raw.name,
+            basePrice:      parseFloat(raw.base_price),
+            numericId:      0,
+            catalogTitle:   raw.name,
+            reviews:        0,
+            catalogPrice:   parseFloat(raw.base_price),
+            discountedPrice: parseFloat(raw.base_price),
+            thumbnails:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            previews:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            gallery:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            dimensionsImage: "",
+            specifications: [],
+            marketingBlocks: [],
+            sizes:          [],
+
+            // ── Mapping parts ──────────────────────────────────
+            parts: (raw.parts || []).map((part: any) => ({
+              id:        part.id,
+              name:      part.name,
+              basePrice: 0,
+              zIndex:    part.z_index,
+
+              // ── Mapping variants ───────────────────────────
+              variants: (part.variants || []).map((variant: any) => ({
+                id:         variant.id,
+                name:       variant.name,
+                price:      parseFloat(variant.price),
+                priceLabel: variant.price > 0 
+                  ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}` 
+                  : "",
+
+                // ── Mapping textures ─────────────────────────
+                textures: (variant.textures || []).map((texture: any) => ({
+                  id:       texture.id,
+                  name:     texture.name,
+                  price:    parseFloat(texture.price),
+                  thumb:    texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
+                  image:    texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+                  // ← tambah ini
+                  img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+                  img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
+                  img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+                })),
+              })),
+
+              // Kalau part tidak punya variants, textures langsung di part
+              textures: part.variants?.length === 0
+                ? []
+                : undefined,
+            })),
+          };
+
+          setProduct(mapped);
+        }
+      } catch (err) {
+        console.error("Gagal fetch produk:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen bg-[#F8F3E9]">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#C5A059]"></div>
+    </div>
+  );
 
   if (!product) {
     return (
@@ -39,6 +127,7 @@ export default function BagCustomizer() {
       </div>
     );
   }
+
   return <BagCustomizerInner key={product.id} product={product} />;
 }
 
@@ -277,16 +366,26 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
-      const activeKompartemen = shapeSelections["kompartemen"];
-      if (part.id === "pengait2" && activeKompartemen !== "pengait") {
-        return null;
-      }
+      // const activeKompartemen = shapeSelections["kompartemen"];
+      // if (part.id === "pengait2" && activeKompartemen !== "pengait") {
+      //   return null;
+      // }
 
       const activeShape = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v) => v.id === activeShape);
       
       const currentTextures = activeVariant?.textures || part.textures || [];
-      const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+            const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+
+      // Pilih URL gambar sesuai POV
+      const getTextureImageUrl = (textureObj: any, pov: string) => {
+        switch(pov.toLowerCase()) {
+          case 'front': return textureObj?.img_front || "";
+          case 'back':  return textureObj?.img_back  || "";
+          case 'top':   return textureObj?.img_top   || "";
+          default:      return textureObj?.img_front || "";
+        }
+      };
 
       const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
 
@@ -350,14 +449,16 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               partName={activeShape}
               color={activeColor}
               texture={activeTexture}
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
               zIndex={partZIndex}
-            />
+                      />
           ) : (
             <TextureOnlyPart
               productId={product.id}
               pov={pov}
               partName={activeShape}
               texture={activeTexture}
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
               zIndex={partZIndex}
             />
           )}
