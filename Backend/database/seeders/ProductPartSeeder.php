@@ -18,27 +18,69 @@ class ProductPartSeeder extends Seeder
 
         if ($product) {
             
-            $part = ProductParts::create([
-                'product_id' => $product->id, 
-                'name'       => 'Badan Tas Kiri',
-                'z_index'    => [
-                    'Front' => 20,
-                    'Back'  => 10,
-                    'Top'   => 10,
+            $partsData = [
+                [
+                    'product_id' => $product->id, 
+                    'name'       => 'Badan Tas Kiri',
+                    'z_index'    => [
+                        'Front' => 20,
+                        'Back'  => 10,
+                        'Top'   => 10,
+                    ],
                 ],
-            ]);
+                [
+                    'product_id' => $product->id, 
+                    'name'       => 'Badan Tas Tengah',
+                    'z_index'    => [
+                        'Front' => 30,
+                        'Back'  => 20,
+                        'Top'   => 20,
+                    ],
+                ],
+                [
+                    'product_id' => $product->id, 
+                    'name'       => 'Badan Tas Kanan',
+                    'z_index'    => [
+                        'Front' => 20,
+                        'Back'  => 10,
+                        'Top'   => 10,
+                    ],
+                ],
+                [
+                    'product_id' => $product->id, 
+                    'name'       => 'Tali',
+                    'z_index'    => [
+                        'Front' => 10,
+                        'Back'  => 30,
+                        'Top'   => 20,
+                    ],
+                ],
+                [
+                    'product_id' => $product->id, 
+                    'name'       => 'Kunci',
+                    'z_index'    => [
+                        'Front' => 40,
+                        'Back'  => 10,
+                        'Top'   => 20,
+                    ],
+                ],
+            ];
 
-            $folderPath = 'products/' . $product->id . '/parts/' . $part->id;
+            foreach ($partsData as $data) {
+                $part = ProductParts::create($data);
 
-            if (!Storage::disk('public')->exists($folderPath)) {
-                Storage::disk('public')->makeDirectory($folderPath);
+                $folderPath = 'products/' . $product->id . '/parts/' . $part->id;
+
+                if (!Storage::disk('public')->exists($folderPath)) {
+                    Storage::disk('public')->makeDirectory($folderPath);
+                }
+
+                $this->command->info('Data & Folder untuk Part "' . $data['name'] . '" berhasil dibuat!');
             }
 
-            $this->command->info('Data Product Parts "Badan Tas Kiri" berhasil ditambahkan!');
-            $this->command->info('Folder berhasil dibuat di: storage/app/public/' . $folderPath);
+            $this->command->info('==== SEMUA PRODUCT PARTS BERHASIL DITAMBAHKAN ====');
             
         } else {
-            // Jika produk belum ada di database, beri tahu lewat terminal
             $this->command->error('Gagal: Produk "Classic Messenger Bag" tidak ditemukan! Pastikan ProductSeeder dijalankan lebih dulu.');
         }
     }
