@@ -20,71 +20,109 @@ class PartTextureSeeder extends Seeder
     {
         $product = Product::where('name', 'Classic Messenger Bag')->first();
 
-        if ($product) {
+        if (!$product) {
+            $this->command->error('Gagal: Produk "Classic Messenger Bag" tidak ditemukan!');
+            return;
+        }
+
+        $texturesMapping = [
+            'Badan Tas Kiri' => [
+                'Tubuh Tas Kiri Original' => [
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                ],
+            ],
+            'Badan Tas Tengah' => [
+                'Tubuh Tas Tengah Original' => [
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                ],
+            ],
+            'Badan Tas Kanan' => [
+                'Tubuh Tas Kanan Original' => [
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                ],
+            ],
+            'Tali' => [
+                'Tali Original' => [
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                ],
+            ],
+            'Kunci' => [
+                'Kunci Original' => [
+                    ['name' => 'Brass Metal', 'price' => 0], 
+                ],
+            ],
+        ];
+
+        $sourcePath = database_path('seeders/Product_Dummy/Textures');
+
+        foreach ($texturesMapping as $partName => $variants) {
             $part = ProductParts::where('product_id', $product->id)
-                                ->where('name', 'Badan Tas Kiri')
+                                ->where('name', $partName)
                                 ->first();
 
             if ($part) {
-                $variant = PartVariants::where('part_id', $part->id)
-                                       ->where('name', 'Tubuh Tas Original')
-                                       ->first();
+                foreach ($variants as $variantName => $textures) {
+                    $variant = PartVariants::where('part_id', $part->id)
+                                           ->where('name', $variantName)
+                                           ->first();
 
-                if ($variant) {
-                    $textureName = 'Eco Cordura Canvas';
-                    $slugName = Str::slug($textureName); 
-                    $texture = PartTextures::create([
-                        'product_id' => $product->id,
-                        'part_id'    => $part->id,
-                        'variant_id' => $variant->id,
-                        'name'       => $textureName,
-                        'price'      => 0,
-                    ]);
-
-                    $folderPath = "products/{$product->id}/parts/{$part->id}/{$variant->id}/{$texture->id}";
-
-                    if (!Storage::disk('public')->exists($folderPath)) {
-                        Storage::disk('public')->makeDirectory($folderPath);
-                    }
-
-                    $fileNames = [
-                        'img_top'   => "top-{$slugName}.webp",
-                        'img_back'  => "back-{$slugName}.webp",
-                        'img_front' => "front-{$slugName}.webp",
-                        'img_thumb' => "thumb-{$slugName}.webp",
-                    ];
-
-                    // 4. Proses pemindahan file dari folder dummy (Database/seeders/Product_Dummy/...)
-
-                    $sourcePath = database_path('seeders/Product_Dummy/Textures');
-                    
-                    $updateData = [];
-                    foreach ($fileNames as $column => $fileName) {
-                        $sourceFile = "{$sourcePath}/{$fileName}";
-                        if (File::exists($sourceFile)) {
-                            $destinationPath = "{$folderPath}/{$fileName}";
-                            Storage::disk('public')->put($destinationPath, File::get($sourceFile));
+                    if ($variant) {
+                        foreach ($textures as $textureData) {
+                            $textureName = $textureData['name'];
+                            $slugTexture = Str::slug($textureName); // eco-cordura-canvas
                             
-                            // Simpan path relatif untuk database
-                            $updateData[$column] = $destinationPath;
-                        } else {
-                            $this->command->warn("File dummy tidak ditemukan: {$sourceFile}");
+                            // 👈 TAMBAHKAN INI: Buat slug dari nama Part (badan-tas-kiri)
+                            $slugPart = Str::slug($partName); 
+
+                            $texture = PartTextures::create([
+                                'product_id' => $product->id,
+                                'part_id'    => $part->id,
+                                'variant_id' => $variant->id,
+                                'name'       => $textureName,
+                                'price'      => $textureData['price'],
+                            ]);
+
+                            $folderPath = "products/{$product->id}/parts/{$part->id}/{$variant->id}/{$texture->id}";
+                            if (!Storage::disk('public')->exists($folderPath)) {
+                                Storage::disk('public')->makeDirectory($folderPath);
+                            }
+
+                            $fileNames = [
+                                'img_top'   => "top-{$slugTexture}.webp",
+                                'img_back'  => "back-{$slugTexture}.webp",
+                                'img_front' => "front-{$slugTexture}.webp",
+                                'img_thumb' => "thumb-{$slugTexture}.webp",
+                            ];
+
+                            $updateData = [];
+                            foreach ($fileNames as $column => $fileName) {
+                                // 👈 UBAH PATH INI: Tambahkan folder slugPart
+                                $sourceFile = "{$sourcePath}/{$slugPart}/{$fileName}";
+
+                                if (File::exists($sourceFile)) {
+                                    $destinationPath = "{$folderPath}/{$fileName}";
+                                    Storage::disk('public')->put($destinationPath, File::get($sourceFile));
+                                    $updateData[$column] = $destinationPath;
+                                } else {
+                                    $this->command->warn("Gambar tidak ditemukan: {$sourceFile}");
+                                }
+                            }
+
+                            if (!empty($updateData)) {
+                                $texture->update($updateData);
+                            }
+
+                            $this->command->info("Berhasil: Texture '{$textureName}' untuk Part '{$partName}' ditambahkan.");
                         }
+                    } else {
+                        $this->command->warn("Lewati: Varian '{$variantName}' tidak ditemukan untuk part '{$partName}'.");
                     }
-
-                    // 5. Update data texture dengan path gambar yang benar
-                    $texture->update($updateData);
-
-                    $this->command->info("Data Part Texture ({$textureName}) dan folder berhasil dibuat!");
-                    
-                } else {
-                    $this->command->error('Gagal: Variant "Tubuh Tas Original" tidak ditemukan!');
                 }
             } else {
-                $this->command->error('Gagal: Part "Badan Tas Kiri" tidak ditemukan!');
+                $this->command->warn("Lewati: Part '{$partName}' tidak ditemukan.");
             }
-        } else {
-            $this->command->error('Gagal: Produk "Classic Messenger Bag" tidak ditemukan!');
         }
+
+        $this->command->info('==== SEMUA PROSES SEEDING TEXTURE SELESAI ====');
     }
 }
