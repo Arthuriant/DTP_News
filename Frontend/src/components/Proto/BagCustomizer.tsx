@@ -169,105 +169,98 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const { openCartModal } = useCartModalContext();
 
   const screenshotRef = useRef<HTMLDivElement>(null);
-  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
-
-    // ← TAMBAH INI sebelum state
-   const getSavedData = () => {
-    if (typeof window === 'undefined') return null;
-    const saved = localStorage.getItem(`customization_${product.id}`);
-    return saved ? JSON.parse(saved) : null;
-  };
-  const savedData = getSavedData();
-
-
-
 
   // --- BUILD STEPS ARRAY ---
   const steps = [];
   if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
   product.parts.forEach((part) => steps.push({ id: part.id, type: 'part', title: part.name, partData: part }));
 
-  // --- STATES ---
+  // --- SEMUA STATE ---
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const currentStep = steps[activeStepIndex];
-
-  const [activeSize, setActiveSize] = useState<string>(
-    savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : "")
-);
-
-const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(
-  savedData?.shapeSelections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-    });
-    return init;
-  })()
-);
-
-const [selections, setSelections] = useState<Record<string, string>>(
-  savedData?.selections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const textures = variant?.textures || p.textures || [];
-      const defaultTexture = textures[0];
-      const colors = defaultTexture?.colors || [];
-      init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
-    });
-    return init;
-  })()
-);
-
-const [textureSelections, setTextureSelections] = useState<Record<string, string>>(
-  savedData?.textureSelections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const textures = variant?.textures || p.textures || [];
-      init[p.id] = textures[0]?.id || "base";
-    });
-    return init;
-  })()
-);
-
-const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>(
-  savedData?.visibleParts || (() => {
-    const init: Record<string, boolean> = {};
-    product.parts.forEach((p) => (init[p.id] = true));
-    return init;
-  })()
-);
-
-const [activeView, setActiveView] = useState<string>(
-  savedData?.activeView || "front"
-  );
-
-  // Modal States 
+  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [activeSize, setActiveSize] = useState<string>("");
+  const [shapeSelections, setShapeSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [textureSelections, setTextureSelections] = useState<Record<string, string>>({});
+  const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>({});
+  const [activeView, setActiveView] = useState<string>("front");
   const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
   const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
   const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
-
-  // TAMBAHAN: State full preview
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [frame360, setFrame360] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
 
+  // --- SEMUA USEEFFECT ---
+
+  // 1. Load dari localStorage
   useEffect(() => {
-  localStorage.setItem(`customization_${product.id}`, JSON.stringify({
-    productId: product.id,
-    activeSize,
-    shapeSelections,
-    selections,
-    textureSelections,
-    visibleParts,
-    activeView,
-  }));
-}, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView]);
+    const saved = localStorage.getItem(`customization_${product.id}`);
+    const savedData = saved ? JSON.parse(saved) : null;
 
-  // Effect to auto-highlight part when changing step
+    setActiveSize(savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : ""));
+
+    setShapeSelections(savedData?.shapeSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+      });
+      return init;
+    })());
+
+    setSelections(savedData?.selections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        const textures = variant?.textures || p.textures || [];
+        const colors = textures[0]?.colors || [];
+        init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
+      });
+      return init;
+    })());
+
+    setTextureSelections(savedData?.textureSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        const textures = variant?.textures || p.textures || [];
+        init[p.id] = textures[0]?.id || "base";
+      });
+      return init;
+    })());
+
+    setVisibleParts(savedData?.visibleParts || (() => {
+      const init: Record<string, boolean> = {};
+      product.parts.forEach((p) => (init[p.id] = true));
+      return init;
+    })());
+
+    setActiveView(savedData?.activeView || "front");
+    setIsHydrated(true);
+  }, []);
+
+  // 2. Save ke localStorage
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem(`customization_${product.id}`, JSON.stringify({
+      productId: product.id,
+      activeSize,
+      shapeSelections,
+      selections,
+      textureSelections,
+      visibleParts,
+      activeView,
+    }));
+  }, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView, isHydrated]);
+
+  // 3. Highlight part
   useEffect(() => {
     if (currentStep && currentStep.type === 'part') {
       setHighlightedPartId(currentStep.id);
@@ -276,11 +269,10 @@ const [activeView, setActiveView] = useState<string>(
     }
   }, [activeStepIndex, currentStep]);
 
+  if (!isHydrated) return null;
   // 360 ROTATION
   const TOTAL_FRAMES = 17;
-  const [frame360, setFrame360] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
+  
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
