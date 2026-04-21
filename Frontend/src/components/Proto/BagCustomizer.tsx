@@ -74,7 +74,21 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
             dimensionsImage: "",
             specifications: [],
             marketingBlocks: [],
-            sizes:          [],
+             // ← sizes di level atas, bukan di dalam parts
+            sizes: raw.sizes?.map((s: any) => ({
+              id:          s.id,
+              title:       s.title,
+              desc:        s.short_desc,
+              description: s.description,
+              price:       s.price,
+              image:       s.img || "",
+              dimensions: {
+                width:  s.width,
+                height: s.height,
+                depth:  s.depth,
+                unit:   s.unit,
+              },
+            })) || [],
 
             // ── Mapping parts ──────────────────────────────────
             parts: (raw.parts || []).map((part: any) => ({

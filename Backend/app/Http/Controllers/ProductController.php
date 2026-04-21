@@ -98,6 +98,7 @@ class ProductController extends Controller
             'subCategory',
             'parts.variants.textures', // ← load semua relasi sekaligus
             'gallery', // ← tambah ini
+            'sizes', // ← tambah ini
         ])->find($id);
 
         if (!$product) {
@@ -154,6 +155,20 @@ class ProductController extends Controller
                     ];
                 }),
                 'parts'        => $formattedParts,
+                'sizes' => $product->sizes->map(function ($size) {
+            return [
+                'id'          => $size->id,
+                'title'       => $size->title,
+                'short_desc'  => $size->short_desc,
+                'description' => $size->description,
+                'price'       => (float) $size->price,
+                'width'       => $size->width,
+                'height'      => $size->height,
+                'depth'       => $size->depth,
+                'unit'        => $size->unit,
+                'img'         => $size->img ? "http://127.0.0.1:8000/storage/{$size->img}" : null,
+    ];
+}),
             ]
         ], 200);
     }

@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             PartVariantSeeder::class, // Baru jalan ini untuk membuat varian yang butuh refer
             PartTextureSeeder::class, // Baru jalan ini untuk membuat texture yang butuh referensi produk, part, dan varian
             ProductGallerySeeder::class,
+            ProductSizeSeeder::class,
             // ProductGallerySeeder::class, // Baru jalan ini untuk membuat galeri yang butuh referensi produk
         ]);
     }
