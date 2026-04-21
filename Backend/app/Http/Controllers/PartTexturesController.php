@@ -13,9 +13,16 @@ class PartTexturesController extends Controller
     /**
      * GET /part-textures
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = PartTextures::with(['product', 'part', 'variant'])->get();
+        $query = PartTextures::with(['product', 'part', 'variant']);
+
+        // FILTER SAKTI KITA:
+        if ($request->has('variant_id')) {
+            $query->where('variant_id', $request->variant_id);
+        }
+
+        $data = $query->get();
 
         return response()->json([
             'success' => true,

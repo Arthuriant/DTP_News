@@ -74,13 +74,18 @@ export const api = async <T>(
     let errorMessage = `API Error: ${response.statusText}`;
 
     if (errorData.errors) {
-      // Menangkap format validasi Laravel: { errors: { field: ["message1"] } }
       const firstField = Object.keys(errorData.errors)[0];
       if (firstField && Array.isArray(errorData.errors[firstField])) {
         errorMessage = errorData.errors[firstField][0];
       }
     } else if (errorData.message) {
       errorMessage = errorData.message;
+    } else if (Object.keys(errorData).length > 0) {
+      // TANGKAP FORMAT RAW ERROR LARAVEL: {"name": ["The name field is required."]}
+      const firstField = Object.keys(errorData)[0];
+      if (Array.isArray(errorData[firstField])) {
+        errorMessage = errorData[firstField][0];
+      }
     }
 
     const error = new Error(errorMessage);

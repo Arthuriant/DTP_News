@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
 
 export default function Produk() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('katalog');
   
   // State Data
@@ -157,7 +159,7 @@ export default function Produk() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2 relative z-10">
             {products.map((p) => (
-              <div key={p.id} className="group bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_10px_30px_-15px_rgba(45,26,17,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(217,179,90,0.2)] hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
+              <div key={p.id} onClick={() => router.push(`/admin/produk/${p.id}`)} className="group bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_10px_30px_-15px_rgba(45,26,17,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(217,179,90,0.2)] hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
                 
                 {/* 1. Bagian Gambar & Status */}
                 <div className="relative h-64 w-full overflow-hidden bg-[#FFFDF5]">
@@ -203,13 +205,13 @@ export default function Produk() {
                 {/* 3. Tombol Aksi */}
                 <div className="flex gap-2 p-4 bg-gradient-to-b from-transparent to-[#FFFDF5]/80">
                   <button 
-                    onClick={() => handleEdit(p)} 
+                    onClick={(e) => {e.stopPropagation(); handleEdit(p)}} 
                     className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-[#D9B35A] bg-white border border-[#D9B35A]/30 rounded-xl hover:bg-[#D9B35A] hover:text-white transition-all duration-300 shadow-sm"
                   >
                     Ubah
                   </button>
                   <button 
-                    onClick={() => handleDelete(p.id)} 
+                    onClick={(e) => {e.stopPropagation(); handleDelete(p.id)}} 
                     className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
                   >
                     Hapus
