@@ -35,6 +35,8 @@ class PartVariantSeeder extends Seeder
             ],
             'Tali' => [
                 ['name' => 'Tali Original', 'price' => 0],
+                ['name' => 'Tali Selempang', 'price' => 20000],
+                ['name' => 'Tali Rantai', 'price' => 30000],
             ],
             'Kunci' => [
                 ['name' => 'Kunci Original', 'price' => 0],
