@@ -45,6 +45,12 @@ class PartTextureSeeder extends Seeder
                 'Tali Original' => [
                     ['name' => 'Eco Cordura Canvas', 'price' => 0],
                 ],
+                'Tali Selempang' => [
+                    ['name' => 'Premium Leather', 'price' => 50000],
+                ],
+                'Tali Rantai' => [
+                    ['name' => 'Gold Chain', 'price' => 15000],
+                ],
             ],
             'Kunci' => [
                 'Kunci Original' => [
