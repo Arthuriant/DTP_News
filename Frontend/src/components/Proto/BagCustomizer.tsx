@@ -32,12 +32,31 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
       return;
     }
     
-    const fetchProduct = async () => {
-      try {
-         const res = await fetch(`/api-fe/proxy/products/${productId}`);
-        if (res.ok) {
-          const json = await res.json();
-          const raw = json.data;
+      const fetchProduct = async () => {
+    try {
+      // ── Cek login dulu ──────────────────────────────
+      const userRes = await fetch('/api-fe/proxy/user', {
+        credentials: 'include',
+      });
+
+      if (!userRes.ok) {
+        // Belum login → redirect ke signin
+        window.location.href = '/signin';
+        return;
+      }
+
+      // ── Fetch produk ────────────────────────────────
+      const res = await fetch(`/api-fe/proxy/products/${productId}`);
+      if (res.ok) {
+        const json = await res.json();
+        const raw = json.data;
+        const slug = raw.slug; // "classic_messenger_bag"
+
+        const localConfig = PRODUCTS_CONFIG[slug];
+        if (!localConfig) {
+          setLoading(false);
+          return;
+        }
 
           // ── Mapping API → ProductConfig ──────────────────────
           const mapped: ProductConfig = {
@@ -51,7 +70,7 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
             discountedPrice: parseFloat(raw.base_price),
             thumbnails:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
             previews:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            gallery:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            gallery: raw.gallery?.map((g: any) => g.img) || [],
             dimensionsImage: "",
             specifications: [],
             marketingBlocks: [],
@@ -140,6 +159,14 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
 
+    // ← TAMBAH INI sebelum state
+  const getSavedData = () => {
+    if (typeof window === 'undefined') return null;
+    const saved = localStorage.getItem(`customization_${product.id}`);
+    return saved ? JSON.parse(saved) : null;
+  };
+  const savedData = getSavedData();
+
   // --- BUILD STEPS ARRAY ---
   const steps = [];
   if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
@@ -202,6 +229,19 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   // TAMBAHAN: State full preview
   const [showFullPreview, setShowFullPreview] = useState(false);
+
+  useEffect(() => {
+  const savedData = {
+    productId: product.id,
+    activeSize,
+    shapeSelections,
+    selections,
+    textureSelections,
+    visibleParts,
+    activeView,
+  };
+  localStorage.setItem(`customization_${product.id}`, JSON.stringify(savedData));
+}, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView]);
 
   // Effect to auto-highlight part when changing step
   useEffect(() => {

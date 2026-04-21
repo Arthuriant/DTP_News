@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManagerStatic as Image;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 
 
@@ -96,6 +97,7 @@ class ProductController extends Controller
         $product = Product::with([
             'subCategory',
             'parts.variants.textures', // ← load semua relasi sekaligus
+            'gallery', // ← tambah ini
         ])->find($id);
 
         if (!$product) {
@@ -116,6 +118,7 @@ class ProductController extends Controller
                         'name'     => $variant->name,
                         'price'    => $variant->price,
                         'textures' => $variant->textures->map(function ($texture) {
+
                             return [
                                 'id'        => $texture->id,
                                 'name'      => $texture->name,
@@ -135,6 +138,7 @@ class ProductController extends Controller
             'success' => true,
             'data'    => [
                 'id'           => $product->id,
+                'slug' => Str::slug($product->name, '_'),
                 'name'         => $product->name,
                 'description'  => $product->description,
                 'summary'      => $product->summary,
@@ -142,6 +146,13 @@ class ProductController extends Controller
                 'img'          => $product->img,
                 'is_active'    => $product->is_active,
                 'sub_category' => $product->subCategory,
+                'gallery'      => $product->gallery->map(function ($item) { // ← tambah ini
+            return [
+                'id'         => $item->id,
+                'img'        => $item->img ? "http://127.0.0.1:8000/storage/{$item->img}" : null,
+                'sort_order' => $item->sort_order,
+                    ];
+                }),
                 'parts'        => $formattedParts,
             ]
         ], 200);

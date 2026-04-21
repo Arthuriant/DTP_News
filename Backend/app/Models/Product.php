@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 use App\Models\ProductParts;
+use App\Models\ProductGalleries;
 
 class Product extends Model
 {
@@ -49,5 +50,10 @@ class Product extends Model
     public function parts()
     {
         return $this->hasMany(ProductParts::class, 'product_id');
+    }
+
+    public function gallery()
+    {
+        return $this->hasMany(ProductGalleries::class, 'product_id')->orderBy('sort_order');
     }
 }
