@@ -174,12 +174,15 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const hasSizes = bagSizes.length > 0;
 
     // ← TAMBAH INI sebelum state
-  const getSavedData = () => {
+   const getSavedData = () => {
     if (typeof window === 'undefined') return null;
     const saved = localStorage.getItem(`customization_${product.id}`);
     return saved ? JSON.parse(saved) : null;
   };
   const savedData = getSavedData();
+
+
+
 
   // --- BUILD STEPS ARRAY ---
   const steps = [];
@@ -191,33 +194,36 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const currentStep = steps[activeStepIndex];
 
   const [activeSize, setActiveSize] = useState<string>(
-    bagSizes.length > 0 ? bagSizes[0].id : ""
-  );
-  
-  const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(() => {
+    savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : "")
+);
+
+const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(
+  savedData?.shapeSelections || (() => {
     const init: Record<string, string> = {};
     product.parts.forEach((p) => {
       init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
     });
     return init;
-  });
+  })()
+);
 
-  const [selections, setSelections] = useState<Record<string, string>>(() => {
-      const init: Record<string, string> = {};
-      product.parts.forEach((p) => {
-        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-        const variant = p.variants?.find((v) => v.id === activeShapeId);
-        
-        const textures = variant?.textures || p.textures || [];
-        const defaultTexture = textures[0];
-        const colors = defaultTexture?.colors || [];
-
-        init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
-      });
-      return init;
+const [selections, setSelections] = useState<Record<string, string>>(
+  savedData?.selections || (() => {
+    const init: Record<string, string> = {};
+    product.parts.forEach((p) => {
+      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+      const variant = p.variants?.find((v) => v.id === activeShapeId);
+      const textures = variant?.textures || p.textures || [];
+      const defaultTexture = textures[0];
+      const colors = defaultTexture?.colors || [];
+      init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
     });
+    return init;
+  })()
+);
 
-  const [textureSelections, setTextureSelections] = useState<Record<string, string>>(() => {
+const [textureSelections, setTextureSelections] = useState<Record<string, string>>(
+  savedData?.textureSelections || (() => {
     const init: Record<string, string> = {};
     product.parts.forEach((p) => {
       const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
@@ -226,15 +232,20 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       init[p.id] = textures[0]?.id || "base";
     });
     return init;
-  });
+  })()
+);
 
-  const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>(() => {
+const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>(
+  savedData?.visibleParts || (() => {
     const init: Record<string, boolean> = {};
     product.parts.forEach((p) => (init[p.id] = true));
     return init;
-  });
+  })()
+);
 
-  const [activeView, setActiveView] = useState<string>("front");
+const [activeView, setActiveView] = useState<string>(
+  savedData?.activeView || "front"
+  );
 
   // Modal States 
   const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
@@ -245,7 +256,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const [showFullPreview, setShowFullPreview] = useState(false);
 
   useEffect(() => {
-  const savedData = {
+  localStorage.setItem(`customization_${product.id}`, JSON.stringify({
     productId: product.id,
     activeSize,
     shapeSelections,
@@ -253,8 +264,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     textureSelections,
     visibleParts,
     activeView,
-  };
-  localStorage.setItem(`customization_${product.id}`, JSON.stringify(savedData));
+  }));
 }, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView]);
 
   // Effect to auto-highlight part when changing step
