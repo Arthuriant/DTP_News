@@ -14,9 +14,18 @@ class PartVariantsController extends Controller
     /**
      * GET /part-variants
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = PartVariants::with(['product', 'part'])->get();
+        // 1. Siapkan query dasar
+        $query = PartVariants::with(['product', 'part']);
+
+        // 2. Jika ada filter 'part_id' di URL, saring datanya!
+        if ($request->has('part_id')) {
+            $query->where('part_id', $request->part_id);
+        }
+
+        // 3. Ambil datanya
+        $data = $query->get();
 
         return response()->json([
             'success' => true,
