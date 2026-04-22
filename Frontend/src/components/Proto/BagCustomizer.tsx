@@ -54,23 +54,26 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
         }
 
           // ── Mapping API → ProductConfig ──────────────────────
-          const mapped: ProductConfig = {
-            id:             raw.id,
-            name:           raw.name,
-            basePrice:      parseFloat(raw.base_price),
-            numericId:      0,
-            catalogTitle:   raw.name,
-            reviews:        0,
-            catalogPrice:   parseFloat(raw.base_price),
-            discountedPrice: parseFloat(raw.base_price),
-            thumbnails:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            previews:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            gallery: raw.gallery?.map((g: any) => g.img) || [],
-            dimensionsImage: "",
-            specifications: [],
-            marketingBlocks: [],
-             // ← sizes di level atas, bukan di dalam parts
-            sizes: raw.sizes?.map((s: any) => ({
+         const mapped: ProductConfig = {
+          id:              raw.id,
+          name:            raw.name,
+          basePrice:       parseFloat(raw.base_price),
+          numericId:       0,
+          catalogTitle:    raw.name,
+          reviews:         0,
+          catalogPrice:    parseFloat(raw.base_price),
+          discountedPrice: parseFloat(raw.base_price),
+          thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          gallery:         raw.gallery?.map((g: any) => g.img) || [],
+          dimensionsImage: raw.dimension?.img || "",
+          specifications: [
+              raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+              raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
+              raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+          ].filter(Boolean) as { label: string; value: string }[],
+          marketingBlocks: [],
+          sizes: raw.sizes?.map((s: any) => ({
               id:          s.id,
               title:       s.title,
               desc:        s.short_desc,
@@ -78,12 +81,12 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
               price:       s.price,
               image:       s.img || "",
               dimensions: {
-                width:  s.width,
-                height: s.height,
-                depth:  s.depth,
-                unit:   s.unit,
+                  width:  s.width,
+                  height: s.height,
+                  depth:  s.depth,
+                  unit:   s.unit,
               },
-            })) || [],
+          })) || [],
 
             // ── Mapping parts ──────────────────────────────────
             parts: (raw.parts || []).map((part: any) => ({
