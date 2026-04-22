@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
+import { AuthService } from '@/services/AuthService'; // 👈 Tambahkan import ini
 
 export default function Produk() {
   const router = useRouter();
@@ -10,6 +11,10 @@ export default function Produk() {
   // State Data
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // State RBAC (Role-Based Access Control)
+  const [myPermissions, setMyPermissions] = useState<string[]>([]);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   // State Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,21 +30,36 @@ export default function Produk() {
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
 
   // 1. FUNGSI FETCH MENGGUNAKAN SERVICE
-  const fetchProducts = useCallback(async () => {
+  const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await ProductService.getProducts();
-      setProducts(data || []); 
+      // Fetch produk dan data user secara bersamaan
+      const [productData, userData] = await Promise.all([
+        ProductService.getProducts(),
+        AuthService.getUser()
+      ]);
+      
+      setProducts(productData || []); 
+
+      if (userData) {
+        setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
+        setMyPermissions(userData.permissions || []);
+      }
     } catch (error: any) {
-      console.error("Gagal mengambil data produk:", error.message);
+      console.error("Gagal mengambil data:", error.message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  // Cek Izin Spesifik
+  const canCreate = isSuperAdmin || myPermissions.includes("create_products");
+  const canEdit = isSuperAdmin || myPermissions.includes("edit_products");
+  const canDelete = isSuperAdmin || myPermissions.includes("delete_products");
 
   // 2. FUNGSI SIMPAN (CREATE & UPDATE)
   const handleSave = async (e: React.FormEvent) => {
@@ -62,7 +82,7 @@ export default function Produk() {
         await ProductService.createProduct(formData);
       }
       
-      await fetchProducts(); 
+      await fetchInitialData(); 
       setIsModalOpen(false);
     } catch (error: any) {
       console.error("Terjadi kesalahan simpan:", error);
@@ -108,15 +128,18 @@ export default function Produk() {
           </p>
         </div>
 
-        <button 
-          onClick={() => { setEditForm({ id: '', name: '', sub_categories_id: '', base_price: 0, status: 'Aktif', img: null }); setIsModalOpen(true); }} 
-          className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#1A1A1A] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)]"
-        >
-          <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
-          <span className="relative z-10 flex items-center gap-2 tracking-wide">
-            <span className="text-lg">✧</span> Tambah Produk Baru
-          </span>
-        </button>
+        {/* 👈 TOMBOL TAMBAH DILINDUNGI */}
+        {canCreate && (
+          <button 
+            onClick={() => { setEditForm({ id: '', name: '', sub_categories_id: '', base_price: 0, status: 'Aktif', img: null }); setIsModalOpen(true); }} 
+            className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#1A1A1A] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)]"
+          >
+            <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+            <span className="relative z-10 flex items-center gap-2 tracking-wide">
+              <span className="text-lg">✧</span> Tambah Produk Baru
+            </span>
+          </button>
+        )}
       </div>
 
       {/* ================= TAB NAVIGATION ================= */}
@@ -159,7 +182,7 @@ export default function Produk() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2 relative z-10">
             {products.map((p) => (
-              <div key={p.id} onClick={() => router.push(`/admin/produk/${p.id}`)} className="group bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_10px_30px_-15px_rgba(45,26,17,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(217,179,90,0.2)] hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col">
+              <div key={p.id} onClick={() => router.push(`/admin/produk/${p.id}`)} className="group bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/60 shadow-[0_10px_30px_-15px_rgba(45,26,17,0.1)] hover:shadow-[0_20px_40px_-15px_rgba(217,179,90,0.2)] hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col cursor-pointer">
                 
                 {/* 1. Bagian Gambar & Status */}
                 <div className="relative h-64 w-full overflow-hidden bg-[#FFFDF5]">
@@ -167,8 +190,8 @@ export default function Produk() {
                     src={
                       p.img 
                         ? (p.img.startsWith('storage/') 
-                            ? `http://127.0.0.1:8000/${p.img}` 
-                            : `http://127.0.0.1:8000/storage/${p.img}`)
+                          ? `http://127.0.0.1:8000/${p.img}` 
+                          : `http://127.0.0.1:8000/storage/${p.img}`)
                         : '/placeholder.jpg'
                     } 
                     alt={p.name} 
@@ -202,20 +225,27 @@ export default function Produk() {
                   </div>
                 </div>
 
-                {/* 3. Tombol Aksi */}
+                {/* 3. Tombol Aksi (Tergantung Izin) */}
                 <div className="flex gap-2 p-4 bg-gradient-to-b from-transparent to-[#FFFDF5]/80">
-                  <button 
-                    onClick={(e) => {e.stopPropagation(); handleEdit(p)}} 
-                    className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-[#D9B35A] bg-white border border-[#D9B35A]/30 rounded-xl hover:bg-[#D9B35A] hover:text-white transition-all duration-300 shadow-sm"
-                  >
-                    Ubah
-                  </button>
-                  <button 
-                    onClick={(e) => {e.stopPropagation(); handleDelete(p.id)}} 
-                    className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
-                  >
-                    Hapus
-                  </button>
+                  {canEdit && (
+                    <button 
+                      onClick={(e) => {e.stopPropagation(); handleEdit(p)}} 
+                      className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-[#D9B35A] bg-white border border-[#D9B35A]/30 rounded-xl hover:bg-[#D9B35A] hover:text-white transition-all duration-300 shadow-sm"
+                    >
+                      Ubah
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button 
+                      onClick={(e) => {e.stopPropagation(); handleDelete(p.id)}} 
+                      className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
+                    >
+                      Hapus
+                    </button>
+                  )}
+                  {!canEdit && !canDelete && (
+                     <p className="w-full text-center text-[10px] font-bold text-[#8B7355] uppercase tracking-widest py-3">Hanya Lihat</p>
+                  )}
                 </div>
 
               </div>

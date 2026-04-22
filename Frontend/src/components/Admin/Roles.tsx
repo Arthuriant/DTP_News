@@ -10,46 +10,46 @@ const AVAILABLE_PERMISSIONS = [
     module: "Akses Utama (Wajib)",
     actions: [{ id: "view_dashboard", label: "Akses Dashboard" }],
   },
-  // {
-  //   module: "Manajemen Produk",
-  //   actions: [
-  //     { id: "view_products", label: "Lihat Produk" },
-  //     { id: "create_products", label: "Tambah Produk" },
-  //     { id: "edit_products", label: "Ubah Produk" },
-  //     { id: "delete_products", label: "Hapus Produk" },
-  //   ],
-  // },
+  {
+    module: "Katalog & Konfigurasi 3D",
+    actions: [
+      { id: "view_products", label: "Lihat Daftar Produk" },
+      { id: "create_products", label: "Tambah Produk Baru" },
+      { id: "edit_products", label: "Kelola Spesifikasi & 3D Part" },
+      { id: "delete_products", label: "Hapus Produk Utama" },
+    ],
+  },
   // {
   //   module: "Pesanan Custom",
   //   actions: [
-  //     { id: "view_orders", label: "Lihat Pesanan" },
-  //     { id: "update_orders", label: "Update Status" },
-  //     { id: "delete_orders", label: "Hapus Pesanan" },
+  //     { id: "view_orders", label: "Lihat Daftar Pesanan" },
+  //     { id: "update_orders", label: "Update Status Pesanan" },
+  //     { id: "delete_orders", label: "Batalkan / Hapus Pesanan" },
   //   ],
   // },
   {
     module: "Data Customer",
     actions: [
       { id: "view_customers", label: "Lihat Customer" },
-      { id: "edit_customers", label: "Ubah Customer" },
+      { id: "edit_customers", label: "Ubah Data Customer" },
       { id: "delete_customers", label: "Hapus Customer" },
     ],
   },
   {
     module: "Kelola Akun Pengguna",
     actions: [
-      { id: "view_users", label: "Lihat Pengguna" },
-      { id: "create_users", label: "Tambah Pengguna" },
-      { id: "edit_users", label: "Ubah Pengguna" },
-      { id: "delete_users", label: "Hapus Pengguna" },
+      { id: "view_users", label: "Lihat Pengguna Sistem" },
+      { id: "create_users", label: "Tambah Pengguna Baru" },
+      { id: "edit_users", label: "Ubah Data Pengguna" },
+      { id: "delete_users", label: "Blokir / Hapus Pengguna" },
     ],
   },
   {
     module: "Manajemen Role & Akses",
     actions: [
-      { id: "view_roles", label: "Lihat Role" },
-      { id: "create_roles", label: "Tambah Role" },
-      { id: "edit_roles", label: "Ubah Role" },
+      { id: "view_roles", label: "Lihat Otoritas Role" },
+      { id: "create_roles", label: "Tambah Role Baru" },
+      { id: "edit_roles", label: "Ubah Hak Akses Role" },
       { id: "delete_roles", label: "Hapus Role" },
     ],
   },

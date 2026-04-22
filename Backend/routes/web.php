@@ -23,6 +23,7 @@ use App\Http\Controllers\ProductDimensionController;
 use App\Http\Controllers\ProductMarketingBlockController;
 use App\Http\Controllers\ProductMarketingFeatureController;
 use App\Http\Controllers\ProductSizeController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -167,6 +168,15 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::post('/part-textures', [PartTexturesController::class, 'store']);
     Route::put('/part-textures/{id}', [PartTexturesController::class, 'update']);
     Route::delete('/part-textures/{id}', [PartTexturesController::class, 'destroy']);
+
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::put('/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+    Route::post('/sub-categories', [CategoryController::class, 'storeSubCategory']);
+    Route::put('/sub-categories/{id}', [CategoryController::class, 'updateSubCategory']);
+    Route::delete('/sub-categories/{id}', [CategoryController::class, 'destroySubCategory']);
 
 });
 
