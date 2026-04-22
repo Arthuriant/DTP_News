@@ -16,9 +16,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
 
- // JANGAN LUPA IMPORT INI DI ATAS:
-  // import { AuthService } from "@/services/AuthService";
-
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
@@ -61,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   /**
-   * FILTER MENU: 
+   * FILTER MENU: TERSINKRONISASI DENGAN RBAC
    */
   const allMenuItems = [
     { 
@@ -71,10 +68,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       permissionKey: 'view_dashboard' 
     },
     { 
+      title: 'Manajemen Kategori', 
+      path: '/admin/kategori', 
+      // Ikon Folder/Tag yang cocok untuk Kategori
+      icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z', 
+      permissionKey: 'view_categories' // 👈 Pastikan key ini sama persis dengan yang ada di Roles.tsx
+    },
+    { 
+      title: 'Manajemen Produk', 
+      path: '/admin/produk', 
+      // Ikon Kubus (Melambangkan Katalog & 3D)
+      icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 
+      permissionKey: 'view_products' 
+    },
+    // { 
+    //   title: 'Pesanan Custom', 
+    //   path: '/admin/orders', // Sesuaikan jika path routing Anda berbeda
+    //   // Ikon Tas Belanja (Melambangkan Order)
+    //   icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', 
+    //   permissionKey: 'view_orders' 
+    // },
+    { 
       title: 'Data Pelanggan', 
-      // Catatan: Jika routing Next.js kamu menggunakan nama tunggal, ganti jadi '/admin/customer'
       path: '/admin/customer', 
-      // Menggunakan icon "Users Group" agar berbeda dengan admin
       icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', 
       permissionKey: 'view_customers' 
     },
@@ -89,12 +105,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       path: '/admin/roles', 
       icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 
       permissionKey: 'view_roles' 
-    },
-    { 
-      title: 'Manajemen Produk', 
-      path: '/admin/produk', 
-      icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', 
-      permissionKey: 'view_products' 
     },
   ];
 
@@ -147,7 +157,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <img 
               src="/icon.png" 
               alt="Icon Logo" 
-              // Menghilang saat group (sidebar) di-hover
               className="w-14 h-14 object-contain transition-all duration-500 absolute opacity-100 group-hover:opacity-0 group-hover:scale-50" 
             />
             
@@ -155,7 +164,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <img 
               src="/images/logo/logo1.png" 
               alt="Full Logo" 
-              // Muncul saat group (sidebar) di-hover
               className="h-14 w-auto max-w-[200px] object-contain transition-all duration-500 absolute opacity-0 group-hover:opacity-100 group-hover:scale-100 scale-125" 
             />
           </div>
@@ -164,7 +172,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <nav className="flex-1 mt-6 px-3 space-y-2 overflow-y-auto relative z-10 no-scrollbar pb-10">
           {menuItems.map((item) => {
-            const isActive = pathname === item.path;
+            // Pengecekan path yang lebih canggih agar menu tetap aktif saat berada di halaman turunannya (misal: /admin/produk/123/part)
+            const isActive = pathname === item.path || (pathname.startsWith(item.path + '/') && item.path !== '/admin');
+            
             return (
               <li key={item.path} className="list-none">
                 <Link href={item.path} className={`flex items-center px-4 py-4 rounded-2xl transition-all duration-300 group/menu relative ${isActive ? 'bg-gradient-to-r from-[#C5A059] to-[#E0B976] text-[#2D1A11] shadow-[0_10px_20px_-5px_rgba(197,160,89,0.4)]' : 'text-[#F8F3E9]/60 hover:bg-[#C5A059]/10 hover:text-[#C5A059]'}`}>
@@ -195,7 +205,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="h-24 bg-[#F8F3E9]/80 backdrop-blur-xl border-b border-[#C5A059]/20 flex items-center justify-between px-8 sm:px-12 z-20 shrink-0 shadow-sm">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#2D1A11]" style={{ fontFamily: "'Cinzel', serif" }}>
-              {menuItems.find(item => item.path === pathname)?.title || 'Admin Panel'}
+              {menuItems.find(item => pathname === item.path || (pathname.startsWith(item.path + '/') && item.path !== '/admin'))?.title || 'Admin Panel'}
             </h2>
             <p className="text-sm text-[#C5A059] font-medium mt-1 tracking-wide font-sans">
               Selamat datang kembali, {firstName}
@@ -223,4 +233,4 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </div>
   );
-} 
+}
