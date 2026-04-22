@@ -39,11 +39,6 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
         credentials: 'include',
       });
 
-      if (!userRes.ok) {
-        // Belum login → redirect ke signin
-        window.location.href = '/signin';
-        return;
-      }
 
       // ── Fetch produk ────────────────────────────────
       const res = await fetch(`/api-fe/proxy/products/${productId}`);
