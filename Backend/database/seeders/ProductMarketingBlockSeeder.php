@@ -16,7 +16,7 @@ class ProductMarketingBlockSeeder extends Seeder
         $product = Product::where('name', 'Classic Messenger Bag')->first();
 
         if ($product) {
-            
+
             $blocks = [
                 [
                     'title'       => 'Interior Terorganisir',
@@ -32,7 +32,7 @@ class ProductMarketingBlockSeeder extends Seeder
 
             foreach ($blocks as $block) {
                 ProductMarketingBlocks::create([
-                    'product_id'  => $product->id, 
+                    'product_id'  => $product->id,
                     'title'       => $block['title'],
                     'subtitle'    => $block['subtitle'],
                     'description' => $block['description'],
@@ -40,7 +40,7 @@ class ProductMarketingBlockSeeder extends Seeder
             }
 
             $this->command->info('2 data Product Marketing Blocks berhasil ditambahkan untuk Classic Messenger Bag!');
-            
+
         } else {
             $this->command->error('Gagal: Produk "Classic Messenger Bag" tidak ditemukan!');
         }

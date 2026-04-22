@@ -849,7 +849,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[10px] tracking-widest text-[#C5A059] uppercase font-sans">Visualisasi Emas</div>
                         )}
-                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.id}</div>
+                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.title}</div>
                       </div>
                       <div className="space-y-2 mb-6 flex-grow text-center">
                         <h4 className="text-2xl text-[#2D1A11] font-bold">{size.title}</h4>
