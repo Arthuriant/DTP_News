@@ -45,16 +45,54 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
       if (res.ok) {
         const json = await res.json();
         const raw = json.data;
-        const slug = raw.slug; // "classic_messenger_bag"
-
+        const slug = raw.slug;
         const localConfig = PRODUCTS_CONFIG[slug];
-        if (!localConfig) {
-          setLoading(false);
-          return;
-        }
 
-          // ── Mapping API → ProductConfig ──────────────────────
-         const mapped: ProductConfig = {
+        // ── Mapping parts ──────────────────────────────────
+        const mappedParts = (raw.parts || []).map((part: any) => ({
+          id:        part.id,
+          name:      part.name,
+          basePrice: 0,
+          zIndex:    part.z_index,
+          variants:  (part.variants || []).map((variant: any) => ({
+            id:         variant.id,
+            name:       variant.name,
+            price:      parseFloat(variant.price),
+            priceLabel: variant.price > 0
+              ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
+              : "",
+            textures: (variant.textures || []).map((texture: any) => ({
+              id:        texture.id,
+              name:      texture.name,
+              price:     parseFloat(texture.price),
+              thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
+              image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
+              img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+            })),
+          })),
+          textures: part.variants?.length === 0 ? [] : undefined,
+        }));
+
+        // ── Mapping sizes ──────────────────────────────────
+        const mappedSizes = (raw.sizes || []).map((s: any) => ({
+          id:          s.id,
+          title:       s.title,
+          desc:        s.short_desc,
+          description: s.description,
+          price:       s.price,
+          image:       s.img || "",
+          dimensions: {
+            width:  s.width,
+            height: s.height,
+            depth:  s.depth,
+            unit:   s.unit,
+          },
+        }));
+
+        // ── Base data dari API ─────────────────────────────
+        const baseData = {
           id:              raw.id,
           name:            raw.name,
           basePrice:       parseFloat(raw.base_price),
@@ -65,67 +103,24 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
           discountedPrice: parseFloat(raw.base_price),
           thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
           previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-          gallery:         raw.gallery?.map((g: any) => g.img) || [],
+          gallery:         (raw.gallery || []).map((g: any) => g.img),
           dimensionsImage: raw.dimension?.img || "",
-          specifications: [
-              raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
-              raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
-              raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+          specifications:  [
+            raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+            raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
+            raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
           ].filter(Boolean) as { label: string; value: string }[],
           marketingBlocks: [],
-          sizes: raw.sizes?.map((s: any) => ({
-              id:          s.id,
-              title:       s.title,
-              desc:        s.short_desc,
-              description: s.description,
-              price:       s.price,
-              image:       s.img || "",
-              dimensions: {
-                  width:  s.width,
-                  height: s.height,
-                  depth:  s.depth,
-                  unit:   s.unit,
-              },
-          })) || [],
+          sizes:           mappedSizes,
+          parts:           mappedParts,
+        };
 
-            // ── Mapping parts ──────────────────────────────────
-            parts: (raw.parts || []).map((part: any) => ({
-              id:        part.id,
-              name:      part.name,
-              basePrice: 0,
-              zIndex:    part.z_index,
+        // ── Gabungkan dengan localConfig kalau ada ─────────
+        const mapped: ProductConfig = localConfig
+          ? { ...localConfig, ...baseData }
+          : baseData;
 
-              // ── Mapping variants ───────────────────────────
-              variants: (part.variants || []).map((variant: any) => ({
-                id:         variant.id,
-                name:       variant.name,
-                price:      parseFloat(variant.price),
-                priceLabel: variant.price > 0 
-                  ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}` 
-                  : "",
-
-                // ── Mapping textures ─────────────────────────
-                textures: (variant.textures || []).map((texture: any) => ({
-                  id:       texture.id,
-                  name:     texture.name,
-                  price:    parseFloat(texture.price),
-                  thumb:    texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
-                  image:    texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                  // ← tambah ini
-                  img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                  img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
-                  img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
-                })),
-              })),
-
-              // Kalau part tidak punya variants, textures langsung di part
-              textures: part.variants?.length === 0
-                ? []
-                : undefined,
-            })),
-          };
-
-          setProduct(mapped);
+        setProduct(mapped);
         }
       } catch (err) {
         console.error("Gagal fetch produk:", err);
