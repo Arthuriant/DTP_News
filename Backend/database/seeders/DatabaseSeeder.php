@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             PartTextureSeeder::class, // Baru jalan ini untuk membuat texture yang butuh referensi produk, part, dan varian
             ProductGallerySeeder::class,
             ProductSizeSeeder::class,
+            ProductDimensionSeeder::class,
         ]);
     }
 }

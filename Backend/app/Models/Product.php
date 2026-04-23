@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
 use App\Models\ProductParts;
 use App\Models\ProductGalleries;
 use App\Models\ProductSizes;
+use App\Models\ProductDimensions;
 
 class Product extends Model
 {
@@ -61,5 +62,10 @@ class Product extends Model
     public function sizes()
     {
         return $this->hasMany(ProductSizes::class, 'product_id')->orderBy('id');
+    }
+
+    public function dimension()
+    {
+        return $this->hasOne(ProductDimensions::class, 'product_id');
     }
 }

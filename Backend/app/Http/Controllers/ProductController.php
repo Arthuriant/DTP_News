@@ -99,6 +99,7 @@ class ProductController extends Controller
             'parts.variants.textures', // ← load semua relasi sekaligus
             'gallery', // ← tambah ini
             'sizes', // ← tambah ini
+            'dimension', // ← tambah
         ])->find($id);
 
         if (!$product) {
@@ -139,7 +140,7 @@ class ProductController extends Controller
             'success' => true,
             'data'    => [
                 'id'           => $product->id,
-                'slug' => Str::slug($product->name, '_'),
+                'slug'         => Str::slug($product->name, '_'),
                 'name'         => $product->name,
                 'description'  => $product->description,
                 'summary'      => $product->summary,
@@ -147,28 +148,37 @@ class ProductController extends Controller
                 'img'          => $product->img,
                 'is_active'    => $product->is_active,
                 'sub_category' => $product->subCategory,
-                'gallery'      => $product->gallery->map(function ($item) { // ← tambah ini
-            return [
-                'id'         => $item->id,
-                'img'        => $item->img ? "http://127.0.0.1:8000/storage/{$item->img}" : null,
-                'sort_order' => $item->sort_order,
+                'gallery'      => $product->gallery->map(function ($item) {
+                    return [
+                        'id'         => $item->id,
+                        'img'        => $item->img ? "http://127.0.0.1:8000/storage/{$item->img}" : null,
+                        'sort_order' => $item->sort_order,
                     ];
                 }),
                 'parts'        => $formattedParts,
-                'sizes' => $product->sizes->map(function ($size) {
-            return [
-                'id'          => $size->id,
-                'title'       => $size->title,
-                'short_desc'  => $size->short_desc,
-                'description' => $size->description,
-                'price'       => (float) $size->price,
-                'width'       => $size->width,
-                'height'      => $size->height,
-                'depth'       => $size->depth,
-                'unit'        => $size->unit,
-                'img'         => $size->img ? "http://127.0.0.1:8000/storage/{$size->img}" : null,
-    ];
-}),
+                'sizes'        => $product->sizes->map(function ($size) {
+                    return [
+                        'id'          => $size->id,
+                        'title'       => $size->title,
+                        'short_desc'  => $size->short_desc,
+                        'description' => $size->description,
+                        'price'       => (float) $size->price,
+                        'width'       => $size->width,
+                        'height'      => $size->height,
+                        'depth'       => $size->depth,
+                        'unit'        => $size->unit,
+                        'img'         => $size->img ? "http://127.0.0.1:8000/storage/{$size->img}" : null,
+                    ];
+                }),
+                // ✅ DIMENSION DI SINI, sejajar dengan sizes
+                'dimension'    => $product->dimension ? [
+                    'product_style' => $product->dimension->product_style,
+                    'total_volumes' => $product->dimension->total_volumes,
+                    'weight'        => $product->dimension->weight,
+                    'img'           => $product->dimension->img
+                                        ? "http://127.0.0.1:8000/storage/{$product->dimension->img}"
+                                        : null,
+                ] : null,
             ]
         ], 200);
     }

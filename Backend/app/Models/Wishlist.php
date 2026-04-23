@@ -3,29 +3,38 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib ditambahkan
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Wishlist extends Model
 {
-    use HasUuids; // 👈 Aktifkan pembuatan UUID otomatis
+    use HasUuids;
 
-    // Beri tahu Laravel nama tabelnya secara eksplisit (karena kata 'wishlist' tidak ada bentuk jamaknya seperti 'users')
-    protected $table = 'wishlist';
+    protected $table = 'wishlists';
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
-        'user_id',
         'product_id',
+        'user_id',
+        'customizations',
+        'total_price',
     ];
 
-    // Relasi ke User
-    public function user()
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'customizations' => 'array', // ← tambah ini
+        ];
     }
 
-    // Relasi ke Product
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
