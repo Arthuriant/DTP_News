@@ -24,6 +24,7 @@ use App\Http\Controllers\ProductMarketingBlockController;
 use App\Http\Controllers\ProductMarketingFeatureController;
 use App\Http\Controllers\ProductSizeController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -185,3 +186,10 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
 });
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/wishlist',                    [WishlistController::class, 'index']);
+    Route::post('/wishlist',                   [WishlistController::class, 'store']);
+    Route::delete('/wishlist/{product_id}',    [WishlistController::class, 'destroy']);
+    Route::get('/wishlist/check/{product_id}', [WishlistController::class, 'check']);
+});

@@ -21,15 +21,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         const data = await AuthService.getUser();
 
-        if (data && data.roles && (data.roles.includes("admin") || data.roles.includes("super_admin"))) {
+        // LOGIKA BARU: Cek Hak Akses (Bukan Nama Role)
+        const isSuperAdmin = data?.roles?.includes("super_admin");
+        const canViewDashboard = data?.permissions?.includes("view_dashboard");
+
+        if (data && (isSuperAdmin || canViewDashboard)) {
           setUserData({ 
             name: data.name, 
             email: data.email, 
-            roles: data.roles,
+            roles: data.roles || [], // Antisipasi jika kosong
             permissions: data.permissions || [] 
           });
           setIsAuthorized(true);
         } else {
+          // Jika tidak punya akses dashboard, tendang ke halaman publik
           window.location.replace("/");
         }
 

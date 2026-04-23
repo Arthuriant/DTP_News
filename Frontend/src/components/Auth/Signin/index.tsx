@@ -29,14 +29,14 @@ const Signin = () => {
       try {
         const data = await AuthService.getUser();
         
-        // LOGIKA REDIREKSI BERDASARKAN ROLE
-        if (
-          data.roles &&
-          (data.roles.includes("admin") || data.roles.includes("super_admin"))
-        ) {
-          window.location.href = "/admin";
+        // LOGIKA REDIREKSI BERDASARKAN HAK AKSES
+        const isSuperAdmin = data?.roles?.includes("super_admin");
+        const canViewDashboard = data?.permissions?.includes("view_dashboard");
+
+        if (isSuperAdmin || canViewDashboard) {
+          window.location.href = "/admin"; // Masuk ke panel Admin
         } else {
-          window.location.href = "/";
+          window.location.href = "/"; // Masuk ke halaman E-Commerce pelanggan
         }
       } catch (err) {
         // Jika error (misal 401), biarkan di halaman login
@@ -61,14 +61,14 @@ const Signin = () => {
         localStorage.setItem("user", JSON.stringify(loginRes.user));
       }
 
-      // 2. Ambil data user lengkap untuk cek Role
+      // 2. Ambil data user lengkap untuk cek Role & Permission
       const userData = await AuthService.getUser();
 
-      // 3. Arahkan berdasarkan role
-      if (
-        userData.roles &&
-        (userData.roles.includes("admin") || userData.roles.includes("super_admin"))
-      ) {
+      // 3. PERBAIKAN: Arahkan berdasarkan Hak Akses (Permission), bukan nama role
+      const isSuperAdmin = userData?.roles?.includes("super_admin");
+      const canViewDashboard = userData?.permissions?.includes("view_dashboard");
+
+      if (isSuperAdmin || canViewDashboard) {
         window.location.href = "/admin"; // Langsung ke Dashboard Admin
       } else {
         window.location.href = "/"; // Customer ke Beranda

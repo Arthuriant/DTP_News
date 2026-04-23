@@ -19,7 +19,7 @@ class RoleController extends Controller
                 'id' => $role->id,
                 'name' => $role->name,
                 'users_count' => $role->users_count,
-                // Format ulang permission agar berbentuk array string (contoh: ['view_products', 'edit_products'])
+                // Format ulang permission agar berbentuk array string
                 'permissions' => $role->permissions->pluck('name')
             ];
         });
@@ -37,12 +37,24 @@ class RoleController extends Controller
 
         $role = Role::create([
             'name' => strtolower($request->name),
-            'guard_name' => 'web' // Ini kunci untuk mencegah error "null class"
+            'guard_name' => 'sanctum' 
         ]);
         
-        // Pasangkan hak akses ke role ini
-        if ($request->has('permissions')) {
-            $role->syncPermissions($request->permissions);
+        // Pasangkan hak akses ke role ini (Dilengkapi Auto-Create)
+        if ($request->has('permissions') && is_array($request->permissions)) {
+            $validPermissions = [];
+            
+            foreach ($request->permissions as $permName) {
+                // Cek apakah permission sudah ada, jika belum otomatis buat baru!
+                $permission = Permission::firstOrCreate([
+                    'name' => $permName,
+                    'guard_name' => 'sanctum'
+                ]);
+                $validPermissions[] = $permission->name;
+            }
+            
+            // Sync dengan array permission yang sudah dipastikan ada di database
+            $role->syncPermissions($validPermissions);
         }
 
         return response()->json(['message' => 'Role berhasil dibuat']);
@@ -60,9 +72,20 @@ class RoleController extends Controller
             $role->save();
         }
 
-        // Update hak aksesnya
-        if ($request->has('permissions')) {
-            $role->syncPermissions($request->permissions);
+        // Update hak aksesnya (Dilengkapi Auto-Create)
+        if ($request->has('permissions') && is_array($request->permissions)) {
+            $validPermissions = [];
+            
+            foreach ($request->permissions as $permName) {
+                // Cek apakah permission sudah ada, jika belum otomatis buat baru!
+                $permission = Permission::firstOrCreate([
+                    'name' => $permName,
+                    'guard_name' => 'web'
+                ]);
+                $validPermissions[] = $permission->name;
+            }
+            
+            $role->syncPermissions($validPermissions);
         }
 
         return response()->json(['message' => 'Role berhasil diupdate']);

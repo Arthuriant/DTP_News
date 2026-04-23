@@ -8,24 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('wishlist', function (Blueprint $table) {
-            // 1. Primary Key wajib UUID
+        Schema::create('wishlists', function (Blueprint $table) {
             $table->uuid('id')->primary();
-
-            // 2. Foreign Key ke tabel products (Gunakan UUID)
-            $table->uuid('product_id'); 
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-
-            // 3. Foreign Key ke tabel users (Gunakan UUID) - INI SOLUSI ERRORNYA
-            $table->uuid('user_id'); 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-
+            $table->uuid('product_id');
+            $table->uuid('user_id');
             $table->timestamps();
+
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('wishlist');
+        Schema::dropIfExists('wishlists');
     }
 };

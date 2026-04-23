@@ -39,95 +39,88 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
         credentials: 'include',
       });
 
-      if (!userRes.ok) {
-        // Belum login → redirect ke signin
-        window.location.href = '/signin';
-        return;
-      }
 
       // ── Fetch produk ────────────────────────────────
       const res = await fetch(`/api-fe/proxy/products/${productId}`);
       if (res.ok) {
         const json = await res.json();
         const raw = json.data;
-        const slug = raw.slug; // "classic_messenger_bag"
-
+        const slug = raw.slug;
         const localConfig = PRODUCTS_CONFIG[slug];
-        if (!localConfig) {
-          setLoading(false);
-          return;
-        }
 
-          // ── Mapping API → ProductConfig ──────────────────────
-          const mapped: ProductConfig = {
-            id:             raw.id,
-            name:           raw.name,
-            basePrice:      parseFloat(raw.base_price),
-            numericId:      0,
-            catalogTitle:   raw.name,
-            reviews:        0,
-            catalogPrice:   parseFloat(raw.base_price),
-            discountedPrice: parseFloat(raw.base_price),
-            thumbnails:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            previews:raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            gallery: raw.gallery?.map((g: any) => g.img) || [],
-            dimensionsImage: "",
-            specifications: [],
-            marketingBlocks: [],
-             // ← sizes di level atas, bukan di dalam parts
-            sizes: raw.sizes?.map((s: any) => ({
-              id:          s.id,
-              title:       s.title,
-              desc:        s.short_desc,
-              description: s.description,
-              price:       s.price,
-              image:       s.img || "",
-              dimensions: {
-                width:  s.width,
-                height: s.height,
-                depth:  s.depth,
-                unit:   s.unit,
-              },
-            })) || [],
-
-            // ── Mapping parts ──────────────────────────────────
-            parts: (raw.parts || []).map((part: any) => ({
-              id:        part.id,
-              name:      part.name,
-              basePrice: 0,
-              zIndex:    part.z_index,
-
-              // ── Mapping variants ───────────────────────────
-              variants: (part.variants || []).map((variant: any) => ({
-                id:         variant.id,
-                name:       variant.name,
-                price:      parseFloat(variant.price),
-                priceLabel: variant.price > 0 
-                  ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}` 
-                  : "",
-
-                // ── Mapping textures ─────────────────────────
-                textures: (variant.textures || []).map((texture: any) => ({
-                  id:       texture.id,
-                  name:     texture.name,
-                  price:    parseFloat(texture.price),
-                  thumb:    texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
-                  image:    texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                  // ← tambah ini
-                  img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                  img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
-                  img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
-                })),
-              })),
-
-              // Kalau part tidak punya variants, textures langsung di part
-              textures: part.variants?.length === 0
-                ? []
-                : undefined,
+        // ── Mapping parts ──────────────────────────────────
+        const mappedParts = (raw.parts || []).map((part: any) => ({
+          id:        part.id,
+          name:      part.name,
+          basePrice: 0,
+          zIndex:    part.z_index,
+          variants:  (part.variants || []).map((variant: any) => ({
+            id:         variant.id,
+            name:       variant.name,
+            price:      parseFloat(variant.price),
+            priceLabel: variant.price > 0
+              ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
+              : "",
+            textures: (variant.textures || []).map((texture: any) => ({
+              id:        texture.id,
+              name:      texture.name,
+              price:     parseFloat(texture.price),
+              thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
+              image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
+              img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
             })),
-          };
+          })),
+          textures: part.variants?.length === 0 ? [] : undefined,
+        }));
 
-          setProduct(mapped);
+        // ── Mapping sizes ──────────────────────────────────
+        const mappedSizes = (raw.sizes || []).map((s: any) => ({
+          id:          s.id,
+          title:       s.title,
+          desc:        s.short_desc,
+          description: s.description,
+          price:       s.price,
+          image:       s.img || "",
+          dimensions: {
+            width:  s.width,
+            height: s.height,
+            depth:  s.depth,
+            unit:   s.unit,
+          },
+        }));
+
+        // ── Base data dari API ─────────────────────────────
+        const baseData = {
+          id:              raw.id,
+          name:            raw.name,
+          basePrice:       parseFloat(raw.base_price),
+          numericId:       0,
+          catalogTitle:    raw.name,
+          reviews:         0,
+          catalogPrice:    parseFloat(raw.base_price),
+          discountedPrice: parseFloat(raw.base_price),
+          thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          gallery:         (raw.gallery || []).map((g: any) => g.img),
+          dimensionsImage: raw.dimension?.img || "",
+          specifications:  [
+            raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+            raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
+            raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+          ].filter(Boolean) as { label: string; value: string }[],
+          marketingBlocks: [],
+          sizes:           mappedSizes,
+          parts:           mappedParts,
+        };
+
+        // ── Gabungkan dengan localConfig kalau ada ─────────
+        const mapped: ProductConfig = localConfig
+          ? { ...localConfig, ...baseData }
+          : baseData;
+
+        setProduct(mapped);
         }
       } catch (err) {
         console.error("Gagal fetch produk:", err);
@@ -169,105 +162,98 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const { openCartModal } = useCartModalContext();
 
   const screenshotRef = useRef<HTMLDivElement>(null);
-  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
-
-    // ← TAMBAH INI sebelum state
-   const getSavedData = () => {
-    if (typeof window === 'undefined') return null;
-    const saved = localStorage.getItem(`customization_${product.id}`);
-    return saved ? JSON.parse(saved) : null;
-  };
-  const savedData = getSavedData();
-
-
-
 
   // --- BUILD STEPS ARRAY ---
   const steps = [];
   if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
   product.parts.forEach((part) => steps.push({ id: part.id, type: 'part', title: part.name, partData: part }));
 
-  // --- STATES ---
+  // --- SEMUA STATE ---
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const currentStep = steps[activeStepIndex];
-
-  const [activeSize, setActiveSize] = useState<string>(
-    savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : "")
-);
-
-const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(
-  savedData?.shapeSelections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-    });
-    return init;
-  })()
-);
-
-const [selections, setSelections] = useState<Record<string, string>>(
-  savedData?.selections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const textures = variant?.textures || p.textures || [];
-      const defaultTexture = textures[0];
-      const colors = defaultTexture?.colors || [];
-      init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
-    });
-    return init;
-  })()
-);
-
-const [textureSelections, setTextureSelections] = useState<Record<string, string>>(
-  savedData?.textureSelections || (() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const textures = variant?.textures || p.textures || [];
-      init[p.id] = textures[0]?.id || "base";
-    });
-    return init;
-  })()
-);
-
-const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>(
-  savedData?.visibleParts || (() => {
-    const init: Record<string, boolean> = {};
-    product.parts.forEach((p) => (init[p.id] = true));
-    return init;
-  })()
-);
-
-const [activeView, setActiveView] = useState<string>(
-  savedData?.activeView || "front"
-  );
-
-  // Modal States 
+  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [activeSize, setActiveSize] = useState<string>("");
+  const [shapeSelections, setShapeSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [textureSelections, setTextureSelections] = useState<Record<string, string>>({});
+  const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>({});
+  const [activeView, setActiveView] = useState<string>("front");
   const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
   const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
   const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
-
-  // TAMBAHAN: State full preview
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [frame360, setFrame360] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
 
+  // --- SEMUA USEEFFECT ---
+
+  // 1. Load dari localStorage
   useEffect(() => {
-  localStorage.setItem(`customization_${product.id}`, JSON.stringify({
-    productId: product.id,
-    activeSize,
-    shapeSelections,
-    selections,
-    textureSelections,
-    visibleParts,
-    activeView,
-  }));
-}, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView]);
+    const saved = localStorage.getItem(`customization_${product.id}`);
+    const savedData = saved ? JSON.parse(saved) : null;
 
-  // Effect to auto-highlight part when changing step
+    setActiveSize(savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : ""));
+
+    setShapeSelections(savedData?.shapeSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+      });
+      return init;
+    })());
+
+    setSelections(savedData?.selections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        const textures = variant?.textures || p.textures || [];
+        const colors = textures[0]?.colors || [];
+        init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
+      });
+      return init;
+    })());
+
+    setTextureSelections(savedData?.textureSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        const textures = variant?.textures || p.textures || [];
+        init[p.id] = textures[0]?.id || "base";
+      });
+      return init;
+    })());
+
+    setVisibleParts(savedData?.visibleParts || (() => {
+      const init: Record<string, boolean> = {};
+      product.parts.forEach((p) => (init[p.id] = true));
+      return init;
+    })());
+
+    setActiveView(savedData?.activeView || "front");
+    setIsHydrated(true);
+  }, []);
+
+  // 2. Save ke localStorage
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem(`customization_${product.id}`, JSON.stringify({
+      productId: product.id,
+      activeSize,
+      shapeSelections,
+      selections,
+      textureSelections,
+      visibleParts,
+      activeView,
+    }));
+  }, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView, isHydrated]);
+
+  // 3. Highlight part
   useEffect(() => {
     if (currentStep && currentStep.type === 'part') {
       setHighlightedPartId(currentStep.id);
@@ -276,11 +262,10 @@ const [activeView, setActiveView] = useState<string>(
     }
   }, [activeStepIndex, currentStep]);
 
+  if (!isHydrated) return null;
   // 360 ROTATION
   const TOTAL_FRAMES = 17;
-  const [frame360, setFrame360] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
+  
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
@@ -857,7 +842,7 @@ const [activeView, setActiveView] = useState<string>(
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[10px] tracking-widest text-[#C5A059] uppercase font-sans">Visualisasi Emas</div>
                         )}
-                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.id}</div>
+                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.title}</div>
                       </div>
                       <div className="space-y-2 mb-6 flex-grow text-center">
                         <h4 className="text-2xl text-[#2D1A11] font-bold">{size.title}</h4>

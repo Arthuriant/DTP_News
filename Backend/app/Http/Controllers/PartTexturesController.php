@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str; // ← tambah import ini
 
 class PartTexturesController extends Controller
 {
@@ -90,7 +91,8 @@ class PartTexturesController extends Controller
                 Storage::disk('public')->makeDirectory($directory);
 
                 // 3️⃣ Bersihkan nama
-                $cleanName = strtolower(str_replace(' ', '-', $texture->name));
+                $cleanName = Str::slug($texture->name);
+
 
                 $imageFields = ['top', 'back', 'front', 'thumb'];
 
@@ -106,8 +108,7 @@ class PartTexturesController extends Controller
                         'public'
                     );
 
-                    $imagePaths["img_{$field}"] =
-                        "storage/{$directory}/{$fileName}";
+                    $imagePaths["img_{$field}"] = "{$directory}/{$fileName}";
                 }
 
                 // 4️⃣ Update kolom image
@@ -164,7 +165,8 @@ class PartTexturesController extends Controller
 
         $directory = "products/{$texture->product_id}/parts/{$texture->part_id}/variants/{$texture->variant_id}/textures/{$texture->id}";
 
-        $cleanName = strtolower(str_replace(' ', '-', $texture->name));
+        $cleanName = Str::slug($texture->name);
+
 
         $imageFields = ['top', 'back', 'front', 'thumb'];
 

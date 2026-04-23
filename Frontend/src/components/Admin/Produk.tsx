@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
 import { AuthService } from '@/services/AuthService'; // 👈 Tambahkan import ini
+import { CategoryService } from '@/services/CategoryService';
 
 export default function Produk() {
   const router = useRouter();
@@ -27,19 +28,24 @@ export default function Produk() {
     img: null as File | null 
   });
 
+  const [categories, setCategories] = useState<any[]>([]);
+
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
 
+  // 1. FUNGSI FETCH MENGGUNAKAN SERVICE
   // 1. FUNGSI FETCH MENGGUNAKAN SERVICE
   const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch produk dan data user secara bersamaan
-      const [productData, userData] = await Promise.all([
+      // PERBAIKAN: Tambahkan CategoryService.getAll() ke dalam Promise.all
+      const [productData, userData, categoryData] = await Promise.all([
         ProductService.getProducts(),
-        AuthService.getUser()
+        AuthService.getUser(),
+        CategoryService.getAll() // 👈 Ini yang mengambil data kategori
       ]);
       
       setProducts(productData || []); 
+      setCategories(categoryData || []); // 👈 Simpan datanya ke state categories
 
       if (userData) {
         setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
@@ -269,8 +275,30 @@ export default function Produk() {
               </div>
               
               <div>
-                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">ID Sub-Kategori (Sementara)</label>
-                <input required type="text" placeholder="Masukkan UUID Sub Kategori" value={editForm.sub_categories_id} onChange={e => setEditForm({...editForm, sub_categories_id: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all" />
+                <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Sub-Kategori</label>
+                <select 
+                  required 
+                  value={editForm.sub_categories_id} 
+                  onChange={e => setEditForm({...editForm, sub_categories_id: e.target.value})} 
+                  className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>-- Pilih Sub-Kategori --</option>
+                  
+                  {/* Looping Kategori Utama sebagai Grup */}
+                  {categories.map((category) => (
+                    <optgroup key={category.id} label={category.name} className="font-bold text-[#2D1A11]">
+                      
+                      {/* Looping Sub-Kategori sebagai Pilihan */}
+                      {category.sub_categories?.map((sub: any) => (
+                        <option key={sub.id} value={sub.id} className="font-normal text-[#8B7355]">
+                          {sub.name}
+                        </option>
+                      ))}
+                      
+                    </optgroup>
+                  ))}
+                  
+                </select>
               </div>
 
               <div>
