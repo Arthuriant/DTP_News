@@ -9,88 +9,124 @@ use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
+    // ========================================================
+    // 1. ADD TO CART
+    // ========================================================
     public function addToCart(Request $request)
     {
-        // 1. Validasi data masuk (Sekarang menerima harga dan json kustomisasi)
         $request->validate([
             'product_id' => 'required',
             'price' => 'required|numeric',
-            'customizations' => 'nullable|array'
+            'custom_configuration' => 'nullable|array',
+            'image_preview' => 'nullable|string' // 👈 Format base64 dari frontend
         ]);
 
         $user = Auth::user();
-
-        // 2. Cari atau buat keranjang
         $cart = Cart::firstOrCreate(['user_id' => $user->id]);
 
-        // 3. Cek apakah ada barang yang PERSIS SAMA (ID produk sama & kustomisasi sama persis)
-        // Kita ambil semua barang dengan product_id yang sama dulu
+        // --- PROSES KONVERSI GAMBAR BASE64 KE PNG ---
+        $imagePath = null;
+        if ($request->filled('image_preview')) {
+            // Pisahkan header base64 dengan data gambarnya
+            $imageParts = explode(";base64,", $request->image_preview);
+            if (count($imageParts) == 2) {
+                $imageBase64 = base64_decode($imageParts[1]);
+                $fileName = uniqid('cart_') . '.png'; // Hasilkan nama unik, misal: cart_64abc123.png
+                
+                // Simpan ke storage/app/public/carts
+                \Illuminate\Support\Facades\Storage::disk('public')->put('carts/' . $fileName, $imageBase64);
+                
+                // Buat URL yang bisa diakses publik
+                $imagePath = asset('storage/carts/' . $fileName);
+            }
+        }
+
         $existingItems = CartItem::where('cart_id', $cart->id)
                                  ->where('product_id', $request->product_id)
                                  ->get();
 
-        // Cek manual apakah array kustomisasinya sama persis
         $foundItem = $existingItems->first(function($item) use ($request) {
-            return $item->customizations == $request->customizations;
+            return $item->custom_configuration == $request->custom_configuration;
         });
 
         if ($foundItem) {
-            // Jika user memesan tas dengan kustomisasi yang 100% sama, tambahkan jumlahnya saja
-            $foundItem->quantity += 1;
+            $foundItem->qty += 1;
             $foundItem->save();
         } else {
-            // Jika kustomisasinya beda (misal beda warna pita), buat sebagai item baru di keranjang
             CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $request->product_id,
                 'price' => $request->price,
-                'customizations' => $request->customizations,
-                'image_preview' => $request->image_preview,
-                'quantity' => 1
+                'custom_configuration' => $request->custom_configuration,
+                'image_preview' => $imagePath, // 👈 Simpan URL gambar ke database
+                'qty' => 1
             ]);
         }
 
-        return response()->json([
-            'message' => 'Tas Kustom berhasil masuk keranjang!'
-        ], 200);
+        $this->updateCartTotal($cart->id);
+
+        return response()->json(['message' => 'Tas Kustom berhasil masuk keranjang!'], 200);
     }
 
+    // ========================================================
+    // 2. GET CART (LIHAT KERANJANG)
+    // ========================================================
     public function getCart()
     {
         $user = Auth::user();
         if (!$user) return response()->json([], 401);
 
-        // Cari ID keranjang milik user
-        $cart = Cart::where('user_id', $user->id)->first();
-        if (!$cart) return response()->json([]);
-
-        // Ambil semua isi keranjangnya
-        $items = CartItem::where('cart_id', $cart->id)->get();
+        // Cari ID keranjang milik user, dan langsung muat isi items-nya
+        // Gunakan Eager Loading (with) agar data produk juga ikut terbawa
+        $cart = Cart::with(['items.product'])->where('user_id', $user->id)->first();
         
-        return response()->json($items, 200);
+        if (!$cart) {
+            return response()->json([
+                'total' => 0,
+                'items' => []
+            ], 200);
+        }
+
+        return response()->json([
+            'id' => $cart->id,
+            'total' => $cart->total,
+            'items' => $cart->items
+        ], 200);
     }
+
+    // ========================================================
+    // 3. REMOVE ITEM (HAPUS BARANG)
+    // ========================================================
     public function removeItem($id)
     {
         $user = Auth::user();
         if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
 
-        // 1. Cari keranjang milik user ini dulu
         $cart = Cart::where('user_id', $user->id)->first();
-        
-        if (!$cart) {
-            return response()->json(['message' => 'Keranjang tidak ditemukan'], 404);
-        }
+        if (!$cart) return response()->json(['message' => 'Keranjang tidak ditemukan'], 404);
 
-        // 2. Cari barang berdasarkan ID yang dikirim, dan pastikan itu ada di dalam keranjang user
         $item = CartItem::where('id', $id)
                         ->where('cart_id', $cart->id)
                         ->first();
 
         if ($item) {
-            $item->delete(); // Hapus barangnya
+            $item->delete(); 
+            $this->updateCartTotal($cart->id); // Update total setelah dihapus
             return response()->json(['message' => 'Barang berhasil dihapus'], 200);
         }
 
         return response()->json(['message' => 'Barang tidak ditemukan'], 404);
+    }
+
+    // ========================================================
+    // Fungsi Bantuan Internal untuk Menghitung Total Keranjang
+    // ========================================================
+    private function updateCartTotal($cartId)
+    {
+        $total = CartItem::where('cart_id', $cartId)
+                         ->selectRaw('SUM(price * qty) as total')
+                         ->value('total');
+
+        Cart::where('id', $cartId)->update(['total' => $total ?? 0]);
     }
 }
