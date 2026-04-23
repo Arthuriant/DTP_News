@@ -17,7 +17,16 @@ class Wishlist extends Model
     protected $fillable = [
         'product_id',
         'user_id',
+        'customizations',
+        'total_price',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'customizations' => 'array', // ← tambah ini
+        ];
+    }
 
     public function product()
     {

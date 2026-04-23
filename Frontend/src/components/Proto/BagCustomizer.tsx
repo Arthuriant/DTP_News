@@ -187,6 +187,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [frame360, setFrame360] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const [startX, setStartX] = useState(0);
 
   // --- SEMUA USEEFFECT ---
@@ -262,10 +264,64 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   }, [activeStepIndex, currentStep]);
 
+   useEffect(() => {
+    const checkWishlist = async () => {
+      try {
+        const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const json = await res.json();
+          setIsWishlisted(json.is_wishlisted);
+        }
+      } catch (err) {
+        console.error("Gagal cek wishlist:", err);
+      }
+    };
+    checkWishlist();
+  }, [product.id]);
+
+  // Toggle wishlist
+  const handleToggleWishlist = async () => {
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        // Hapus dari wishlist
+        await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        setIsWishlisted(false);
+      } else {
+        // Tambah ke wishlist
+          await fetch(`/api-fe/proxy/wishlist`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            customizations: {
+              size:         activeSize,
+              shapes:       shapeSelections,
+              textures:     textureSelections,
+              colors:       selections,
+              visibleParts: visibleParts,
+            },
+            total_price: calculateTotalPrice(), // ← tambah ini
+          }),
+        });
+        setIsWishlisted(true);
+      }
+    } catch (err) {
+      console.error("Gagal toggle wishlist:", err);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   if (!isHydrated) return null;
   // 360 ROTATION
   const TOTAL_FRAMES = 17;
-  
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
@@ -643,6 +699,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           <div className="w-full lg:w-[45%] flex flex-col relative z-10">
             <div className="bg-[#2D1A11] rounded-2xl p-7 shadow-2xl h-full flex flex-col min-h-[550px] border border-[#C5A059]/30 relative overflow-hidden">
               <div className="absolute right-0 top-0 bottom-0 w-16 opacity-10 mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '200px' }}></div>
+              
+              {/* HEADER */}
               <div className="flex items-center justify-between border-b border-[#C5A059]/30 pb-5 mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#C5A059] flex items-center justify-center text-[#2D1A11] font-bold text-sm shadow-inner">
@@ -653,16 +711,43 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     <p className="text-lg text-[#F8F3E9] uppercase tracking-widest">{currentStep.title}</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-3">
+                  {/* ✅ Tombol Wishlist */}
+                  <button
+                    onClick={handleToggleWishlist}
+                    disabled={wishlistLoading}
+                    title={isWishlisted ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-500
+                      ${isWishlisted
+                        ? "bg-[#C5A059] border-[#C5A059] text-[#2D1A11]"
+                        : "bg-transparent border-[#C5A059]/50 text-[#C5A059] hover:border-[#C5A059]"
+                      }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      fill={isWishlisted ? "currentColor" : "none"}
+                      stroke="currentColor" strokeWidth={2}
+                      className="w-5 h-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Tombol Prev */}
                   <button onClick={prevStep} disabled={activeStepIndex === 0} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                   </button>
+
+                  {/* Tombol Next */}
                   <button onClick={nextStep} disabled={activeStepIndex === steps.length - 1} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               </div>
 
+              {/* CONTENT */}
               <div key={currentStep.id} className="bg-[#F8F3E9] rounded-2xl p-7 relative flex-grow animate-soft-fade flex flex-col shadow-inner border border-[#E5D7C1] z-10">
                 
                 {/* UKURAN */}
@@ -752,12 +837,12 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                               <p className="text-[11px] text-[#2D1A11] font-semibold mb-3 uppercase tracking-wide">Warna Solid</p>
                               <div className="flex flex-wrap gap-3">
                                 {isColorable ? (
-                                    currentColors.map((color) => {
-                                      const isSelected = selections[part.id] === color.hex;
-                                      return (
-                                        <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />
-                                      );
-                                    })
+                                  currentColors.map((color) => {
+                                    const isSelected = selections[part.id] === color.hex;
+                                    return (
+                                      <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />
+                                    );
+                                  })
                                 ) : (
                                   <div className="text-[12px] text-[#6B442A] italic py-2">
                                     Material ini menggunakan corak natural.
@@ -773,21 +858,22 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 )}
               </div>
 
+              {/* BOTTOM: Total Investasi */}
               <div className="pt-6 mt-6 border-t border-[#C5A059]/30 relative z-10">
-                  <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
-                      <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                      <span className="text-3xl tracking-tighter font-light text-[#F8F3E9]">
-                        Rp <span className="font-bold text-[#C5A059]">{calculateTotalPrice().toLocaleString("id-ID")}</span>
-                      </span>
-                      <button 
-                        onClick={handleAddToCart} 
-                        className="bg-[#C5A059] text-[#2D1A11] px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white transition-all duration-500 shadow-xl"
-                      >
-                        Simpan Desain
-                      </button>
-                  </div>
+                <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
+                  <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-3xl tracking-tighter font-light text-[#F8F3E9]">
+                    Rp <span className="font-bold text-[#C5A059]">{calculateTotalPrice().toLocaleString("id-ID")}</span>
+                  </span>
+                  <button
+                    onClick={handleAddToCart}
+                    className="bg-[#C5A059] text-[#2D1A11] px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white transition-all duration-500 shadow-xl"
+                  >
+                    Simpan Desain
+                  </button>
+                </div>
               </div>
 
             </div>
