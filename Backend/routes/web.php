@@ -97,7 +97,13 @@ Route::patch('/addresses/{id}/set-primary', [AddressController::class, 'setPrima
 Route::put('/addresses/{id}', [AddressController::class, 'update'])->middleware('auth:sanctum');
 
 
-
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/wishlist',                    [WishlistController::class, 'index']);
+    Route::post('/wishlist',                   [WishlistController::class, 'store']);
+    Route::delete('/wishlist/{product_id}',    [WishlistController::class, 'destroy']);
+    Route::get('/wishlist/check/{product_id}', [WishlistController::class, 'check']);
+    Route::put('/wishlist/{product_id}', [WishlistController::class, 'update']);
+});
 // Admin & Super Admin - bisa CRUD
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
@@ -187,9 +193,4 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/wishlist',                    [WishlistController::class, 'index']);
-    Route::post('/wishlist',                   [WishlistController::class, 'store']);
-    Route::delete('/wishlist/{product_id}',    [WishlistController::class, 'destroy']);
-    Route::get('/wishlist/check/{product_id}', [WishlistController::class, 'check']);
-});
+
