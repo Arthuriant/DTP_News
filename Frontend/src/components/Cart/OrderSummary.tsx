@@ -1,63 +1,77 @@
-import { selectTotalPrice } from "@/redux/features/cart-slice";
 import { useAppSelector } from "@/redux/store";
 import React from "react";
-import { useSelector } from "react-redux";
 
 const OrderSummary = () => {
   const cartItems = useAppSelector((state) => state.cartReducer.items);
-  const totalPrice = useSelector(selectTotalPrice);
+
+  // 👇 MENGHITUNG TOTAL SECARA MANDIRI & AKURAT 👇
+  // Kita jumlahkan (Harga x Kuantiti) dari setiap barang secara real-time
+  const calculatedTotal = cartItems.reduce((total, item) => {
+    const itemPrice = Number(item.discountedPrice) || 0;
+    const itemQty = Number(item.quantity) || 1;
+    return total + (itemPrice * itemQty);
+  }, 0);
 
   return (
     <div className="lg:max-w-[455px] w-full">
-      {/* <!-- order list box --> */}
-      <div className="bg-white shadow-1 rounded-[10px]">
-        <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-          <h3 className="font-medium text-xl text-dark">Order Summary</h3>
+      <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20">
+        <div className="border-b border-[#D9B35A]/30 py-5 px-4 sm:px-8.5 bg-[#D9B35A]/5 rounded-t-2xl">
+          <h3 className="font-bold text-xl text-[#2D1A11] flex items-center gap-2">
+            <span className="text-[#D9B35A]">✧</span> Ringkasan Pesanan
+          </h3>
         </div>
 
         <div className="pt-2.5 pb-8.5 px-4 sm:px-8.5">
-          {/* <!-- title --> */}
-          <div className="flex items-center justify-between py-5 border-b border-gray-3">
+          <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
             <div>
-              <h4 className="font-medium text-dark">Product</h4>
+              <h4 className="font-bold text-[#8B7355] text-xs uppercase tracking-widest">Produk</h4>
             </div>
             <div>
-              <h4 className="font-medium text-dark text-right">Subtotal</h4>
+              <h4 className="font-bold text-[#8B7355] text-xs uppercase tracking-widest text-right">Subtotal</h4>
             </div>
           </div>
 
-          {/* <!-- product item --> */}
-          {cartItems.map((item, key) => (
-            <div key={key} className="flex items-center justify-between py-5 border-b border-gray-3">
-              <div>
-                <p className="text-dark">{item.title}</p>
-              </div>
-              <div>
-                <p className="text-dark text-right">
-                  ${item.discountedPrice * item.quantity}
-                </p>
-              </div>
-            </div>
-          ))}
+          {/* */}
+          {cartItems.map((item, key) => {
+            // Hitung subtotal per item dengan aman (memaksa tipe data menjadi Number)
+            const itemSubtotal = Number(item.discountedPrice) * Number(item.quantity || 1);
 
-          {/* <!-- total --> */}
-          <div className="flex items-center justify-between pt-5">
+            return (
+              <div key={key} className="flex items-center justify-between py-4 border-b border-[#D9B35A]/10 border-dashed">
+                <div className="pr-4">
+                  {/* Tambahkan info kuantiti kecil di sebelah nama tas */}
+                  <p className="text-[#2D1A11] font-medium text-sm line-clamp-1">
+                    {item.title} <span className="text-[#8B7355] text-xs">(x{item.quantity || 1})</span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[#8B7355] font-bold text-sm whitespace-nowrap text-right">
+                    Rp {itemSubtotal.toLocaleString('id-ID')}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* */}
+          <div className="flex items-center justify-between pt-6">
             <div>
-              <p className="font-medium text-lg text-dark">Total</p>
+              <p className="font-bold text-lg text-[#2D1A11]">Total</p>
             </div>
             <div>
-              <p className="font-medium text-lg text-dark text-right">
-                ${totalPrice}
+              <p className="font-bold text-2xl text-[#D9B35A] text-right">
+                {/* 👇 Gunakan hasil perhitungan mandiri 👇 */}
+                Rp {calculatedTotal.toLocaleString('id-ID')}
               </p>
             </div>
           </div>
 
-          {/* <!-- checkout button --> */}
+          {/* */}
           <button
             type="submit"
-            className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5"
+            className="w-full flex justify-center font-bold text-[#1A1A1A] bg-gradient-to-r from-[#EAC135] to-[#DFB121] py-[15px] px-6 rounded-full ease-out duration-200 hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20 uppercase tracking-widest mt-8 transition-all"
           >
-            Process to Checkout
+            Lanjutkan ke Checkout
           </button>
         </div>
       </div>

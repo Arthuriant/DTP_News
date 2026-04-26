@@ -18,25 +18,20 @@ class CartController extends Controller
             'product_id' => 'required',
             'price' => 'required|numeric',
             'custom_configuration' => 'nullable|array',
-            'image_preview' => 'nullable|string' // 👈 Format base64 dari frontend
+            'image_preview' => 'nullable|string'
         ]);
 
         $user = Auth::user();
         $cart = Cart::firstOrCreate(['user_id' => $user->id]);
 
-        // --- PROSES KONVERSI GAMBAR BASE64 KE PNG ---
         $imagePath = null;
         if ($request->filled('image_preview')) {
-            // Pisahkan header base64 dengan data gambarnya
             $imageParts = explode(";base64,", $request->image_preview);
             if (count($imageParts) == 2) {
                 $imageBase64 = base64_decode($imageParts[1]);
-                $fileName = uniqid('cart_') . '.png'; // Hasilkan nama unik, misal: cart_64abc123.png
+                $fileName = uniqid('cart_') . '.png';
                 
-                // Simpan ke storage/app/public/carts
                 \Illuminate\Support\Facades\Storage::disk('public')->put('carts/' . $fileName, $imageBase64);
-                
-                // Buat URL yang bisa diakses publik
                 $imagePath = asset('storage/carts/' . $fileName);
             }
         }
@@ -49,35 +44,50 @@ class CartController extends Controller
             return $item->custom_configuration == $request->custom_configuration;
         });
 
+        // 👇 PERUBAHAN DIMULAI DARI SINI 👇
+        $savedItem = null; // Buat variabel penampung
+
         if ($foundItem) {
             $foundItem->qty += 1;
             $foundItem->save();
+            $savedItem = $foundItem; // Masukkan ke penampung
         } else {
-            CartItem::create([
+            $savedItem = CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $request->product_id,
                 'price' => $request->price,
                 'custom_configuration' => $request->custom_configuration,
-                'image_preview' => $imagePath, // 👈 Simpan URL gambar ke database
+                'image_preview' => $imagePath,
                 'qty' => 1
-            ]);
+            ]); // Masukkan hasil create ke penampung
         }
 
         $this->updateCartTotal($cart->id);
 
-        return response()->json(['message' => 'Tas Kustom berhasil masuk keranjang!'], 200);
+        // 👇 KEMBALIKAN DATA BARANGNYA KE NEXT.JS 👇
+        return response()->json([
+            'message' => 'Tas Kustom berhasil masuk keranjang!',
+            'cart_item' => $savedItem 
+        ], 200);
     }
 
     // ========================================================
     // 2. GET CART (LIHAT KERANJANG)
     // ========================================================
+    // ========================================================
+    // 2. GET CART (LIHAT KERANJANG)
+    // ========================================================
     public function getCart()
     {
-        $user = Auth::user();
-        if (!$user) return response()->json([], 401);
+        $user = auth('sanctum')->user(); 
+        
+        if (!$user) {
+            return response()->json([
+                'total' => 0,
+                'items' => []
+            ], 200);
+        }
 
-        // Cari ID keranjang milik user, dan langsung muat isi items-nya
-        // Gunakan Eager Loading (with) agar data produk juga ikut terbawa
         $cart = Cart::with(['items.product'])->where('user_id', $user->id)->first();
         
         if (!$cart) {
@@ -128,5 +138,36 @@ class CartController extends Controller
                          ->value('total');
 
         Cart::where('id', $cartId)->update(['total' => $total ?? 0]);
+    }
+
+    // ========================================================
+    // 4. UPDATE QUANTITY (UBAH JUMLAH)
+    // ========================================================
+    public function updateQuantity(Request $request, $id)
+    {
+        $request->validate([
+            'qty' => 'required|integer|min:1'
+        ]);
+
+        $user = Auth::user();
+        $cart = Cart::where('user_id', $user->id)->first();
+
+        if (!$cart) return response()->json(['message' => 'Keranjang tidak ditemukan'], 404);
+
+        $item = CartItem::where('id', $id)
+                        ->where('cart_id', $cart->id)
+                        ->first();
+
+        if ($item) {
+            $item->qty = $request->qty;
+            $item->save();
+
+            // Hitung ulang total keranjang
+            $this->updateCartTotal($cart->id);
+
+            return response()->json(['message' => 'Kuantiti berhasil diperbarui'], 200);
+        }
+
+        return response()->json(['message' => 'Barang tidak ditemukan'], 404);
     }
 }

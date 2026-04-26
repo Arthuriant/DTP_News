@@ -486,17 +486,19 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
 
     // 3. Kirim ke Backend Laravel menggunakan Service
     try {
-      await CartService.addToCart({
+      const res = await CartService.addToCart({
         product_id: product.id,
         price: finalPrice,
         custom_configuration: customizationsData,
         image_preview: base64Image
       });
 
+      const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
+
       // 4. Update Redux Cart lokal agar keranjang di layar langsung ter-update
       dispatch(
         addItemToCart({
-          id: Date.now(), 
+          id: realDbId,
           title: `Kustom ${product.name}`,
           price: finalPrice,
           discountedPrice: finalPrice,
@@ -547,6 +549,7 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
     // 2. Jika rawUrl ada isinya, potong domain Laravel-nya
     if (rawUrl) {
       return rawUrl.replace("http://127.0.0.1:8000", "");
+      
     }
 
     return "";

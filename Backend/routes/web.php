@@ -66,9 +66,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 // [UPDATE] Ubah auth menjadi auth:sanctum
-Route::post('/cart', [CartController::class, 'addToCart'])->middleware('auth:sanctum');
-Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->middleware('auth:sanctum');
-Route::get('/cart', [CartController::class, 'getCart'])->middleware('auth:sanctum');
+
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/login', function () {
@@ -185,7 +183,13 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::put('/sub-categories/{id}', [CategoryController::class, 'updateSubCategory']);
     Route::delete('/sub-categories/{id}', [CategoryController::class, 'destroySubCategory']);
 
+    Route::post('/cart', [CartController::class, 'addToCart']);
+    Route::delete('/cart/{id}', [CartController::class, 'removeItem']);
+    Route::put('/cart/{id}', [CartController::class, 'updateQuantity']);
 });
+
+Route::get('/cart', [CartController::class, 'getCart']);
+
 
     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);

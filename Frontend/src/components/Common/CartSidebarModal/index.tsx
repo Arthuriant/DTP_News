@@ -8,6 +8,8 @@ import SingleItem from "./SingleItem";
 import Link from "next/link";
 import EmptyCart from "./EmptyCart";
 import { CartService } from "@/services/CartService"; // 👈 Import Service
+import { setCartItems } from "@/redux/features/cart-slice";
+
 
 const CartSidebarModal = () => {
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
@@ -18,7 +20,7 @@ const CartSidebarModal = () => {
   // 1. Fetch data dari Laravel saat Sidebar dibuka atau halaman di-refresh
   useEffect(() => {
     const fetchDbCart = async () => {
-      // Hanya ambil jika Redux kosong (misal saat baru refresh)
+      // Sidebar hanya mengambil data jika Redux benar-benar kosong (0)
       if (cartItems.length === 0) {
         try {
           const res = await CartService.getCart();
@@ -38,9 +40,9 @@ const CartSidebarModal = () => {
             customizations: dbItem.custom_configuration
           }));
 
-          formattedItems.forEach((item: any) => {
-             dispatch(addItemToCart(item));
-          });
+          // 👇 KUNCI PERBAIKAN: Harus setCartItems juga 👇
+          dispatch(setCartItems(formattedItems));
+
         } catch (error) {
           console.error("Gagal mengambil keranjang sidebar:", error);
         }
@@ -48,7 +50,8 @@ const CartSidebarModal = () => {
     };
 
     fetchDbCart();
-  }, [cartItems.length, dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]); // Cukup dispatch saja
 
   useEffect(() => {
     function handleClickOutside(event: any) {
