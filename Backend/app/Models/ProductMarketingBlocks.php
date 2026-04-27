@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
+use App\Models\ProductMarketingBlock;
 
 class ProductMarketingBlocks extends Model
 {
@@ -28,6 +29,6 @@ class ProductMarketingBlocks extends Model
     // 1 Blok bisa punya banyak Fitur
     public function features()
     {
-        return $this->hasMany(ProductMarketingFeatures::class, 'block_id');
+        return $this->hasMany(ProductMarketingFeatures::class, 'block_id')->orderBy('id');
     }
 }

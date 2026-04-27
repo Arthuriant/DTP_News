@@ -8,6 +8,7 @@ use App\Models\ProductParts;
 use App\Models\ProductGalleries;
 use App\Models\ProductSizes;
 use App\Models\ProductDimensions;
+use App\Models\ProductMarketingBlocks; // ← tambah import
 
 class Product extends Model
 {
@@ -67,5 +68,10 @@ class Product extends Model
     public function dimension()
     {
         return $this->hasOne(ProductDimensions::class, 'product_id');
+    }
+
+    public function marketingBlocks()
+    {
+        return $this->hasMany(ProductMarketingBlocks::class, 'product_id')->orderBy('id');
     }
 }

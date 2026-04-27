@@ -112,7 +112,18 @@ import { CartService } from '@/services/CartService';
             raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
             raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
           ].filter(Boolean) as { label: string; value: string }[],
-          marketingBlocks: [],
+          marketingBlocks: (raw.marketing_blocks || []).map((block: any, index: number) => ({
+          title:        block.title,
+          subtitle:     block.subtitle || "",
+          description:  block.description || "",
+          image:        block.image || "",
+          layout:       index % 2 === 0 ? "image-left" : "image-right", // ← alternating
+          featureStyle: block.feature_style || "cards",
+          features:     (block.features || []).map((f: any) => ({
+            title: f.title,
+            icon:  f.icon || "",
+          })),
+        })),
           sizes:           mappedSizes,
           parts:           mappedParts,
         };

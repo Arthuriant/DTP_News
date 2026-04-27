@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('product_marketing_blocks', function (Blueprint $table) {
             $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
             $table->uuid('product_id');          // 👈 Foreign Key UUID
-            
+
             $table->string('title', 25);
             $table->string('subtitle', 50)->nullable();
             $table->text('description')->nullable();

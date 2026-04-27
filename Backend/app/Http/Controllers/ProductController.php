@@ -100,6 +100,7 @@ class ProductController extends Controller
             'gallery', // ← tambah ini
             'sizes', // ← tambah ini
             'dimension', // ← tambah
+            'marketingBlocks.features',
         ])->find($id);
 
         if (!$product) {
@@ -134,6 +135,7 @@ class ProductController extends Controller
                     ];
                 }),
             ];
+
         });
 
         return response()->json([
@@ -170,7 +172,6 @@ class ProductController extends Controller
                         'img'         => $size->img ? "http://127.0.0.1:8000/storage/{$size->img}" : null,
                     ];
                 }),
-                // ✅ DIMENSION DI SINI, sejajar dengan sizes
                 'dimension'    => $product->dimension ? [
                     'product_style' => $product->dimension->product_style,
                     'total_volumes' => $product->dimension->total_volumes,
@@ -179,6 +180,27 @@ class ProductController extends Controller
                                         ? "http://127.0.0.1:8000/storage/{$product->dimension->img}"
                                         : null,
                 ] : null,
+                // ← marketing_blocks di dalam data
+                'marketing_blocks' => $product->marketingBlocks->map(function ($block) {
+                    return [
+                        'id'                    => $block->id,
+                        'layout'                => $block->layout,
+                        'badge'                 => $block->badge,
+                        'subtitle'              => $block->subtitle,
+                        'title'                 => $block->title,
+                        'title_highlight'       => $block->title_highlight,
+                        'title_highlight_style' => $block->title_highlight_style,
+                        'description'           => $block->description,
+                        'image'                 => $block->img ? "http://127.0.0.1:8000/storage/{$block->img}" : null,
+                        'feature_style'         => $block->feature_style,
+                        'features'              => $block->features->map(function ($feature) {
+                            return [
+                                'title' => $feature->title,
+                                'icon'  => $feature->icon,
+                            ];
+                        }),
+                    ];
+                }),
             ]
         ], 200);
     }
