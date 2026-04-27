@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
-    
+
     // Mengambil semua alamat milik user yang sedang login
     public function index()
     {
@@ -20,7 +20,7 @@ class AddressController extends Controller
                             ->orderBy('is_primary', 'desc')
                             ->orderBy('created_at', 'desc')
                             ->get();
-                            
+
         return response()->json($addresses);
     }
 
@@ -37,7 +37,7 @@ class AddressController extends Controller
             'street' => 'required|string',
             'details' => 'nullable|string',
             'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean',  
+            'is_primary' => 'boolean',
             'latitude'       => 'nullable|numeric',
             'longitude'      => 'nullable|numeric',
         ]);
@@ -107,7 +107,7 @@ class AddressController extends Controller
         if ($address) {
             // Ubah semua alamat user ini menjadi BUKAN utama
             Address::where('user_id', $user->id)->update(['is_primary' => false]);
-            
+
             // Jadikan alamat yang dipilih menjadi Utama
             $address->update(['is_primary' => true]);
 
@@ -124,7 +124,7 @@ class AddressController extends Controller
 
         $address = Address::where('id', $id)->where('user_id', $user->id)->first();
         if (!$address) return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
-        
+
 
         $request->validate([
             'recipient_name' => 'required|string|max:255',
