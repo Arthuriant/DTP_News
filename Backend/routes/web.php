@@ -25,6 +25,7 @@ use App\Http\Controllers\ProductMarketingFeatureController;
 use App\Http\Controllers\ProductSizeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -186,6 +187,8 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::post('/cart', [CartController::class, 'addToCart']);
     Route::delete('/cart/{id}', [CartController::class, 'removeItem']);
     Route::put('/cart/{id}', [CartController::class, 'updateQuantity']);
+
+    Route::post('/checkout', [OrderController::class, 'checkout']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);

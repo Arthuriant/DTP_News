@@ -92,16 +92,18 @@ const CartSidebarModal = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
-            <div className="flex flex-col gap-6">
-              {cartItems.length > 0 ? (
-                cartItems.map((item, key) => (
-                  <SingleItem key={key} item={item} />
-                ))
-              ) : (
-                <EmptyCart />
-              )}
-            </div>
-          </div>
+  <div className="flex flex-col gap-6">
+    {cartItems.length > 0 ? (
+      // Hapus 'key' dari parameter map jika tidak digunakan lagi
+      cartItems.map((item) => (
+        // Gunakan item.id sebagai identitas unik komponen
+        <SingleItem key={item.id} item={item} />
+      ))
+    ) : (
+      <EmptyCart />
+    )}
+  </div>
+</div>
 
           <div className="border-t border-[#D9B35A]/30 bg-[#FFFDF5] pt-5 pb-8 mt-auto sticky bottom-0">
             <div className="flex items-center justify-between gap-5 mb-6 px-2">
