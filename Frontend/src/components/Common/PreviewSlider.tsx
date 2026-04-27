@@ -94,7 +94,7 @@ const PreviewSliderModal = () => {
         </button>
       </div>
 
-      <Swiper ref={sliderRef} slidesPerView={1} spaceBetween={20}>
+      {/* <Swiper ref={sliderRef} slidesPerView={1} spaceBetween={20}>
         <SwiperSlide>
           <div className="flex justify-center items-center">
             <Image
@@ -115,7 +115,7 @@ const PreviewSliderModal = () => {
             />
           </div>
         </SwiperSlide>
-      </Swiper>
+      </Swiper> */}
     </div>
   );
 };

@@ -69,6 +69,9 @@ export const cart = createSlice({
     removeAllItemsFromCart: (state) => {
       state.items = [];
     },
+    clearCart: (state) => {
+    state.items = []; // Mengosongkan array items
+  },
   },
 });
 
@@ -86,5 +89,6 @@ export const {
   removeItemFromCart,
   updateCartItemQuantity,
   removeAllItemsFromCart,
+  clearCart,
 } = cart.actions;
 export default cart.reducer;

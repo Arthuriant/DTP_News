@@ -189,6 +189,7 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::put('/cart/{id}', [CartController::class, 'updateQuantity']);
 
     Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);

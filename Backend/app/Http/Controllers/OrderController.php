@@ -86,4 +86,12 @@ class OrderController extends Controller
             ], 500);
         }
     }
+    // Tambahkan ini di dalam OrderController.php
+    public function getAllOrders()
+    {
+        // 👇 Ubah 'items' menjadi 'details'
+        $orders = Order::with(['user', 'details'])->orderBy('created_at', 'desc')->get();
+        
+        return response()->json($orders, 200);
+    }
 }

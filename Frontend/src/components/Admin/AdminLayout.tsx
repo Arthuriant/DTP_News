@@ -86,13 +86,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 
       permissionKey: 'view_products' 
     },
-    // { 
-    //   title: 'Pesanan Custom', 
-    //   path: '/admin/orders', // Sesuaikan jika path routing Anda berbeda
-    //   // Ikon Tas Belanja (Melambangkan Order)
-    //   icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', 
-    //   permissionKey: 'view_orders' 
-    // },
+    { 
+      title: 'Pesanan Custom', 
+      path: '/admin/pesanan', // Sesuaikan jika path routing Anda berbeda
+      // Ikon Tas Belanja (Melambangkan Order)
+      icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', 
+      permissionKey: 'view_orders' 
+    },
     { 
       title: 'Data Pelanggan', 
       path: '/admin/customer', 

@@ -454,28 +454,24 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
 
   // 👇 2. TIMPA FUNGSI LAMA DENGAN INI
  const handleAddToCart = async () => {
+    setIsCapturing(true);
+    
     const previousView = activeView;
-    const previousHighlightedPart = highlightedPartId; 
+    const previousHighlightedPart = highlightedPartId; // ✅ ganti activePart
+    
+    if (activeView !== "front") {
+      setActiveView("front");
+    }
+    
+    if (highlightedPartId !== null) { // ✅ ganti activePart
+      setHighlightedPartId(null);     // ✅ ganti setActivePart
+    }
 
-    // 👇 1. PAKSA REACT MENGUBAH LAYAR DETIK INI JUGA 👇
-    flushSync(() => {
-      setIsCapturing(true);
-      if (activeView !== "front") {
-        setActiveView("front");
-      }
-      if (highlightedPartId !== null) {
-        setHighlightedPartId(null);
-      }
-    });
-
-    // 👇 2. NAIKKAN WAKTU TUNGGU (Untuk memastikan Animasi CSS Selesai) 👇
-    // Kalau CSS Anda punya efek transisi memudar perlahan, 400ms kadang kurang. 
-    // Kita naikkan jadi 800ms agar gambarnya benar-benar padat 100% sebelum difoto.
-    await new Promise((resolve) => setTimeout(resolve, 800)); 
-
+    await new Promise((resolve) => setTimeout(resolve, 400)); 
+    
     const finalPrice = calculateTotalPrice();
     const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
-    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
+    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize; 
     const customizationsData = {
       size: sizeLabel,
       shapes: shapeSelections,
@@ -487,25 +483,6 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
     let base64Image = null;
 
     if (screenshotRef.current) {
-      // 👇 1. BRUTE-FORCE DOM: Ambil SEMUA elemen di dalam area tas
-      const elements = screenshotRef.current.querySelectorAll('*');
-      const originalStyles: any[] = [];
-
-      // 👇 2. Simpan gaya asli, lalu PAKSA semua elemen jadi solid 100% tanpa animasi
-      elements.forEach((el: any) => {
-        originalStyles.push({
-          el: el,
-          opacity: el.style.opacity,
-          transition: el.style.transition,
-          filter: el.style.filter
-        });
-        
-        // Memaksa CSS secara mutlak
-        el.style.setProperty('opacity', '1', 'important');
-        el.style.setProperty('transition', 'none', 'important');
-        el.style.setProperty('filter', 'none', 'important'); 
-      });
-
       try {
         await preloadImagesToBase64(screenshotRef.current);
         const canvas = await html2canvas(screenshotRef.current, {
@@ -519,13 +496,6 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
       } catch (error) {
         console.error("Gagal mengambil screenshot desain:", error);
       }
-
-      // 👇 3. Kembalikan gaya (style) seperti semula agar UI tidak rusak
-      originalStyles.forEach(({ el, opacity, transition, filter }) => {
-        el.style.opacity = opacity;
-        el.style.transition = transition;
-        el.style.filter = filter;
-      });
     }
 
     // Kembalikan state ke semula
