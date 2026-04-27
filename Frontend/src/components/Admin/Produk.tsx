@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
-import { AuthService } from '@/services/AuthService'; // 👈 Tambahkan import ini
+import { AuthService } from '@/services/AuthService'; 
 
 export default function Produk() {
   const router = useRouter();
