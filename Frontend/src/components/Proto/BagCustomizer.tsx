@@ -17,6 +17,8 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+import html2canvas from "html2canvas";
+import { CartService } from '@/services/CartService';
 
 
     export default function BagCustomizer() {
@@ -419,48 +421,99 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
+  // Tambahkan helper ini di LUAR komponen (di atas fungsi komponen)
+const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
+  const imgs = container.querySelectorAll<HTMLImageElement>('img');
+  await Promise.all(
+    Array.from(imgs).map((img) => {
+      return new Promise<void>((resolve) => {
+        // Skip gambar yang sudah base64 atau dari domain yang sama
+        if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
+          return resolve();
+        }
+
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous';
+
+        tempImg.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = tempImg.naturalWidth;
+          canvas.height = tempImg.naturalHeight;
+          canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
+          img.src = canvas.toDataURL('image/png'); // ganti src asli ke base64
+          resolve();
+        };
+
+        tempImg.onerror = () => resolve(); // skip jika tetap gagal
+        tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+      });
+    })
+  );
+};
+
   const handleAddToCart = async () => {
+    // 1. Kumpulkan Data State
     const finalPrice = calculateTotalPrice();
     const customizationsData = {
       size: activeSize,
       shapes: shapeSelections,
       textures: textureSelections,
-      colors: selections, // Ini menyimpan kode HEX warna
+      colors: selections, 
       visibleParts: visibleParts
     };
 
+    let base64Image = null;
+
+    // 2. Ambil Screenshot jika ref tersedia
+    if (screenshotRef.current) {
+  try {
+    // ✅ Tambahan: preload semua gambar ke base64 dulu sebelum screenshot
+    await preloadImagesToBase64(screenshotRef.current);
+
+    const canvas = await html2canvas(screenshotRef.current, {
+      backgroundColor: null,
+      scale: 1,
+      useCORS: true,
+      logging: false,
+      allowTaint: false, // ✅ Tambahan: jangan izinkan gambar "mencemari" canvas
+    });
+
+    base64Image = canvas.toDataURL("image/png");
+  } catch (error) {
+    console.error("Gagal mengambil screenshot desain:", error);
+  }
+}
+
+    // 3. Kirim ke Backend Laravel menggunakan Service
     try {
-      const res = await fetch("http://127.0.0.1:8000/cart", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_id: product.id,
-          price: finalPrice,
-          customizations: customizationsData,
-          image_preview: null // Kosongkan saja
-        }),
+      const res = await CartService.addToCart({
+        product_id: product.id,
+        price: finalPrice,
+        custom_configuration: customizationsData,
+        image_preview: base64Image
       });
 
-      if (res.ok) {
-        dispatch(
-          addItemToCart({
-            id: Date.now(), 
-            title: `Kustom ${product.name}`,
-            price: finalPrice,
-            discountedPrice: finalPrice,
-            quantity: 1,
-            imgs: { 
-              previews: [product.gallery?.[0] || ""], // Pakai gambar bawaan
-              thumbnails: [product.gallery?.[0] || ""] 
-            },
-            customizations: customizationsData
-          } as any)
-        );
-        openCartModal();
-      }
+      const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
+
+      // 4. Update Redux Cart lokal agar keranjang di layar langsung ter-update
+      dispatch(
+        addItemToCart({
+          id: realDbId,
+          title: `Kustom ${product.name}`,
+          price: finalPrice,
+          discountedPrice: finalPrice,
+          quantity: 1,
+          imgs: { 
+            previews: [base64Image || product.gallery?.[0] || ""], 
+            thumbnails: [base64Image || product.gallery?.[0] || ""] 
+          },
+          customizations: customizationsData
+        } as any)
+      );
+      openCartModal();
+
     } catch (error) {
-      console.error("Gagal menambahkan ke keranjang", error);
+      console.error("Terjadi kesalahan jaringan atau gagal menyimpan ke database", error);
     }
   };
 
@@ -484,13 +537,23 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
       // Pilih URL gambar sesuai POV
       const getTextureImageUrl = (textureObj: any, pov: string) => {
-        switch(pov.toLowerCase()) {
-          case 'front': return textureObj?.img_front || "";
-          case 'back':  return textureObj?.img_back  || "";
-          case 'top':   return textureObj?.img_top   || "";
-          default:      return textureObj?.img_front || "";
-        }
-      };
+    // 1. Tampung dulu URL aslinya ke dalam variabel rawUrl
+    let rawUrl = "";
+    switch(pov.toLowerCase()) {
+      case 'front': rawUrl = textureObj?.img_front || ""; break;
+      case 'back':  rawUrl = textureObj?.img_back  || ""; break;
+      case 'top':   rawUrl = textureObj?.img_top   || ""; break;
+      default:      rawUrl = textureObj?.img_front || ""; break;
+    }
+
+    // 2. Jika rawUrl ada isinya, potong domain Laravel-nya
+    if (rawUrl) {
+      return rawUrl.replace("http://127.0.0.1:8000", "");
+      
+    }
+
+    return "";
+  };
 
       const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
 

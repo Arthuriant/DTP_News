@@ -28,7 +28,7 @@ return new class extends Migration
             
             // Ini yang akan menyimpan: {"body": "Red Leather", "strap": "Black Canvas"}
             
-            // $table->jsonb('custom_configuration')->nullable(); 
+            $table->jsonb('custom_configuration')->nullable(); 
 
             // 6. Audit Trail (Sesuai ERD)
             $table->uuid('created_by')->nullable();

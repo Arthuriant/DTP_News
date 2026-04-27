@@ -14,7 +14,8 @@ class CartItem extends Model
         'product_id',
         'qty',
         'price',
-        // 'custom_configuration',
+        'custom_configuration',
+        'image_preview',
         'created_by',
         'updated_by',
     ];
@@ -26,7 +27,7 @@ class CartItem extends Model
     protected function casts(): array
     {
         return [
-            // 'custom_configuration' => 'array',
+            'custom_configuration' => 'array',
             'price' => 'integer',
         ];
     }
