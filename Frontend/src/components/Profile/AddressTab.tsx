@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import AddressModal from "./AddressModal";
 import { AddressService } from "@/services/AddressService";
-import Swal from 'sweetalert2';
+// 1. Import AlertService (Hapus import Swal)
+import { AlertService } from "@/services/AlertService";
 
 export default function AddressTab() {
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -11,13 +12,14 @@ export default function AddressTab() {
 
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
 
-
   const fetchAddresses = async () => {
     try {
       const data = await AddressService.getAddresses();
       setAddresses(data);
     } catch (error: any) {
       console.error("Gagal mengambil alamat:", error.message);
+      // 2. Tambahkan Alert error jika gagal memuat
+      AlertService.error("Gagal", "Tidak dapat mengambil daftar alamat.");
     }
   };
 
@@ -26,46 +28,28 @@ export default function AddressTab() {
   }, []);
 
   const handleDelete = async (id: number) => {
-  const result = await Swal.fire({
-      title: 'Hapus Alamat?',
-      text: "Data lokasi pengiriman ini akan dihapus secara permanen.",
-      icon: 'warning',
-      showCancelButton: true,
-      background: '#F8F3E9',
-      color: '#2D1A11',
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal',
-      buttonsStyling: false, 
-      customClass: {
-        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
-        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
-      }
-    });
-      if (!result.isConfirmed) return;
+    // 3. Gunakan AlertService untuk konfirmasi
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Alamat?",
+      "Data lokasi pengiriman ini akan dihapus secara permanen.",
+      "YA, HAPUS!"
+    );
 
-      try {
-        await AddressService.deleteAddress(id);
-        fetchAddresses();
+    if (!isConfirmed) return;
 
-        Swal.fire({
-          title: 'Terhapus!',
-          text: 'Alamat berhasil dihapus dari daftar.',
-          icon: 'success',
-          confirmButtonColor: '#D9B35A', 
-          background: '#F8F3E9',
-          color: '#2D1A11',
-        });
-        
-      } catch (error: any) {
-        console.error("Gagal menghapus alamat:", error.message);
-        Swal.fire({
-          title: 'Gagal!',
-          text: 'Terjadi kesalahan saat menghapus alamat.',
-          icon: 'error',
-          confirmButtonColor: '#2D1A11',
-        });
-      }
-    };
+    try {
+      await AddressService.deleteAddress(id);
+      fetchAddresses();
+
+      // 4. Gunakan AlertService untuk sukses
+      AlertService.success('Terhapus!', 'Alamat berhasil dihapus dari daftar.');
+      
+    } catch (error: any) {
+      console.error("Gagal menghapus alamat:", error.message);
+      // 5. Gunakan AlertService untuk error
+      AlertService.error('Gagal!', 'Terjadi kesalahan saat menghapus alamat.');
+    }
+  };
 
   const handleSetPrimary = async (id: number) => {
     try {
@@ -73,6 +57,7 @@ export default function AddressTab() {
       fetchAddresses();
     } catch (error: any) {
       console.error("Gagal mengubah alamat utama:", error.message);
+      AlertService.error('Gagal!', 'Terjadi kesalahan saat mengubah alamat utama.');
     }
   };
 

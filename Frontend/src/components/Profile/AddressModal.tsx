@@ -4,7 +4,8 @@ import { createPortal } from "react-dom"; // 👈 IMPORT PENTING UNTUK PORTAL
 import dynamic from "next/dynamic";
 import { RegionService } from "@/services/RegionService";
 import { AddressService } from "@/services/AddressService";
-import Swal from 'sweetalert2';
+// 1. Import AlertService (Hapus import Swal bawaan)
+import { AlertService } from '@/services/AlertService';
 
 // IMPORT KOMPONEN PETA SECARA DINAMIS
 const MapPicker = dynamic(() => import("./MapPicker"), { 
@@ -120,7 +121,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     
     if (isChangingRegion) {
       if (!selectedRegion.villId) {
-        alert("Pilih wilayah hingga tingkat Kelurahan/Desa!");
+        // 2. Ganti alert() bawaan dengan AlertService
+        AlertService.error("Data Belum Lengkap", "Pilih wilayah hingga tingkat Kelurahan/Desa!");
         return;
       }
       finalRegion = `${selectedRegion.provName}, ${selectedRegion.cityName}, Kecamatan ${selectedRegion.distName}, Kelurahan ${selectedRegion.villName}`;
@@ -136,37 +138,26 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
         longitude: mapPosition[1]   
     };
 
-  try {
+    try {
       if (editData) {
         await AddressService.updateAddress(editData.id, payload);
       } else {
         await AddressService.createAddress(payload);
       }
       
-     Swal.fire({
-        title: 'Berhasil!',
-        text: `Alamat berhasil ${editData ? 'diperbarui' : 'ditambahkan'}.`,
-        icon: 'success',
-        background: '#F8F3E9',
-        color: '#2D1A11',
-        timer: 2000, 
-        showConfirmButton: true, 
-        confirmButtonText: 'OK',
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-10 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-md hover:bg-[#3d2417] transition-colors mt-4'
-        }
-      });
+      // 3. Gunakan AlertService untuk sukses
+      AlertService.success("Berhasil!", `Alamat berhasil ${editData ? 'diperbarui' : 'ditambahkan'}.`);
 
       onSuccess(); 
       onClose();
     } catch (error: any) { 
-      console.error(error); 
+      console.error(error);
+      // 4. Tambahkan penanganan error
+      AlertService.error("Gagal Menyimpan", error.message || "Terjadi kesalahan saat menyimpan alamat.");
     } finally { 
       setIsLoading(false); 
     }
   };
-
 
   if (!isOpen || !mounted) return null;
 
@@ -281,7 +272,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
         {/* FOOTER - flex-none (Terkunci) */}
         <div className="flex-none p-4 sm:px-8 py-4 border-t border-[#8B7355]/10 flex justify-end items-center gap-4 bg-[#EFE8DC] shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
           <button onClick={onClose} className="text-[#8B7355] font-black text-[10px] uppercase tracking-widest hover:text-[#2D1A11] px-5 py-2.5 rounded-full hover:bg-white/50 transition-colors">Batal</button>
-          <button type="submit" form="addressForm" disabled={isLoading} className="bg-gradient-to-r from-[#2D1A11] to-[#3d2417] text-[#D9B35A] px-10 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-50">
+          <button type="submit" form="addressForm" disabled={isLoading} className="bg-gradient-to-r from-[#2D1A11] to-[#3d2417] text-[#D9B35A] px-10 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
+            {isLoading && <div className="w-3.5 h-3.5 border-2 border-[#D9B35A]/30 border-t-[#D9B35A] rounded-full animate-spin"></div>}
             {isLoading ? "Menyimpan..." : "Simpan Alamat"}
           </button>
         </div>
@@ -289,6 +281,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     </div>
   );
 
-  // 👈 MELEMPAR HTML KE BODY PALING LUAR (PORTAL)
+  // MELEMPAR HTML KE BODY PALING LUAR (PORTAL)
   return createPortal(modalContent, document.body);
 }
