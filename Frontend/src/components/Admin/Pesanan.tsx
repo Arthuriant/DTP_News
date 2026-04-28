@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/AdminService';
+// 1. Import AlertService
+import { AlertService } from '@/services/AlertService';
 
 export default function Pesanan() {
   const [search, setSearch] = useState('');
@@ -13,8 +15,10 @@ export default function Pesanan() {
         setIsLoading(true);
         const data = await AdminService.getAllOrders();
         setOrders(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Gagal mengambil data pesanan:", error);
+        // 2. Gunakan AlertService untuk error fetch
+        AlertService.error("Gagal Memuat Data", "Tidak dapat mengambil data pesanan dari server.");
       } finally {
         setIsLoading(false);
       }
@@ -23,17 +27,30 @@ export default function Pesanan() {
     fetchOrders();
   }, []);
 
-  const advanceStatus = (id: string) => {
-    setOrders(orders.map(o => {
-      if (o.id === id) {
-        let nextStatus = o.status;
-        if (o.status === 'pending') nextStatus = 'diproses';
-        else if (o.status === 'diproses') nextStatus = 'dikirim';
-        else if (o.status === 'dikirim') nextStatus = 'selesai';
-        return { ...o, status: nextStatus };
-      }
-      return o;
-    }));
+  // 3. Ubah menjadi async untuk mengakomodasi pop-up konfirmasi
+  const advanceStatus = async (id: string) => {
+    // 4. Tambahkan pop-up konfirmasi
+    const isConfirmed = await AlertService.confirm(
+      "Majukan Status Pesanan?",
+      "Apakah Anda yakin pesanan ini sudah masuk ke tahap selanjutnya?",
+      "YA, PROSES!"
+    );
+
+    if (isConfirmed) {
+      setOrders(orders.map(o => {
+        if (o.id === id) {
+          let nextStatus = o.status;
+          if (o.status === 'pending') nextStatus = 'diproses';
+          else if (o.status === 'diproses') nextStatus = 'dikirim';
+          else if (o.status === 'dikirim') nextStatus = 'selesai';
+          return { ...o, status: nextStatus };
+        }
+        return o;
+      }));
+
+      // 5. Tambahkan notifikasi sukses (nanti bisa dipindah setelah API update sukses)
+      AlertService.success("Berhasil", "Status pesanan berhasil diperbarui.");
+    }
   };
 
   const filtered = orders.filter(o => {
@@ -119,11 +136,9 @@ export default function Pesanan() {
                </tr>
             </thead>
             
-            {/* 👇 PERBAIKAN SINTAKS TERNARY DI SINI 👇 */}
             <tbody>
               {filtered.length > 0 ? (
                 filtered.map((o) => {
-                  // Menangani data relasi dengan aman
                   const userName = o.user?.name || "Pelanggan Guest";
                   const userEmail = o.user?.email || "-";
                   const itemsCount = o.details ? o.details.length : 0;
@@ -204,7 +219,6 @@ export default function Pesanan() {
                 </tr>
               )}
             </tbody>
-            {/* 👆 Selesai Perbaikan 👆 */}
 
           </table>
         </div>

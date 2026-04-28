@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { ProductService } from '@/services/ProductService'; 
 import { useParams, useRouter } from 'next/navigation';
+// 1. Import Alert Service
+import { AlertService } from '@/services/AlertService';
 
 export default function ProductPartsTab() {
   const params = useParams();
@@ -90,8 +92,12 @@ export default function ProductPartsTab() {
       }
       await fetchParts();
       setIsModalOpen(false);
+      
+      // 2. Tambahkan AlertService Sukses
+      AlertService.success("Berhasil", "Komponen 3D berhasil disimpan.");
     } catch (error: any) {
-      alert("Gagal Menyimpan: " + error.message);
+      // 3. Ganti alert bawaan dengan AlertService Error
+      AlertService.error("Gagal Menyimpan", error.message);
     } finally {
       setIsSaving(false);
     }
@@ -111,12 +117,23 @@ export default function ProductPartsTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Hapus komponen tas ini beserta foldernya secara permanen dari mahakarya?")) {
+    // 4. Ganti confirm bawaan dengan AlertService Confirm
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Komponen?",
+      "Komponen tas ini beserta foldernya akan dihapus secara permanen dari mahakarya.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deletePart(id);
         setParts(parts.filter(p => p.id !== id));
-      } catch (error) {
-        console.error("Gagal menghapus part:", error);
+        
+        // 5. Tambahkan AlertService Sukses
+        AlertService.success("Terhapus!", "Komponen berhasil dihapus.");
+      } catch (error: any) {
+        // 6. Tampilkan error yang jelas dengan AlertService
+        AlertService.error("Gagal Menghapus", error.message || "Terjadi kesalahan saat menghapus komponen.");
       }
     }
   };

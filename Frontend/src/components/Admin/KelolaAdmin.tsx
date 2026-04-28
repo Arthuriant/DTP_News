@@ -2,7 +2,8 @@
 import { AdminManagementService } from '@/services/AdminManagementService';
 import { AuthService } from '@/services/AuthService';
 import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2'; 
+// 1. Import AlertService (Hapus import Swal)
+import { AlertService } from '@/services/AlertService'; 
 
 interface Admin {
   id: number;
@@ -102,16 +103,8 @@ export default function KelolaAdmin() {
       setShowModal(false);
       fetchInitialData(); 
 
-      // 👈 Popup Sukses Create/Update
-      Swal.fire({
-        title: 'Berhasil!',
-        text: `Data pengguna berhasil ${editTarget ? 'diperbarui' : 'ditambahkan'}.`,
-        icon: 'success',
-        background: '#F8F3E9',
-        color: '#2A1B14',
-        showConfirmButton: false,
-        timer: 2000
-      });
+      // 2. Gunakan AlertService untuk sukses Simpan
+      AlertService.success("Berhasil!", `Data pengguna berhasil ${editTarget ? 'diperbarui' : 'ditambahkan'}.`);
 
     } catch (e: any) {
       setFormError(e.message);
@@ -122,48 +115,24 @@ export default function KelolaAdmin() {
 
   // --- FUNGSI HAPUS ---
   const handleDelete = async (admin: Admin) => {
-    const result = await Swal.fire({
-      title: 'Hapus Pengguna?',
-      text: `Pengguna "${admin.name}" akan dihapus permanen dari mahakarya sistem.`,
-      icon: 'warning',
-      showCancelButton: true,
-      background: '#F8F3E9',
-      color: '#2D1A11',
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal',
-      buttonsStyling: false, 
-      customClass: {
-        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
-        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
-      }
-    });
+    // 3. Gunakan AlertService untuk Konfirmasi
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Pengguna?",
+      `Pengguna "${admin.name}" akan dihapus permanen dari mahakarya sistem.`,
+      "YA, HAPUS!"
+    );
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     try {
       await AdminManagementService.deleteAdmin(admin.id);
       fetchInitialData(); 
       
-      // 👈 Popup Sukses Hapus
-      Swal.fire({
-        title: 'Terhapus!',
-        text: 'Pengguna berhasil dihapus dari sistem.',
-        icon: 'success',
-        background: '#F8F3E9',
-        color: '#2A1B14',
-        showConfirmButton: false,
-        timer: 2000
-      });
+      // 4. Gunakan AlertService untuk sukses Hapus
+      AlertService.success("Terhapus!", "Pengguna berhasil dihapus dari sistem.");
     } catch (e: any) {
-      // 👈 Popup Error Hapus
-      Swal.fire({
-        title: 'Gagal!',
-        text: e.message || 'Terjadi kesalahan saat menghapus pengguna.',
-        icon: 'error',
-        background: '#F8F3E9',
-        color: '#2A1B14',
-        confirmButtonColor: '#2A1B14'
-      });
+      // 5. Gunakan AlertService untuk error Hapus
+      AlertService.error("Gagal!", e.message || 'Terjadi kesalahan saat menghapus pengguna.');
     }
   };
 
