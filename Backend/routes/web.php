@@ -25,6 +25,7 @@ use App\Http\Controllers\ProductMarketingFeatureController;
 use App\Http\Controllers\ProductSizeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
@@ -201,4 +202,10 @@ Route::get('/cart', [CartController::class, 'getCart']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
 
+    Route::prefix('shipping')->group(function () {
+    Route::get('/provinces',    [ShippingController::class, 'provinces']);
+    Route::get('/destinations', [ShippingController::class, 'destinations']);
+    Route::post('/cost',        [ShippingController::class, 'cost']);
+    Route::get('/couriers',     [ShippingController::class, 'couriers']);
+});
 
