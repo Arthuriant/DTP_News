@@ -1,35 +1,23 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import AddressModal from "./AddressModal";
+import { AddressService } from "@/services/AddressService";
+import Swal from 'sweetalert2';
 
 export default function AddressTab() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // NEW: State untuk menyimpan ID alamat yang sedang di-edit. Jika null, berarti Tambah Baru.
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editData, setEditData] = useState<any | null>(null);
 
-  const [formData, setFormData] = useState({
-    recipient_name: "",
-    phone_number: "",
-    region: "",
-    street: "",
-    details: "",
-    label: "",
-    is_primary: false,
-  });
+  const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
+
 
   const fetchAddresses = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/addresses", {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAddresses(data);
-      }
-    } catch (error) {
-      console.error("Gagal mengambil alamat", error);
+      const data = await AddressService.getAddresses();
+      setAddresses(data);
+    } catch (error: any) {
+      console.error("Gagal mengambil alamat:", error.message);
     }
   };
 
@@ -37,251 +25,191 @@ export default function AddressTab() {
     fetchAddresses();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      setFormData({ ...formData, [name]: (e.target as HTMLInputElement).checked });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleLabelClick = (labelName: string) => {
-    setFormData({ ...formData, label: formData.label === labelName ? "" : labelName });
-  };
-
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus alamat ini?")) return;
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/addresses/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) fetchAddresses();
-    } catch (error) {
-      console.error("Gagal menghapus alamat", error);
-    }
-  };
+  const result = await Swal.fire({
+      title: 'Hapus Alamat?',
+      text: "Data lokasi pengiriman ini akan dihapus secara permanen.",
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#F8F3E9',
+      color: '#2D1A11',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      buttonsStyling: false, 
+      customClass: {
+        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
+        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
+      }
+    });
+      if (!result.isConfirmed) return;
+
+      try {
+        await AddressService.deleteAddress(id);
+        fetchAddresses();
+
+        Swal.fire({
+          title: 'Terhapus!',
+          text: 'Alamat berhasil dihapus dari daftar.',
+          icon: 'success',
+          confirmButtonColor: '#D9B35A', 
+          background: '#F8F3E9',
+          color: '#2D1A11',
+        });
+        
+      } catch (error: any) {
+        console.error("Gagal menghapus alamat:", error.message);
+        Swal.fire({
+          title: 'Gagal!',
+          text: 'Terjadi kesalahan saat menghapus alamat.',
+          icon: 'error',
+          confirmButtonColor: '#2D1A11',
+        });
+      }
+    };
 
   const handleSetPrimary = async (id: number) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/addresses/${id}/set-primary`, {
-        method: "PATCH",
-        credentials: "include",
-      });
-      if (res.ok) fetchAddresses();
-    } catch (error) {
-      console.error("Gagal mengubah alamat utama", error);
-    }
-  };
-
-  // NEW: Fungsi saat tombol "Ubah" diklik
-  const handleEditClick = (address: any) => {
-    setEditingId(address.id); // Simpan ID yang mau diedit
-    setFormData({
-      recipient_name: address.recipient_name,
-      phone_number: address.phone_number,
-      region: address.region,
-      street: address.street,
-      details: address.details || "",
-      label: address.label || "",
-      is_primary: address.is_primary == 1,
-    });
-    setIsModalOpen(true);
-  };
-
-  // NEW: Fungsi saat tombol "Tambah Alamat Baru" diklik
-  const handleAddNewClick = () => {
-    setEditingId(null); // Reset ID agar jadi mode Tambah
-    setFormData({
-      recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const payload = {
-      ...formData,
-      label: formData.label === "" ? null : formData.label
-    };
-
-    // NEW: Tentukan URL dan Method berdasarkan mode (Edit atau Tambah)
-    const url = editingId 
-      ? `http://127.0.0.1:8000/addresses/${editingId}` 
-      : "http://127.0.0.1:8000/addresses";
-      
-    const method = editingId ? "PUT" : "POST";
-
-    try {
-      const res = await fetch(url, {
-        method: method,
-        credentials: "include",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setIsModalOpen(false);
-        setEditingId(null);
-        setFormData({ recipient_name: "", phone_number: "", region: "", street: "", details: "", label: "", is_primary: false });
-        fetchAddresses();
-      } else {
-        const errData = await res.json();
-        console.error("Error Validasi Laravel:", errData);
-        alert("Gagal menyimpan alamat. Pastikan semua kolom terisi dengan benar.");
-      }
-    } catch (error) {
-      console.error("Error submitting address", error);
-    } finally {
-      setIsLoading(false);
+      await AddressService.setPrimaryAddress(id);
+      fetchAddresses();
+    } catch (error: any) {
+      console.error("Gagal mengubah alamat utama:", error.message);
     }
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-medium text-gray-800">Alamat Saya</h2>
+    <div className="w-full font-sans animate-fadeIn relative min-h-[600px] pb-20">
+      
+      {/* 1. GUNUNGAN WAYANG BACKGROUND */}
+      <div 
+        className="fixed right-10 bottom-10 w-96 h-96 opacity-[0.03] pointer-events-none z-0"
+        style={{ backgroundImage: `url('${gununganUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'bottom right' }}
+      ></div>
+
+      {/* 2. HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 relative z-10 border-b border-[#E8DFD0] pb-6">
+        <div>
+          <h2 className="text-[#2D1A11] text-2xl font-serif font-bold tracking-tight">
+            Alamat Pengiriman
+          </h2>
+          <p className="text-[#8B7355] text-xs uppercase tracking-[0.2em] font-bold mt-2 opacity-70">
+            Kelola tujuan pengiriman pesanan Anda
+          </p>
+        </div>
         <button 
-          onClick={handleAddNewClick}
-          className="bg-[#EE4D2D] hover:bg-[#D73211] text-white px-4 py-2 rounded text-sm flex items-center gap-2 transition-colors shadow-sm"
+          onClick={() => { setEditData(null); setIsModalOpen(true); }}
+          className="bg-[#2D1A11] text-[#EAC135] px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-[0_10px_20px_rgba(45,26,17,0.2)] hover:bg-[#41281c] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center gap-3 group"
         >
-          <span>+</span> Tambah Alamat Baru
+          <span className="text-lg leading-none group-hover:rotate-90 transition-transform duration-500">✧</span> 
+          Tambah Alamat Baru
         </button>
       </div>
 
-      {addresses.length === 0 ? (
-        <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-lg bg-gray-50">
-          <p className="text-gray-400 text-sm">Belum ada alamat yang disimpan.</p>
-        </div>
-      ) : (
-        addresses.map((address) => (
-          <div key={address.id} className="border-t border-gray-200 py-4 flex flex-col md:flex-row justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-800">{address.recipient_name}</span>
-                <span className="text-gray-400">|</span>
-                <span className="text-gray-500">{address.phone_number}</span>
-              </div>
-              <p className="text-gray-500 text-sm">{address.street}</p>
-              <p className="text-gray-500 text-sm uppercase">{address.region}</p>
+      {/* 3. ADDRESS LIST */}
+      <div className="flex flex-col gap-5 relative z-10">
+        {addresses.length === 0 ? (
+          // Keadaan Kosong
+          <div className="w-full py-32 flex flex-col items-center justify-center text-center bg-[#FDFBF7] rounded-[2.5rem] border-2 border-dashed border-[#E8DFD0] shadow-[inset_8px_8px_16px_rgba(45,26,17,0.03),inset_-8px_-8px_16px_rgba(255,255,255,0.8)]">
+            <div className="w-20 h-20 bg-[#F8F3E9] rounded-full flex items-center justify-center mb-6 shadow-inner text-[#D9B35A] text-3xl">✧</div>
+            <p className="text-[#2D1A11] font-bold text-xl">Daftar alamat masih kosong</p>
+            <p className="text-[#8B7355] text-xs mt-2 uppercase tracking-widest font-medium">Klik tombol di atas untuk menambahkan alamat pertama Anda.</p>
+          </div>
+        ) : (
+          addresses.map((address) => (
+            // CARD ALAMAT: Sekarang seluruh card bisa diklik
+            <div 
+              key={address.id} 
+              onClick={() => !address.is_primary && handleSetPrimary(address.id)}
+              className={`group bg-white rounded-[1.5rem] p-6 md:px-8 md:py-6 transition-all duration-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-2 ${
+                address.is_primary 
+                ? 'border-[#D9B35A]/50 shadow-[8px_8px_20px_rgba(217,179,90,0.08),-8px_-8px_20px_rgba(255,255,255,0.9)] bg-gradient-to-r from-[#FFFDF5] to-white cursor-default' 
+                : 'border-transparent shadow-[8px_8px_20px_rgba(45,26,17,0.03),-8px_-8px_20px_rgba(255,255,255,0.9)] hover:shadow-[12px_12px_25px_rgba(45,26,17,0.06),-8px_-8px_20px_rgba(255,255,255,0.9)] hover:border-[#D9B35A]/40 cursor-pointer'
+              }`}
+            >
               
-              <div className="flex gap-2 mt-2">
-                {address.is_primary && (
-                  <span className="inline-block border border-[#EE4D2D] text-[#EE4D2D] px-2 py-0.5 text-[10px] rounded-sm">
-                    Utama
-                  </span>
-                )}
-                {address.label && (
-                  <span className="inline-block border border-gray-400 text-gray-500 px-2 py-0.5 text-[10px] rounded-sm">
-                    {address.label}
-                  </span>
-                )}
-              </div>
-            </div>
+              {/* --- KIRI: Indikator Select & Detail Alamat --- */}
+              <div className="flex gap-4 md:gap-6 items-start flex-1 w-full">
+                
+                {/* Indikator Bulat (Radio Button Custom) - Diubah menjadi div pasif karena klik ditangani oleh card */}
+                <div 
+                  className={`mt-1.5 flex-shrink-0 w-6 h-6 rounded-full border-[2.5px] flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${
+                    address.is_primary 
+                    ? "border-[#D9B35A] bg-[#FFFDF5] shadow-sm" 
+                    : "border-[#E8DFD0] group-hover:border-[#D9B35A] bg-white"
+                  }`}
+                >
+                  {address.is_primary && (
+                    <div className="w-2.5 h-2.5 bg-[#D9B35A] rounded-full shadow-[0_0_5px_rgba(217,179,90,0.5)]"></div>
+                  )}
+                </div>
 
-            <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
-              <div className="space-x-3 text-sm font-medium">
-                {/* 👇 TOMBOL UBAH DENGAN FUNGSI BARU 👇 */}
-                <button onClick={() => handleEditClick(address)} className="text-blue-600 hover:text-blue-800">Ubah</button>
-                <button onClick={() => handleDelete(address.id)} className="text-blue-600 hover:text-blue-800">Hapus</button>
+                {/* Konten Alamat */}
+                <div className="flex flex-col gap-1 w-full">
+                  <div className="flex flex-wrap items-center gap-3 mb-1">
+                    <h3 className="text-[#2D1A11] font-bold text-lg font-serif">{address.recipient_name}</h3>
+                    <span className="text-[#8B7355] text-sm">({address.phone_number})</span>
+                    
+                    {/* Badge Label */}
+                    <span className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ml-auto md:ml-2 ${
+                      address.is_primary 
+                      ? 'bg-[#2D1A11] text-[#EAC135] border-[#2D1A11]' 
+                      : 'bg-[#F8F3E9] text-[#8B7355] border-[#E8DFD0]'
+                    }`}>
+                      {address.label || "Alamat"}
+                    </span>
+                  </div>
+                  
+                  <p className="text-[#5A4A3B] text-sm leading-relaxed max-w-2xl pr-4">
+                    {address.street}
+                  </p>
+                  <p className="text-[#2D1A11] text-[10px] font-black uppercase tracking-wider mt-1 opacity-60">
+                    {address.region}
+                  </p>
+                  
+                  {address.details && (
+                    <div className="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-[#F8F3E9] rounded-lg text-[10px] text-[#8B7355] font-medium border border-[#E8DFD0]/50 w-fit">
+                      <span className="opacity-70 text-[#D9B35A]">📍</span> {address.details}
+                    </div>
+                  )}
+                </div>
               </div>
-              <button 
-                onClick={() => handleSetPrimary(address.id)}
-                disabled={address.is_primary}
-                className={`border px-3 py-1 text-sm rounded transition-colors ${
-                  address.is_primary 
-                    ? "border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed" 
-                    : "border-gray-400 text-gray-700 hover:bg-gray-50 hover:border-gray-500 cursor-pointer"
-                }`}
+
+              {/* --- KANAN: Tombol Aksi (Ubah & Hapus) --- */}
+              {/* Penting: stopPropagation agar klik tombol tidak memicu klik kartu */}
+              <div 
+                onClick={(e) => e.stopPropagation()} 
+                className="flex items-center gap-6 shrink-0 ml-10 md:ml-0 md:pl-8 md:border-l border-[#E8DFD0]/40 w-full md:w-auto justify-end mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0"
               >
-                Atur sebagai utama
-              </button>
+                
+                {/* Tombol Ubah */}
+                <button 
+                  onClick={() => { setEditData(address); setIsModalOpen(true); }}
+                  className="text-[#D9B35A] text-[10px] font-black uppercase tracking-[0.2em] hover:text-[#2D1A11] transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1.5px] after:bg-[#D9B35A] hover:after:w-full after:transition-all duration-300"
+                >
+                  Ubah
+                </button>
+                
+                {/* Tombol Hapus */}
+                <button 
+                  onClick={() => handleDelete(address.id)}
+                  className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] text-[#8B7355] border border-transparent hover:bg-rose-50 hover:text-rose-600 transition-all duration-300"
+                >
+                  Hapus
+                </button>
+                
+              </div>
+
             </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[99999] bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded shadow-2xl w-full max-w-[500px] overflow-hidden flex flex-col max-h-[90vh] animate-soft-fade">
-            <div className="p-6 overflow-y-auto">
-              {/* NEW: Judul Modal Dinamis */}
-              <h3 className="text-xl mb-6 font-medium text-gray-800">
-                {editingId ? "Ubah Alamat" : "Alamat Baru"}
-              </h3>
-              
-              <form id="addressForm" onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex gap-4">
-                  <input required type="text" name="recipient_name" placeholder="Nama Lengkap" value={formData.recipient_name} onChange={handleInputChange} className="w-full border border-gray-300 px-3 py-2.5 rounded text-sm focus:border-gray-500 outline-none transition-colors" />
-                  <input required type="text" name="phone_number" placeholder="Nomor Telepon" value={formData.phone_number} onChange={handleInputChange} className="w-full border border-gray-300 px-3 py-2.5 rounded text-sm focus:border-gray-500 outline-none transition-colors" />
-                </div>
-
-                <div className="relative">
-                  <select 
-                    required 
-                    name="region" 
-                    value={formData.region} 
-                    onChange={handleInputChange} 
-                    className="w-full border border-gray-300 px-3 py-2.5 rounded text-sm focus:border-gray-500 outline-none transition-colors appearance-none bg-white cursor-pointer"
-                  >
-                    <option value="" disabled>Pilih Provinsi, Kota, Kecamatan, Kode Pos</option>
-                    <option value="Jawa Barat, Kota Bandung, Cibeunying Kaler, 40123">Jawa Barat, Kota Bandung, Cibeunying Kaler, 40123</option>
-                    <option value="DKI Jakarta, Jakarta Selatan, Kebayoran Baru, 12110">DKI Jakarta, Jakarta Selatan, Kebayoran Baru, 12110</option>
-                    <option value="Jawa Tengah, Kota Semarang, Semarang Tengah, 50131">Jawa Tengah, Kota Semarang, Semarang Tengah, 50131</option>
-                    <option value="Jawa Timur, Kota Surabaya, Tegalsari, 60262">Jawa Timur, Kota Surabaya, Tegalsari, 60262</option>
-                    <option value="Bali, Kota Denpasar, Denpasar Selatan, 80223">Bali, Kota Denpasar, Denpasar Selatan, 80223</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-                  </div>
-                </div>
-
-                <textarea required name="street" placeholder="Nama Jalan, Gedung, No. Rumah" rows={3} value={formData.street} onChange={handleInputChange} className="w-full border border-gray-300 px-3 py-2.5 rounded text-sm focus:border-gray-500 outline-none transition-colors resize-none" />
-                <input type="text" name="details" placeholder="Detail Lainnya (Cth: Blok / Unit No., Patokan)" value={formData.details} onChange={handleInputChange} className="w-full border border-gray-300 px-3 py-2.5 rounded text-sm focus:border-gray-500 outline-none transition-colors" />
-
-                <div className="w-full h-20 bg-gray-100 border border-gray-200 flex items-center justify-center relative overflow-hidden rounded">
-                  <div className="absolute inset-0 opacity-10 bg-[url('https://maps.gstatic.com/mapfiles/transparent.png')] bg-repeat"></div>
-                  <button 
-                    type="button" 
-                    onClick={() => alert("Fitur Google Maps membutuhkan Integrasi API Key khusus. Saat ini gunakan input manual.")}
-                    className="bg-white border border-gray-300 text-gray-600 px-4 py-1.5 text-sm rounded shadow-sm z-10 flex items-center gap-2 hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="text-lg">+</span> Tambah Lokasi
-                  </button>
-                </div>
-
-                <div className="pt-2">
-                  <p className="text-sm text-gray-600 mb-2">Tandai Sebagai:</p>
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => handleLabelClick('Rumah')} className={`px-4 py-1.5 text-sm rounded border ${formData.label === 'Rumah' ? 'border-[#EE4D2D] text-[#EE4D2D]' : 'border-gray-300 text-gray-600'}`}>Rumah</button>
-                    <button type="button" onClick={() => handleLabelClick('Kantor')} className={`px-4 py-1.5 text-sm rounded border ${formData.label === 'Kantor' ? 'border-[#EE4D2D] text-[#EE4D2D]' : 'border-gray-300 text-gray-600'}`}>Kantor</button>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center gap-2">
-                  <input type="checkbox" id="is_primary" name="is_primary" checked={formData.is_primary} onChange={handleInputChange} className="w-4 h-4 accent-[#EE4D2D] cursor-pointer" />
-                  <label htmlFor="is_primary" className="text-sm text-gray-600 cursor-pointer">Atur sebagai Alamat Pribadi / Utama</label>
-                </div>
-              </form>
-            </div>
-
-            <div className="p-6 pt-4 flex justify-end gap-3 mt-auto border-t border-gray-100 bg-gray-50">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded transition-colors font-medium">
-                Batal
-              </button>
-              <button type="submit" form="addressForm" disabled={isLoading} className="bg-[#EE4D2D] hover:bg-[#D73211] text-white px-8 py-2 text-sm rounded transition-colors disabled:opacity-70 font-medium shadow-sm">
-                {isLoading ? "Menyimpan..." : "OK"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 4. MODAL ALAMAT */}
+      <AddressModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchAddresses} 
+        editData={editData} 
+      />
     </div>
   );
 }

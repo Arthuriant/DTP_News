@@ -14,6 +14,9 @@ export interface ProductTexture {
   description?: string;
   price: number;
   colors?: ProductColor[];  
+  img_front?: string;
+  img_back?: string;
+  img_top?: string;
 }
 
 export interface ProductSize {

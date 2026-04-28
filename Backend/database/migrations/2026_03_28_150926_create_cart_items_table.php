@@ -6,32 +6,38 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
         Schema::create('cart_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
+            // 1. Primary Key
+            $table->uuid('id')->primary();
+            
+            // 2. Foreign Key ke tabel carts
+            $table->uuid('cart_id');
+            $table->foreign('cart_id')->references('id')->on('carts')->onDelete('cascade');
 
-            // Cukup pakai string karena ID dari frontend-mu berupa teks (misal: "tas_kelalawar")
-            $table->string('product_id');
+            // 3. Foreign Key ke tabel products (Sesuai ERD: VARCHAR(50))
+            // Asumsinya nanti tabel products juga pakai UUID. Jika pakai ID string biasa, biarkan string('product_id', 50)
+            $table->uuid('product_id'); 
 
-            // Simpan harga akhir hasil kustomisasi
-            $table->integer('price');
+            // 4. Data Transaksional Kustomisasi
+            $table->integer('qty')->default(1); // Sesuai ERD namanya 'qty'
+            $table->bigInteger('price'); // Harga setelah dihitung dengan bahan kustom
 
-            // Simpan semua pilihan warna, bahan, dan ukuran di dalam satu kolom JSON
-            $table->json('customizations')->nullable();
+            // 5. State Kustomisasi (Menggunakan jsonb karena PostgreSQL)
+            
+            // Ini yang akan menyimpan: {"body": "Red Leather", "strap": "Black Canvas"}
+            
+            $table->jsonb('custom_configuration')->nullable(); 
 
-            $table->integer('quantity')->default(1);
+            // 6. Audit Trail (Sesuai ERD)
+            $table->uuid('created_by')->nullable();
+            $table->uuid('updated_by')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('cart_items');

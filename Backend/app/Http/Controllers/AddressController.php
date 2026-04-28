@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
+
     // Mengambil semua alamat milik user yang sedang login
     public function index()
     {
@@ -19,7 +20,7 @@ class AddressController extends Controller
                             ->orderBy('is_primary', 'desc')
                             ->orderBy('created_at', 'desc')
                             ->get();
-                            
+
         return response()->json($addresses);
     }
 
@@ -36,7 +37,9 @@ class AddressController extends Controller
             'street' => 'required|string',
             'details' => 'nullable|string',
             'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean'
+            'is_primary' => 'boolean',
+            'latitude'       => 'nullable|numeric',
+            'longitude'      => 'nullable|numeric',
         ]);
 
         $isPrimary = $request->is_primary;
@@ -61,6 +64,8 @@ class AddressController extends Controller
             'details' => $request->details,
             'label' => $request->label,
             'is_primary' => $isPrimary,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil ditambahkan', 'address' => $address], 201);
@@ -69,16 +74,26 @@ class AddressController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+    $address = Address::where('id', $id)->where('user_id', $user->id)->first();
 
-        $address = Address::where('id', $id)->where('user_id', $user->id)->first();
-        
-        if ($address) {
-            $address->delete();
-            return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
-        }
+    $user = Auth::user();
+    $address = Address::findOrFail($id); // cari global, bukan per user
 
-        return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+
+    if ($address) {
+        $address->delete();
+        return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
+    }
+    return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+
+    // bukan pemilik DAN bukan admin → tolak
+    if ($address->user_id !== $user->id && !$user->can('delete_customers')) {
+        return response()->json(['message' => 'Tidak memiliki akses'], 403);
+    }
+
+    $address->delete();
+    return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
     }
 
     // Mengubah alamat menjadi Utama
@@ -92,7 +107,7 @@ class AddressController extends Controller
         if ($address) {
             // Ubah semua alamat user ini menjadi BUKAN utama
             Address::where('user_id', $user->id)->update(['is_primary' => false]);
-            
+
             // Jadikan alamat yang dipilih menjadi Utama
             $address->update(['is_primary' => true]);
 
@@ -110,6 +125,7 @@ class AddressController extends Controller
         $address = Address::where('id', $id)->where('user_id', $user->id)->first();
         if (!$address) return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
 
+
         $request->validate([
             'recipient_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
@@ -117,7 +133,9 @@ class AddressController extends Controller
             'street' => 'required|string',
             'details' => 'nullable|string',
             'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean'
+            'is_primary' => 'boolean',
+            'latitude'       => 'nullable|numeric',
+            'longitude'      => 'nullable|numeric',
         ]);
 
         $isPrimary = $request->is_primary;
@@ -136,6 +154,8 @@ class AddressController extends Controller
             'details' => $request->details,
             'label' => $request->label,
             'is_primary' => $isPrimary,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil diubah', 'address' => $address], 200);

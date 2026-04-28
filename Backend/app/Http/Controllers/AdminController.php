@@ -11,35 +11,33 @@ use Spatie\Permission\Models\Role;
 class AdminController extends Controller
 {
     // GET /admins - List semua pengguna (beserta nama role-nya)
-    public function index()
+   public function index()
     {
-        // Mengambil semua user beserta nama role mereka
-        // Opsional: Kamu bisa memfilter agar 'customer' tidak ikut muncul di sini jika ini khusus staff
-        $admins = User::with('roles:id,name')->get(['id', 'name', 'email', 'created_at']);
+        $currentUserId = auth()->id();
+        $admins = User::with('roles:id,name')
+                      ->where('id', '!=', $currentUserId) 
+                      ->get(['id', 'name', 'email', 'created_at']);
 
         // Rapikan format agar mudah dibaca Frontend
         $formattedAdmins = $admins->map(function($user) {
             return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
                 'created_at' => $user->created_at,
-                // Ambil role pertama (karena 1 user biasanya 1 role di sistem ini)
-                'role' => $user->roles->first()->name ?? 'Tanpa Role' 
+                'role'       => $user->roles->first()->name ?? null, 
             ];
-        });
+        }); 
 
         return response()->json($formattedAdmins);
     }
 
-    // POST /admins - Buat pengguna baru dengan Role dinamis
     public function store(Request $request)
     {
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|string|exists:roles,name' // 👈 Validasi: Role harus ada di database
         ]);
 
         $user = User::create([
@@ -49,7 +47,7 @@ class AdminController extends Controller
         ]);
 
         // 👈 Terapkan role sesuai pilihan dari Frontend
-        $user->assignRole($request->role); 
+        $user->assignRole($request->role);
 
         return response()->json([
             'message' => 'Pengguna berhasil dibuat',
@@ -72,7 +70,7 @@ class AdminController extends Controller
             'name'     => 'sometimes|string|max:255',
             'email'    => 'sometimes|email|unique:users,email,' . $id,
             'password' => 'sometimes|string|min:6',
-            'role'     => 'sometimes|string|exists:roles,name' // 👈 Validasi role
+
         ]);
 
         $user->update([
@@ -81,7 +79,6 @@ class AdminController extends Controller
             'password' => $request->password ? Hash::make($request->password) : $user->password,
         ]);
 
-        // 👈 Jika frontend mengirimkan perubahan role, sinkronisasikan!
         if ($request->has('role')) {
             $user->syncRoles([$request->role]);
         }

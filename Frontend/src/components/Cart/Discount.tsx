@@ -4,10 +4,9 @@ const Discount = () => {
   return (
     <div className="lg:max-w-[670px] w-full">
       <form>
-        {/* <!-- coupon box --> */}
-        <div className="bg-white shadow-1 rounded-[10px]">
-          <div className="border-b border-gray-3 py-5 px-4 sm:px-5.5">
-            <h3 className="">Have any discount code?</h3>
+        <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20">
+          <div className="border-b border-[#D9B35A]/30 py-5 px-4 sm:px-8.5 bg-[#D9B35A]/5 rounded-t-2xl">
+            <h3 className="font-bold text-lg text-[#2D1A11]">Punya Kode Diskon?</h3>
           </div>
 
           <div className="py-8 px-4 sm:px-8.5">
@@ -17,16 +16,16 @@ const Discount = () => {
                   type="text"
                   name="coupon"
                   id="coupon"
-                  placeholder="Enter coupon code"
-                  className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
+                  placeholder="Masukkan kode kupon"
+                  className="rounded-full border border-[#D9B35A]/40 bg-white placeholder:text-gray-400 w-full py-3 px-6 outline-none duration-200 focus:border-[#D9B35A] focus:shadow-sm focus:ring-2 focus:ring-[#D9B35A]/20 font-medium text-[#2D1A11]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="inline-flex font-medium text-white bg-blue py-3 px-8 rounded-md ease-out duration-200 hover:bg-blue-dark"
+                className="inline-flex items-center justify-center font-bold text-white bg-[#2D1A11] py-3 px-8 rounded-full ease-out duration-200 hover:bg-[#4A2F1D] shadow-md hover:shadow-lg transition-all tracking-wide text-sm"
               >
-                Apply Code
+                Gunakan Kode
               </button>
             </div>
           </div>

@@ -17,12 +17,139 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+import html2canvas from "html2canvas";
+import { CartService } from '@/services/CartService';
+import { flushSync } from "react-dom";
 
-
-export default function BagCustomizer() {
+    export default function BagCustomizer() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
-  const product = PRODUCTS_CONFIG[productId as string];
+  
+  const [product, setProduct] = useState<ProductConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!productId) {
+      setLoading(false);
+      return;
+    }
+    
+      const fetchProduct = async () => {
+    try {
+      // ── Cek login dulu ──────────────────────────────
+      const userRes = await fetch('/api-fe/proxy/user', {
+        credentials: 'include',
+      });
+
+
+      // ── Fetch produk ────────────────────────────────
+      const res = await fetch(`/api-fe/proxy/products/${productId}`);
+      if (res.ok) {
+        const json = await res.json();
+        const raw = json.data;
+        const slug = raw.slug;
+        const localConfig = PRODUCTS_CONFIG[slug];
+
+        // ── Mapping parts ──────────────────────────────────
+        const mappedParts = (raw.parts || []).map((part: any) => ({
+          id:        part.id,
+          name:      part.name,
+          basePrice: 0,
+          zIndex:    part.z_index,
+          variants:  (part.variants || []).map((variant: any) => ({
+            id:         variant.id,
+            name:       variant.name,
+            price:      parseFloat(variant.price),
+            priceLabel: variant.price > 0
+              ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
+              : "",
+            textures: (variant.textures || []).map((texture: any) => ({
+              id:        texture.id,
+              name:      texture.name,
+              price:     parseFloat(texture.price),
+              thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
+              image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+              img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
+              img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+            })),
+          })),
+          textures: part.variants?.length === 0 ? [] : undefined,
+        }));
+
+        // ── Mapping sizes ──────────────────────────────────
+        const mappedSizes = (raw.sizes || []).map((s: any) => ({
+          id:          s.id,
+          title:       s.title,
+          desc:        s.short_desc,
+          description: s.description,
+          price:       s.price,
+          image:       s.img || "",
+          dimensions: {
+            width:  s.width,
+            height: s.height,
+            depth:  s.depth,
+            unit:   s.unit,
+          },
+        }));
+
+        // ── Base data dari API ─────────────────────────────
+        const baseData = {
+          id:              raw.id,
+          name:            raw.name,
+          basePrice:       parseFloat(raw.base_price),
+          numericId:       0,
+          catalogTitle:    raw.name,
+          reviews:         0,
+          catalogPrice:    parseFloat(raw.base_price),
+          discountedPrice: parseFloat(raw.base_price),
+          thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+          gallery:         (raw.gallery || []).map((g: any) => g.img),
+          dimensionsImage: raw.dimension?.img || "",
+          specifications:  [
+            raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+            raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
+            raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+          ].filter(Boolean) as { label: string; value: string }[],
+          marketingBlocks: (raw.marketing_blocks || []).map((block: any, index: number) => ({
+          title:        block.title,
+          subtitle:     block.subtitle || "",
+          description:  block.description || "",
+          image:        block.image || "",
+          layout:       index % 2 === 0 ? "image-left" : "image-right", // ← alternating
+          featureStyle: block.feature_style || "cards",
+          features:     (block.features || []).map((f: any) => ({
+            title: f.title,
+            icon:  f.icon || "",
+          })),
+        })),
+          sizes:           mappedSizes,
+          parts:           mappedParts,
+        };
+
+        // ── Gabungkan dengan localConfig kalau ada ─────────
+        const mapped: ProductConfig = localConfig
+          ? { ...localConfig, ...baseData }
+          : baseData;
+
+        setProduct(mapped);
+        }
+      } catch (err) {
+        console.error("Gagal fetch produk:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-screen bg-[#F8F3E9]">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[#C5A059]"></div>
+    </div>
+  );
 
   if (!product) {
     return (
@@ -39,6 +166,7 @@ export default function BagCustomizer() {
       </div>
     );
   }
+
   return <BagCustomizerInner key={product.id} product={product} />;
 }
 
@@ -47,7 +175,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const { openCartModal } = useCartModalContext();
 
   const screenshotRef = useRef<HTMLDivElement>(null);
-  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
 
@@ -56,65 +184,92 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
   product.parts.forEach((part) => steps.push({ id: part.id, type: 'part', title: part.name, partData: part }));
 
-  // --- STATES ---
+  // --- SEMUA STATE ---
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const currentStep = steps[activeStepIndex];
+  const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [activeSize, setActiveSize] = useState<string>("");
+  const [shapeSelections, setShapeSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [textureSelections, setTextureSelections] = useState<Record<string, string>>({});
+  const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>({});
+  const [activeView, setActiveView] = useState<string>("front");
+  const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
+  const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
+  const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
+  const [showFullPreview, setShowFullPreview] = useState(false);
+  const [frame360, setFrame360] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [startX, setStartX] = useState(0);
 
-  const [activeSize, setActiveSize] = useState<string>(
-    bagSizes.length > 0 ? bagSizes[0].id : ""
-  );
-  
-  const [shapeSelections, setShapeSelections] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-    });
-    return init;
-  });
+  // --- SEMUA USEEFFECT ---
 
-  const [selections, setSelections] = useState<Record<string, string>>(() => {
+  // 1. Load dari localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(`customization_${product.id}`);
+    const savedData = saved ? JSON.parse(saved) : null;
+
+    setActiveSize(savedData?.activeSize || (bagSizes.length > 0 ? bagSizes[0].id : ""));
+
+    setShapeSelections(savedData?.shapeSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        init[p.id] = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+      });
+      return init;
+    })());
+
+    setSelections(savedData?.selections || (() => {
       const init: Record<string, string> = {};
       product.parts.forEach((p) => {
         const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
         const variant = p.variants?.find((v) => v.id === activeShapeId);
-        
         const textures = variant?.textures || p.textures || [];
-        const defaultTexture = textures[0];
-        const colors = defaultTexture?.colors || [];
-
+        const colors = textures[0]?.colors || [];
         init[p.id] = colors.length > 0 ? colors[0].hex : "#FFFFFF";
       });
       return init;
-    });
+    })());
 
-  const [textureSelections, setTextureSelections] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    product.parts.forEach((p) => {
-      const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
-      const variant = p.variants?.find((v) => v.id === activeShapeId);
-      const textures = variant?.textures || p.textures || [];
-      init[p.id] = textures[0]?.id || "base";
-    });
-    return init;
-  });
+    setTextureSelections(savedData?.textureSelections || (() => {
+      const init: Record<string, string> = {};
+      product.parts.forEach((p) => {
+        const activeShapeId = p.variants && p.variants.length > 0 ? p.variants[0].id : p.id;
+        const variant = p.variants?.find((v) => v.id === activeShapeId);
+        const textures = variant?.textures || p.textures || [];
+        init[p.id] = textures[0]?.id || "base";
+      });
+      return init;
+    })());
 
-  const [visibleParts, setVisibleParts] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    product.parts.forEach((p) => (init[p.id] = true));
-    return init;
-  });
+    setVisibleParts(savedData?.visibleParts || (() => {
+      const init: Record<string, boolean> = {};
+      product.parts.forEach((p) => (init[p.id] = true));
+      return init;
+    })());
 
-  const [activeView, setActiveView] = useState<string>("front");
+    setActiveView(savedData?.activeView || "front");
+    setIsHydrated(true);
+  }, []);
 
-  // Modal States 
-  const [showSizeGuideModal, setShowSizeGuideModal] = useState(false);
-  const [showFabricGuideModal, setShowFabricGuideModal] = useState(false);
-  const [selectedFabricPartId, setSelectedFabricPartId] = useState<string | null>(null);
+  // 2. Save ke localStorage
+  useEffect(() => {
+    if (!isHydrated) return;
+    localStorage.setItem(`customization_${product.id}`, JSON.stringify({
+      productId: product.id,
+      activeSize,
+      shapeSelections,
+      selections,
+      textureSelections,
+      visibleParts,
+      activeView,
+    }));
+  }, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView, isHydrated]);
 
-  // TAMBAHAN: State full preview
-  const [showFullPreview, setShowFullPreview] = useState(false);
-
-  // Effect to auto-highlight part when changing step
+  // 3. Highlight part
   useEffect(() => {
     if (currentStep && currentStep.type === 'part') {
       setHighlightedPartId(currentStep.id);
@@ -123,11 +278,64 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   }, [activeStepIndex, currentStep]);
 
+   useEffect(() => {
+    const checkWishlist = async () => {
+      try {
+        const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const json = await res.json();
+          setIsWishlisted(json.is_wishlisted);
+        }
+      } catch (err) {
+        console.error("Gagal cek wishlist:", err);
+      }
+    };
+    checkWishlist();
+  }, [product.id]);
+
+  // Toggle wishlist
+  const handleToggleWishlist = async () => {
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        // Hapus dari wishlist
+        await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        setIsWishlisted(false);
+      } else {
+        // Tambah ke wishlist
+          await fetch(`/api-fe/proxy/wishlist`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            customizations: {
+              size:         activeSize,
+              shapes:       shapeSelections,
+              textures:     textureSelections,
+              colors:       selections,
+              visibleParts: visibleParts,
+            },
+            total_price: calculateTotalPrice(), // ← tambah ini
+          }),
+        });
+        setIsWishlisted(true);
+      }
+    } catch (err) {
+      console.error("Gagal toggle wishlist:", err);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  if (!isHydrated) return null;
   // 360 ROTATION
   const TOTAL_FRAMES = 17;
-  const [frame360, setFrame360] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
@@ -225,48 +433,121 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
-  const handleAddToCart = async () => {
+  // Tambahkan helper ini di LUAR komponen (di atas fungsi komponen)
+const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
+  const imgs = container.querySelectorAll<HTMLImageElement>('img');
+  await Promise.all(
+    Array.from(imgs).map((img) => {
+      return new Promise<void>((resolve) => {
+        // Skip gambar yang sudah base64 atau dari domain yang sama
+        if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
+          return resolve();
+        }
+
+        const tempImg = new Image();
+        tempImg.crossOrigin = 'anonymous';
+
+        tempImg.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = tempImg.naturalWidth;
+          canvas.height = tempImg.naturalHeight;
+          canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
+          img.src = canvas.toDataURL('image/png'); // ganti src asli ke base64
+          resolve();
+        };
+
+        tempImg.onerror = () => resolve(); // skip jika tetap gagal
+        tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+      });
+    })
+  );
+};
+
+  // 👇 2. TIMPA FUNGSI LAMA DENGAN INI
+ const handleAddToCart = async () => {
+    setIsCapturing(true);
+    
+    const previousView = activeView;
+    const previousHighlightedPart = highlightedPartId; // ✅ ganti activePart
+    
+    if (activeView !== "front") {
+      setActiveView("front");
+    }
+    
+    if (highlightedPartId !== null) { // ✅ ganti activePart
+      setHighlightedPartId(null);     // ✅ ganti setActivePart
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 400)); 
+    
     const finalPrice = calculateTotalPrice();
+    const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
+    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize; 
     const customizationsData = {
-      size: activeSize,
+      size: sizeLabel,
       shapes: shapeSelections,
       textures: textureSelections,
-      colors: selections, // Ini menyimpan kode HEX warna
+      colors: selections, 
       visibleParts: visibleParts
     };
 
+    let base64Image = null;
+
+    if (screenshotRef.current) {
+      try {
+        await preloadImagesToBase64(screenshotRef.current);
+        const canvas = await html2canvas(screenshotRef.current, {
+          backgroundColor: null,
+          scale: 1, 
+          useCORS: true,
+          logging: false,
+          allowTaint: false,
+        });
+        base64Image = canvas.toDataURL("image/png");
+      } catch (error) {
+        console.error("Gagal mengambil screenshot desain:", error);
+      }
+    }
+
+    // Kembalikan state ke semula
+    if (previousView !== "front") {
+      setActiveView(previousView);
+    }
+    if (previousHighlightedPart !== null) { // ✅ ganti activePart
+      setHighlightedPartId(previousHighlightedPart); // ✅ ganti setActivePart
+    }
+
     try {
-      const res = await fetch("http://127.0.0.1:8000/cart", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_id: product.id,
-          price: finalPrice,
-          customizations: customizationsData,
-          image_preview: null // Kosongkan saja
-        }),
+      const res = await CartService.addToCart({
+        product_id: product.id,
+        price: finalPrice,
+        custom_configuration: customizationsData,
+        image_preview: base64Image
       });
 
-      if (res.ok) {
-        dispatch(
-          addItemToCart({
-            id: Date.now(), 
-            title: `Kustom ${product.name}`,
-            price: finalPrice,
-            discountedPrice: finalPrice,
-            quantity: 1,
-            imgs: { 
-              previews: [product.gallery?.[0] || ""], // Pakai gambar bawaan
-              thumbnails: [product.gallery?.[0] || ""] 
-            },
-            customizations: customizationsData
-          } as any)
-        );
-        openCartModal();
-      }
+      const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
+      
+      dispatch(
+        addItemToCart({
+          id: realDbId,
+          title: `Kustom ${product.name}`,
+          price: finalPrice,
+          discountedPrice: finalPrice,
+          quantity: 1,
+          imgs: { 
+            previews: [base64Image || product.gallery?.[0] || ""], 
+            thumbnails: [base64Image || product.gallery?.[0] || ""] 
+          },
+          customizations: customizationsData
+        } as any)
+      );
+      
+      setIsCapturing(false);
+      openCartModal();
+
     } catch (error) {
-      console.error("Gagal menambahkan ke keranjang", error);
+      console.error("Terjadi kesalahan jaringan", error);
+      setIsCapturing(false); 
     }
   };
 
@@ -277,16 +558,36 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
-      const activeKompartemen = shapeSelections["kompartemen"];
-      if (part.id === "pengait2" && activeKompartemen !== "pengait") {
-        return null;
-      }
+      // const activeKompartemen = shapeSelections["kompartemen"];
+      // if (part.id === "pengait2" && activeKompartemen !== "pengait") {
+      //   return null;
+      // }
 
       const activeShape = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v) => v.id === activeShape);
       
       const currentTextures = activeVariant?.textures || part.textures || [];
-      const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+            const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+
+      // Pilih URL gambar sesuai POV
+      const getTextureImageUrl = (textureObj: any, pov: string) => {
+    // 1. Tampung dulu URL aslinya ke dalam variabel rawUrl
+    let rawUrl = "";
+    switch(pov.toLowerCase()) {
+      case 'front': rawUrl = textureObj?.img_front || ""; break;
+      case 'back':  rawUrl = textureObj?.img_back  || ""; break;
+      case 'top':   rawUrl = textureObj?.img_top   || ""; break;
+      default:      rawUrl = textureObj?.img_front || ""; break;
+    }
+
+    // 2. Jika rawUrl ada isinya, potong domain Laravel-nya
+    if (rawUrl) {
+      return rawUrl.replace("http://127.0.0.1:8000", "");
+      
+    }
+
+    return "";
+  };
 
       const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
 
@@ -350,14 +651,16 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               partName={activeShape}
               color={activeColor}
               texture={activeTexture}
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
               zIndex={partZIndex}
-            />
+                      />
           ) : (
             <TextureOnlyPart
               productId={product.id}
               pov={pov}
               partName={activeShape}
               texture={activeTexture}
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
               zIndex={partZIndex}
             />
           )}
@@ -433,6 +736,15 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                   </button>
 
                   <div className="w-full h-[380px] sm:h-[450px] lg:h-[500px] flex items-center justify-center relative z-10">
+                    {isCapturing && (
+                      <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-[#2D1A11]/70 backdrop-blur-3xl rounded-xl transition-all">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C5A059] mb-4 shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+                        <p className="text-[#C5A059] font-bold tracking-[0.2em] text-xs uppercase animate-pulse">
+                          Menyimpan Desain...
+                        </p>
+                      </div>
+                    )}
+                    
                     {activeView !== "360" ? (
                       <div 
                       key={globalAnimationKey} 
@@ -486,6 +798,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     ))}
                   </div>
                 </div>
+                
             </div>
           </div>
 
@@ -493,6 +806,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           <div className="w-full lg:w-[45%] flex flex-col relative z-10">
             <div className="bg-[#2D1A11] rounded-2xl p-7 shadow-2xl h-full flex flex-col min-h-[550px] border border-[#C5A059]/30 relative overflow-hidden">
               <div className="absolute right-0 top-0 bottom-0 w-16 opacity-10 mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '200px' }}></div>
+              
+              {/* HEADER */}
               <div className="flex items-center justify-between border-b border-[#C5A059]/30 pb-5 mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#C5A059] flex items-center justify-center text-[#2D1A11] font-bold text-sm shadow-inner">
@@ -503,16 +818,43 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     <p className="text-lg text-[#F8F3E9] uppercase tracking-widest">{currentStep.title}</p>
                   </div>
                 </div>
+
                 <div className="flex items-center gap-3">
+                  {/* ✅ Tombol Wishlist */}
+                  <button
+                    onClick={handleToggleWishlist}
+                    disabled={wishlistLoading}
+                    title={isWishlisted ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-500
+                      ${isWishlisted
+                        ? "bg-[#C5A059] border-[#C5A059] text-[#2D1A11]"
+                        : "bg-transparent border-[#C5A059]/50 text-[#C5A059] hover:border-[#C5A059]"
+                      }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      fill={isWishlisted ? "currentColor" : "none"}
+                      stroke="currentColor" strokeWidth={2}
+                      className="w-5 h-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Tombol Prev */}
                   <button onClick={prevStep} disabled={activeStepIndex === 0} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                   </button>
+
+                  {/* Tombol Next */}
                   <button onClick={nextStep} disabled={activeStepIndex === steps.length - 1} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               </div>
 
+              {/* CONTENT */}
               <div key={currentStep.id} className="bg-[#F8F3E9] rounded-2xl p-7 relative flex-grow animate-soft-fade flex flex-col shadow-inner border border-[#E5D7C1] z-10">
                 
                 {/* UKURAN */}
@@ -602,12 +944,12 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                               <p className="text-[11px] text-[#2D1A11] font-semibold mb-3 uppercase tracking-wide">Warna Solid</p>
                               <div className="flex flex-wrap gap-3">
                                 {isColorable ? (
-                                    currentColors.map((color) => {
-                                      const isSelected = selections[part.id] === color.hex;
-                                      return (
-                                        <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />
-                                      );
-                                    })
+                                  currentColors.map((color) => {
+                                    const isSelected = selections[part.id] === color.hex;
+                                    return (
+                                      <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />
+                                    );
+                                  })
                                 ) : (
                                   <div className="text-[12px] text-[#6B442A] italic py-2">
                                     Material ini menggunakan corak natural.
@@ -623,25 +965,28 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 )}
               </div>
 
+              {/* BOTTOM: Total Investasi */}
               <div className="pt-6 mt-6 border-t border-[#C5A059]/30 relative z-10">
-                  <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
-                      <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                      <span className="text-3xl tracking-tighter font-light text-[#F8F3E9]">
-                        Rp <span className="font-bold text-[#C5A059]">{calculateTotalPrice().toLocaleString("id-ID")}</span>
-                      </span>
-                      <button 
-                        onClick={handleAddToCart} 
-                        className="bg-[#C5A059] text-[#2D1A11] px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white transition-all duration-500 shadow-xl"
-                      >
-                        Simpan Desain
-                      </button>
-                  </div>
+                <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
+                  <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-3xl tracking-tighter font-light text-[#F8F3E9]">
+                    Rp <span className="font-bold text-[#C5A059]">{calculateTotalPrice().toLocaleString("id-ID")}</span>
+                  </span>
+                  <button
+                    onClick={handleAddToCart}
+                    className="bg-[#C5A059] text-[#2D1A11] px-8 py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-white transition-all duration-500 shadow-xl"
+                  >
+                    Simpan Desain
+                  </button>
+                </div>
               </div>
 
             </div>
           </div>
+
+          
         </div>
       </section>
 
@@ -692,7 +1037,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[10px] tracking-widest text-[#C5A059] uppercase font-sans">Visualisasi Emas</div>
                         )}
-                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.id}</div>
+                        <div className="absolute top-3 left-3 bg-[#2D1A11]/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase shadow-lg text-[#C5A059] border border-[#C5A059]/30 font-sans">Edisi {size.title}</div>
                       </div>
                       <div className="space-y-2 mb-6 flex-grow text-center">
                         <h4 className="text-2xl text-[#2D1A11] font-bold">{size.title}</h4>
@@ -783,6 +1128,25 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           </div>
         </div>
       )}
+
+      <div
+        ref={screenshotRef}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "0",
+          width: "500px",
+          height: "417px",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        <div className="relative w-full h-full">
+          {renderProductParts("Front")}
+        </div>
+      </div>
 
     </div>
   );

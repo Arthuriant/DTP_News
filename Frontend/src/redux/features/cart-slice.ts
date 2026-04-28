@@ -6,7 +6,7 @@ type InitialState = {
 };
 
 type CartItem = {
-  id: number;
+  id: string | number; // 👈 UBAH: Mendukung format UUID dari Laravel
   title: string;
   price: number;
   discountedPrice: number;
@@ -26,8 +26,13 @@ export const cart = createSlice({
   name: "cart",
   initialState,
   reducers: {
+    // 👇 FUNGSI BARU UNTUK SINKRONISASI DATABASE 👇
+    setCartItems: (state, action: PayloadAction<CartItem[]>) => {
+      state.items = action.payload; // Menimpa memori lama dengan data fresh dari database
+    },
+    
     addItemToCart: (state, action: PayloadAction<CartItem>) => {
-      const { id, title, price, quantity, discountedPrice, imgs } =
+      const { id, title, price, quantity, discountedPrice, imgs, customizations } =
         action.payload;
       const existingItem = state.items.find((item) => item.id === id);
 
@@ -41,16 +46,17 @@ export const cart = createSlice({
           quantity,
           discountedPrice,
           imgs,
+          customizations, // 👈 Tambahkan ini agar data kustomisasi tidak hilang
         });
       }
     },
-    removeItemFromCart: (state, action: PayloadAction<number>) => {
+    removeItemFromCart: (state, action: PayloadAction<string | number>) => { // 👈 Sesuaikan tipe id
       const itemId = action.payload;
       state.items = state.items.filter((item) => item.id !== itemId);
     },
     updateCartItemQuantity: (
       state,
-      action: PayloadAction<{ id: number; quantity: number }>
+      action: PayloadAction<{ id: string | number; quantity: number }> // 👈 Sesuaikan tipe id
     ) => {
       const { id, quantity } = action.payload;
       const existingItem = state.items.find((item) => item.id === id);
@@ -63,6 +69,9 @@ export const cart = createSlice({
     removeAllItemsFromCart: (state) => {
       state.items = [];
     },
+    clearCart: (state) => {
+    state.items = []; // Mengosongkan array items
+  },
   },
 });
 
@@ -75,9 +84,11 @@ export const selectTotalPrice = createSelector([selectCartItems], (items) => {
 });
 
 export const {
+  setCartItems, // 👈 JANGAN LUPA EXPORT FUNGSI BARU INI
   addItemToCart,
   removeItemFromCart,
   updateCartItemQuantity,
   removeAllItemsFromCart,
+  clearCart,
 } = cart.actions;
 export default cart.reducer;

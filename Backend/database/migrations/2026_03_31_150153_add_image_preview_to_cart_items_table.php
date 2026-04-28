@@ -12,8 +12,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('cart_items', function (Blueprint $table) {
-            // Kita gunakan longText karena data gambar Base64 sangat panjang
-            $table->longText('image_preview')->nullable();
+            // Menambahkan kolom image_preview setelah custom_configuration
+            $table->string('image_preview')->nullable()->after('custom_configuration');
         });
     }
 
@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cart_items', function (Blueprint $table) {
-            //
+            $table->dropColumn('image_preview');
         });
     }
 };

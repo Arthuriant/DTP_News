@@ -1,6 +1,9 @@
 "use client";
 
+import { AuthService } from "@/services/AuthService";
+import { RoleService } from "@/services/RoleService";
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 const AVAILABLE_PERMISSIONS = [
   {
@@ -8,45 +11,45 @@ const AVAILABLE_PERMISSIONS = [
     actions: [{ id: "view_dashboard", label: "Akses Dashboard" }],
   },
   {
-    module: "Manajemen Produk",
+    module: "Katalog & Konfigurasi 3D",
     actions: [
-      { id: "view_products", label: "Lihat Produk" },
-      { id: "create_products", label: "Tambah Produk" },
-      { id: "edit_products", label: "Ubah Produk" },
-      { id: "delete_products", label: "Hapus Produk" },
+      { id: "view_products", label: "Lihat Daftar Produk" },
+      { id: "create_products", label: "Tambah Produk Baru" },
+      { id: "edit_products", label: "Kelola Spesifikasi & 3D Part" },
+      { id: "delete_products", label: "Hapus Produk Utama" },
     ],
   },
-  {
-    module: "Pesanan Custom",
-    actions: [
-      { id: "view_orders", label: "Lihat Pesanan" },
-      { id: "update_orders", label: "Update Status" },
-      { id: "delete_orders", label: "Hapus Pesanan" },
-    ],
-  },
+  // {
+  //   module: "Pesanan Custom",
+  //   actions: [
+  //     { id: "view_orders", label: "Lihat Daftar Pesanan" },
+  //     { id: "update_orders", label: "Update Status Pesanan" },
+  //     { id: "delete_orders", label: "Batalkan / Hapus Pesanan" },
+  //   ],
+  // },
   {
     module: "Data Customer",
     actions: [
       { id: "view_customers", label: "Lihat Customer" },
-      { id: "edit_customers", label: "Ubah Customer" },
+      { id: "edit_customers", label: "Ubah Data Customer" },
       { id: "delete_customers", label: "Hapus Customer" },
     ],
   },
   {
     module: "Kelola Akun Pengguna",
     actions: [
-      { id: "view_users", label: "Lihat Pengguna" },
-      { id: "create_users", label: "Tambah Pengguna" },
-      { id: "edit_users", label: "Ubah Pengguna" },
-      { id: "delete_users", label: "Hapus Pengguna" },
+      { id: "view_users", label: "Lihat Pengguna Sistem" },
+      { id: "create_users", label: "Tambah Pengguna Baru" },
+      { id: "edit_users", label: "Ubah Data Pengguna" },
+      { id: "delete_users", label: "Blokir / Hapus Pengguna" },
     ],
   },
   {
     module: "Manajemen Role & Akses",
     actions: [
-      { id: "view_roles", label: "Lihat Role" },
-      { id: "create_roles", label: "Tambah Role" },
-      { id: "edit_roles", label: "Ubah Role" },
+      { id: "view_roles", label: "Lihat Otoritas Role" },
+      { id: "create_roles", label: "Tambah Role Baru" },
+      { id: "edit_roles", label: "Ubah Hak Akses Role" },
       { id: "delete_roles", label: "Hapus Role" },
     ],
   },
@@ -59,48 +62,43 @@ export default function Roles() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // 👇 1. STATE BARU: Untuk menyimpan status akses orang yang sedang login (Bayu/Lintang)
+  // Status akses user login
   const [myPermissions, setMyPermissions] = useState<string[]>([]);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const [roleName, setRoleName] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
-  // 👇 2. FUNGSI FETCH GABUNGAN: Ambil data User (untuk cek tombol) & data Roles (untuk tabel)
+  // URL Ornamen
+  const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
+  const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
+
   const fetchInitialData = async () => {
-    setIsLoading(true);
-    try {
-      // A. Ambil data aku (User yang login)
-      const userRes = await fetch("http://127.0.0.1:8000/user", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
-        setMyPermissions(userData.permissions || []);
+      setIsLoading(true);
+      try {
+        const [userData, rolesData] = await Promise.all([
+          AuthService.getUser(),
+          RoleService.getRoles()
+        ]);
+
+        if (userData) {
+          setIsSuperAdmin(userData.roles?.includes("super_admin") || false);
+          setMyPermissions(userData.permissions || []);
+        }
+        if (rolesData) {
+          setRoles(rolesData);
+        }
+      } catch (error: any) {
+        console.error("Gagal mengambil data:", error.message);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // B. Ambil daftar Role untuk tabel
-      const rolesRes = await fetch("http://127.0.0.1:8000/roles", {
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
-      if (rolesRes.ok) {
-        setRoles(await rolesRes.json());
-      }
-    } catch (error) {
-      console.error("Gagal mengambil data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    useEffect(() => {
+      fetchInitialData();
+    }, []);
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  // 👇 3. VARIABEL PEMBANTU: Cek apakah user boleh melihat tombol
   const canCreate = isSuperAdmin || myPermissions.includes("create_roles");
   const canEdit = isSuperAdmin || myPermissions.includes("edit_roles");
   const canDelete = isSuperAdmin || myPermissions.includes("delete_roles");
@@ -120,334 +118,289 @@ export default function Roles() {
 
   const togglePermission = (permId: string) => {
     setSelectedPermissions((prev) =>
-      prev.includes(permId)
-        ? prev.filter((p) => p !== permId)
-        : [...prev, permId],
+      prev.includes(permId) ? prev.filter((p) => p !== permId) : [...prev, permId],
     );
   };
 
-  const toggleModulePermissions = (
-    moduleActions: any[],
-    isAllSelected: boolean,
-  ) => {
+  const toggleModulePermissions = (moduleActions: any[], isAllSelected: boolean) => {
     const actionIds = moduleActions.map((a) => a.id);
     if (isAllSelected) {
-      setSelectedPermissions((prev) =>
-        prev.filter((p) => !actionIds.includes(p)),
-      );
+      setSelectedPermissions((prev) => prev.filter((p) => !actionIds.includes(p)));
     } else {
-      setSelectedPermissions((prev) =>
-        Array.from(new Set([...prev, ...actionIds])),
-      );
+      setSelectedPermissions((prev) => Array.from(new Set([...prev, ...actionIds])));
     }
   };
 
   const handleSave = async () => {
-    if (!roleName.trim()) return alert("Nama role tidak boleh kosong!");
+    if (!roleName.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Nama role tidak boleh kosong!', confirmButtonColor: '#2A1B14' });
+      return;
+    }
+    
     setIsSaving(true);
-
     const payload = { name: roleName, permissions: selectedPermissions };
-    const url = editingRole
-      ? `http://127.0.0.1:8000/roles/${editingRole.id}`
-      : "http://127.0.0.1:8000/roles";
-    const method = editingRole ? "PUT" : "POST";
 
     try {
-      const res = await fetch(url, {
-        method: method,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setIsModalOpen(false);
-        fetchInitialData();
+      if (editingRole) {
+        await RoleService.updateRole(editingRole.id, payload);
       } else {
-        const errData = await res.json();
-        alert(errData.message || "Gagal menyimpan role.");
+        await RoleService.createRole(payload);
       }
-    } catch (error) {
-      alert("Terjadi kesalahan jaringan.");
+      
+      setIsModalOpen(false);
+      fetchInitialData();
+
+      Swal.fire({
+        title: 'Berhasil!',
+        text: `Role berhasil ${editingRole ? 'diperbarui' : 'ditambahkan'}.`,
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    } catch (error: any) {
+      Swal.fire({
+        title: 'Gagal!',
+        text: error.message || 'Terjadi kesalahan saat menyimpan role.',
+        icon: 'error',
+        confirmButtonColor: '#2A1B14'
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Yakin ingin menghapus role ini?")) return;
+    const result = await Swal.fire({
+      title: 'Hapus Role?',
+      text: "Role yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi hak akses pengguna yang menggunakan role ini.",
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#F8F3E9',
+      color: '#2D1A11',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      buttonsStyling: false, 
+      customClass: {
+        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
+        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
+      }
+    });
+    
+
+    if (!result.isConfirmed) return;
+
     try {
-      const res = await fetch(`http://127.0.0.1:8000/roles/${id}`, {
-        method: "DELETE",
-        credentials: "include",
+      await RoleService.deleteRole(id);
+      fetchInitialData();
+      
+      Swal.fire({
+        title: 'Terhapus!',
+        text: 'Role berhasil dihapus dari sistem.',
+        icon: 'success',
+        background: '#F8F3E9',
+        color: '#2A1B14',
+        showConfirmButton: false,
+        timer: 2000
       });
-      if (res.ok) fetchInitialData();
-      else alert("Gagal menghapus role.");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      Swal.fire({
+        title: 'Gagal!',
+        text: error.message || 'Gagal menghapus role.',
+        icon: 'error',
+        confirmButtonColor: '#2A1B14'
+      });
     }
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-white h-[calc(100vh-160px)] flex flex-col">
-      <div className="flex justify-between items-center mb-6 shrink-0">
+    <div className="space-y-10 max-w-[1600px] mx-auto text-[#2A1B14]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
+      
+      {/* ================= HEADER SECTION ================= */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2">
         <div>
-          <h1 className="text-xl font-bold text-[#2D3E5E] mb-2">
-            Manajemen Role & Hak Akses
-          </h1>
-          <p className="text-slate-500 text-sm">
-            Atur peran pengguna dan batasan fitur yang dapat mereka akses di
-            sistem.
+          <p className="text-[#D9B35A] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Otoritas Sistem</p>
+          <h1 className="text-4xl font-bold tracking-tight text-[#2A1B14]">Manajemen Role & Akses</h1>
+          <p className="text-[#8B7355] font-sans text-sm mt-2 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-[#D9B35A] rounded-full shrink-0"></span>
+            Atur peran pengguna dan batasan fitur mahakarya UpToYou.
           </p>
         </div>
 
-        {/* 👇 4. TOMBOL TAMBAH HANYA MUNCUL JIKA PUNYA IZIN 👇 */}
         {canCreate && (
           <button
             onClick={() => handleOpenModal()}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2"
+            className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#2A1B14] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)]"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            Tambah Role
+             <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+             <span className="relative z-10 flex items-center gap-2 tracking-wide font-sans">
+              <span className="text-lg">✧</span> Tambah Role Baru
+            </span>
           </button>
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 overflow-y-auto shadow-sm flex-1 relative">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-20">
-            <div className="w-8 h-8 border-4 border-[#3B82F6] border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
+      {/* ================= MAIN DATA SECTION ================= */}
+      <div className="relative w-full pb-10 pt-2">
+        <div className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}></div>
 
-        <table className="w-full text-left text-sm text-slate-600 relative">
-          <thead className="bg-[#F3F6F9] text-[#2D3E5E] font-semibold sticky top-0 z-10">
-            <tr>
-              <th className="px-6 py-4 w-20">ID</th>
-              <th className="px-6 py-4 w-48">Nama Role</th>
-              <th className="px-6 py-4">Total Hak Akses</th>
-              <th className="px-6 py-4">Jumlah Pengguna</th>
-              <th className="px-6 py-4 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {roles.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-10 text-slate-400">
-                  Belum ada data role.
-                </td>
-              </tr>
-            ) : (
-              roles.map((role) => (
-                <tr
-                  key={role.id}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-6 py-4 font-medium">#{role.id}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${role.name === "super_admin" ? "bg-purple-100 text-purple-700" : role.name === "admin" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
-                    >
+        <div className="overflow-x-auto px-4 -mx-4">
+          <table className="w-full min-w-[1000px] text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
+            
+            <thead className="text-[#D9B35A] uppercase text-[11px] font-bold tracking-[0.25em] shadow-xl">
+               <tr 
+                 className="bg-[#2A1B14] shadow-[0_10px_20px_rgba(42,27,20,0.2)]"
+                 style={{
+                   backgroundImage: `linear-gradient(rgba(42, 27, 20, 0.95), rgba(42, 27, 20, 0.95)), url('${brownBatikUrl}')`,
+                   backgroundSize: '250px',
+                   backgroundRepeat: 'repeat'
+                 }}
+               >
+                 <th className="py-5 pl-8 pr-4 text-left rounded-l-2xl border-y border-l border-[#D9B35A]/20">ID</th>
+                 <th className="py-5 px-4 text-left border-y border-[#D9B35A]/20">Nama Role</th>
+                 <th className="py-5 px-4 text-center border-y border-[#D9B35A]/20">Total Hak Akses</th>
+                 <th className="py-5 px-4 text-center border-y border-[#D9B35A]/20">Jumlah Pengguna</th>
+                 <th className="py-5 pr-8 pl-4 text-right rounded-r-2xl border-y border-r border-[#D9B35A]/20">Tindakan</th>
+               </tr>
+            </thead>
+
+            <tbody className="relative">
+              {isLoading && (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-[#D9B35A] border-t-transparent rounded-full animate-spin"></div>
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && roles.map((role) => (
+                <tr key={role.id} className="group transition-all duration-300 hover:-translate-y-1.5">
+                  <td className="py-5 pl-8 pr-4 bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(42,27,20,0.08)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow font-bold text-[#D9B35A]">
+                    #{role.id}
+                  </td>
+                  <td className="py-5 px-4 bg-white/60 backdrop-blur-xl border-y border-white/40 font-bold text-[#2A1B14]">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] uppercase tracking-widest border ${
+                      role.name === "super_admin" 
+                        ? "bg-purple-50 text-purple-600 border-purple-200" 
+                        : "bg-[#F8F3E9] text-[#2A1B14] border-[#D9B35A]/30"
+                    }`}>
                       {role.name}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-xs font-semibold">
-                      {role.name === "super_admin"
-                        ? "Semua Akses"
-                        : `${role.permissions?.length || 0} Akses`}
+                  <td className="py-5 px-4 bg-white/60 backdrop-blur-xl border-y border-white/40 text-center">
+                    <span className="font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-4 py-1.5 rounded-full border border-[#D9B35A]/20 shadow-[inner_0_1px_2px_rgba(255,255,255,0.5)]">
+                      {role.name === "super_admin" ? "Akses Penuh" : `${role.permissions?.length || 0} Izin`}
                     </span>
                   </td>
-                  <td className="px-6 py-4">{role.users_count} Akun</td>
-                  <td className="px-6 py-4 text-right space-x-3">
-                    {/* 👇 5. TOMBOL UBAH & HAPUS HANYA MUNCUL JIKA PUNYA IZIN 👇 */}
-                    {canEdit && (
-                      <button
-                        onClick={() => handleOpenModal(role)}
-                        className="text-blue-500 hover:text-blue-700 font-medium transition-colors"
-                      >
-                        Ubah Akses
-                      </button>
-                    )}
-                    {canDelete &&
-                      !["super_admin", "admin"].includes(role.name) && (
-                        <button
-                          onClick={() => handleDelete(role.id)}
-                          className="text-red-500 hover:text-red-700 font-medium transition-colors"
+                  <td className="py-5 px-4 bg-white/60 backdrop-blur-xl border-y border-white/40 text-center font-bold text-[#8B7355]">
+                    {role.users_count} Akun
+                  </td>
+                  <td className="py-5 pr-8 pl-4 bg-white/60 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/40 text-right">
+                    <div className="flex justify-end gap-3">
+                      {canEdit && (
+                        <button 
+                          onClick={() => handleOpenModal(role)} 
+                          className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#2A1B14] bg-white border border-gray-100 rounded-xl shadow-sm hover:border-[#D9B35A] hover:bg-[#FFFDF5] hover:shadow-[0_5px_15px_rgba(217,179,90,0.2)] transition-all"
+                        >
+                          Ubah Akses
+                        </button>
+                      )}
+                      {canDelete && !["super_admin", "admin"].includes(role.name) && (
+                        <button 
+                          onClick={() => handleDelete(role.id)} 
+                          className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-rose-500 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-rose-300 hover:bg-rose-50 transition-all"
                         >
                           Hapus
                         </button>
                       )}
-
-                    {/* Jika tidak punya izin Edit & Delete sama sekali, beri tahu UI */}
-                    {!canEdit && !canDelete && (
-                      <span className="text-slate-400 italic text-xs">
-                        Hanya Lihat
-                      </span>
-                    )}
+                      {!canEdit && !canDelete && <span className="text-slate-400 italic text-xs">Hanya Lihat</span>}
+                    </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      {/* ================= MODAL PERMISSIONS ================= */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[99999] bg-[#2D3E5E]/40 backdrop-blur-sm flex items-center justify-center p-4">
-          {/* ... (Isi Modal Sama Persis Seperti Sebelumnya) ... */}
-          {/* Karena kodenya panjang, bagian isi modal <div className="bg-white...">...</div> biarkan utuh seperti file aslimu ya! */}
-
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-soft-fade flex flex-col">
-            <div className="p-6 border-b border-slate-100 shrink-0">
-              <h3 className="text-xl font-bold text-[#2D3E5E]">
-                {editingRole ? "Ubah Hak Akses Role" : "Buat Role Baru"}
+        <div className="fixed inset-0 z-[100] bg-[#2A1B14]/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white/90 backdrop-blur-2xl border border-white/50 rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative">
+            
+            <div className="p-8 border-b border-[#D9B35A]/30 bg-[#2A1B14] text-[#D9B35A] shrink-0" style={{ backgroundImage: `linear-gradient(rgba(42, 27, 20, 0.92), rgba(42, 27, 20, 0.92)), url('${brownBatikUrl}')`, backgroundSize: '300px' }}>
+              <h3 className="text-2xl font-bold flex items-center gap-3">
+                <span className="text-white">✧</span> {editingRole ? "Konfigurasi Hak Akses" : "Daftarkan Role Baru"}
               </h3>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1 bg-[#FAFCFF]">
-              <div className="space-y-6">
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                  <label className="block text-sm font-bold text-[#2D3E5E] mb-2">
-                    Nama Role
-                  </label>
-                  <input
-                    type="text"
-                    value={roleName}
-                    disabled={["super_admin", "admin"].includes(
-                      editingRole?.name,
-                    )}
-                    onChange={(e) => setRoleName(e.target.value)}
-                    placeholder="Contoh: staff_gudang"
-                    className="w-full border border-slate-200 px-4 py-3 rounded-xl text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none transition-all text-slate-700 disabled:bg-slate-100"
+            <div className="p-8 overflow-y-auto flex-1 bg-[#FFFDF5] font-sans">
+              <div className="space-y-8">
+                <div className="bg-white p-6 rounded-2xl border border-[#D9B35A]/20 shadow-sm">
+                  <label className="block text-[10px] uppercase font-black text-[#8B7355] tracking-widest mb-2">Nama Identitas Role</label>
+                  <input 
+                    type="text" 
+                    value={roleName} 
+                    disabled={["super_admin", "admin"].includes(editingRole?.name)} 
+                    onChange={(e) => setRoleName(e.target.value)} 
+                    placeholder="Contoh: staff_gudang" 
+                    className="w-full bg-[#FFFDF5] border border-gray-200 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm font-bold disabled:bg-gray-100 text-[#2A1B14]" 
                   />
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-bold text-[#2D3E5E] mb-4">
-                    Pengaturan Hak Akses (Permissions)
-                  </h4>
-                  {editingRole?.name === "super_admin" ? (
-                    <div className="bg-purple-50 border border-purple-200 text-purple-700 p-4 rounded-xl text-sm font-medium">
-                      Super Admin memiliki akses absolut ke seluruh fitur
-                      sistem.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {AVAILABLE_PERMISSIONS.map((moduleConfig, idx) => {
-                        const moduleActionIds = moduleConfig.actions.map(
-                          (a) => a.id,
-                        );
-                        const isAllSelected = moduleActionIds.every((id) =>
-                          selectedPermissions.includes(id),
-                        );
-                        const isSomeSelected =
-                          moduleActionIds.some((id) =>
-                            selectedPermissions.includes(id),
-                          ) && !isAllSelected;
+                {editingRole?.name === "super_admin" ? (
+                  <div className="bg-purple-50 border border-purple-200 text-purple-700 p-6 rounded-3xl text-sm font-bold uppercase tracking-widest text-center shadow-inner">
+                    Super Admin memiliki akses absolut ke seluruh fitur sistem.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+                    {AVAILABLE_PERMISSIONS.map((moduleConfig, idx) => {
+                      const moduleActionIds = moduleConfig.actions.map(a => a.id);
+                      const isAllSelected = moduleActionIds.every(id => selectedPermissions.includes(id));
 
-                        return (
-                          <div
-                            key={idx}
-                            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
-                          >
-                            <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
-                              <span className="font-bold text-[#2D3E5E] text-sm">
-                                {moduleConfig.module}
-                              </span>
-                              <label className="flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={isAllSelected}
-                                  ref={(input) => {
-                                    if (input)
-                                      input.indeterminate = isSomeSelected;
-                                  }}
-                                  onChange={() =>
-                                    toggleModulePermissions(
-                                      moduleConfig.actions,
-                                      isAllSelected,
-                                    )
-                                  }
-                                  className="w-4 h-4 text-[#3B82F6] rounded border-slate-300 focus:ring-[#3B82F6]"
-                                />
-                                <span className="ml-2 text-xs font-semibold text-slate-500 hover:text-slate-700">
-                                  Pilih Semua
-                                </span>
-                              </label>
-                            </div>
-                            <div className="p-4 grid grid-cols-2 gap-3">
-                              {moduleConfig.actions.map((action) => (
-                                <label
-                                  key={action.id}
-                                  className="flex items-center cursor-pointer group"
-                                >
-                                  <div className="relative flex items-center justify-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedPermissions.includes(
-                                        action.id,
-                                      )}
-                                      onChange={() =>
-                                        togglePermission(action.id)
-                                      }
-                                      className="peer appearance-none w-5 h-5 border-2 border-slate-300 rounded-md checked:bg-[#3B82F6] checked:border-[#3B82F6] transition-all cursor-pointer"
-                                    />
-                                    <svg
-                                      className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth="3"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M5 13l4 4L19 7"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <span className="ml-3 text-sm text-slate-600 font-medium group-hover:text-[#3B82F6] transition-colors select-none">
-                                    {action.label}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
+                      return (
+                        <div key={idx} className="bg-white border border-[#D9B35A]/10 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                          <div className="bg-[#2A1B14]/5 px-5 py-4 border-b border-[#D9B35A]/10 flex justify-between items-center">
+                            <span className="font-bold text-[#2A1B14] text-xs uppercase tracking-wide">{moduleConfig.module}</span>
+                            <label className="flex items-center cursor-pointer gap-2 group">
+                              <input 
+                                type="checkbox" 
+                                checked={isAllSelected} 
+                                onChange={() => toggleModulePermissions(moduleConfig.actions, isAllSelected)} 
+                                className="w-4 h-4 rounded border-[#D9B35A] text-[#D9B35A] focus:ring-[#D9B35A] cursor-pointer" 
+                              />
+                              <span className="text-[10px] font-bold text-[#8B7355] uppercase group-hover:text-[#D9B35A] transition-colors">Pilih Semua</span>
+                            </label>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                          <div className="p-5 grid grid-cols-1 gap-3">
+                            {moduleConfig.actions.map((action) => (
+                              <label key={action.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8F3E9] transition-colors cursor-pointer group">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedPermissions.includes(action.id)} 
+                                  onChange={() => togglePermission(action.id)} 
+                                  className="w-4 h-4 rounded border-[#D9B35A] text-[#D9B35A] focus:ring-[#D9B35A] cursor-pointer shadow-sm" 
+                                />
+                                <span className="text-xs font-semibold text-gray-600 group-hover:text-[#2A1B14] transition-colors">{action.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 shrink-0 bg-white">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-6 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-8 py-2.5 text-sm font-semibold rounded-xl shadow-md transition-all flex items-center gap-2"
+            <div className="p-8 border-t border-gray-100 flex justify-end gap-4 shrink-0 bg-white">
+              <button onClick={() => setIsModalOpen(false)} className="px-8 py-3 text-xs font-bold uppercase tracking-widest text-[#8B7355] hover:bg-gray-50 rounded-full transition-colors">Batal</button>
+              <button 
+                onClick={handleSave} 
+                disabled={isSaving} 
+                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#2A1B14] px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D9B35A]/30 hover:-translate-y-1 active:translate-y-0 transition-all border border-[#FFF6C5]/50"
               >
                 {isSaving ? "Menyimpan..." : "Simpan Konfigurasi"}
               </button>

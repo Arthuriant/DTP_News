@@ -1,35 +1,67 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect } from "react";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import {
-  removeItemFromCart,
-  selectTotalPrice,
-} from "@/redux/features/cart-slice";
+import { selectTotalPrice, addItemToCart } from "@/redux/features/cart-slice";
 import { useAppSelector } from "@/redux/store";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import SingleItem from "./SingleItem";
 import Link from "next/link";
 import EmptyCart from "./EmptyCart";
+import { CartService } from "@/services/CartService"; // 👈 Import Service
+import { setCartItems } from "@/redux/features/cart-slice";
+
 
 const CartSidebarModal = () => {
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
   const cartItems = useAppSelector((state) => state.cartReducer.items);
-
   const totalPrice = useSelector(selectTotalPrice);
+  const dispatch = useDispatch();
+
+  // 1. Fetch data dari Laravel saat Sidebar dibuka atau halaman di-refresh
+  useEffect(() => {
+    const fetchDbCart = async () => {
+      // Sidebar hanya mengambil data jika Redux benar-benar kosong (0)
+      if (cartItems.length === 0) {
+        try {
+          const res = await CartService.getCart();
+          const dbItems = res?.items || res || []; 
+          
+          const formattedItems = dbItems.map((dbItem: any) => ({
+            id: dbItem.id, 
+            product_id: dbItem.product_id,
+            title: `Kustom ${dbItem.product?.name || 'Produk'}`,
+            price: dbItem.price,
+            discountedPrice: dbItem.price,
+            quantity: dbItem.qty,
+            imgs: {
+              thumbnails: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""],
+              previews: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""]
+            },
+            customizations: dbItem.custom_configuration
+          }));
+
+          // 👇 KUNCI PERBAIKAN: Harus setCartItems juga 👇
+          dispatch(setCartItems(formattedItems));
+
+        } catch (error) {
+          console.error("Gagal mengambil keranjang sidebar:", error);
+        }
+      }
+    };
+
+    fetchDbCart();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]); // Cukup dispatch saja
 
   useEffect(() => {
-    // closing modal while clicking outside
-    function handleClickOutside(event) {
+    function handleClickOutside(event: any) {
       if (!event.target.closest(".modal-content")) {
         closeCartModal();
       }
     }
-
     if (isCartModalOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -37,84 +69,66 @@ const CartSidebarModal = () => {
 
   return (
     <div
-      className={`fixed top-0 left-0 z-99999 overflow-y-auto no-scrollbar w-full h-screen bg-dark/70 ease-linear duration-300 ${
+      className={`fixed top-0 left-0 z-[99999] overflow-y-auto no-scrollbar w-full h-screen bg-[#2D1A11]/70 backdrop-blur-sm ease-linear duration-300 ${
         isCartModalOpen ? "translate-x-0" : "translate-x-full"
       }`}
     >
       <div className="flex items-center justify-end">
-        <div className="w-full max-w-[500px] shadow-1 bg-white px-4 sm:px-7.5 lg:px-11 relative modal-content">
-          <div className="sticky top-0 bg-white flex items-center justify-between pb-7 pt-4 sm:pt-7.5 lg:pt-11 border-b border-gray-3 mb-7.5">
-            <h2 className="font-medium text-dark text-lg sm:text-2xl">
-              Cart View
+        <div className="w-full max-w-[500px] shadow-2xl bg-[#FFFDF5] px-4 sm:px-7.5 lg:px-11 relative modal-content h-screen flex flex-col">
+          
+          <div className="sticky top-0 bg-[#FFFDF5] flex items-center justify-between pb-7 pt-4 sm:pt-7.5 border-b border-[#D9B35A]/30 mb-7.5 z-10">
+            <h2 className="font-bold text-[#2D1A11] text-lg sm:text-2xl flex items-center gap-2">
+              <span className="text-[#D9B35A]">✧</span> Keranjang Anda
             </h2>
             <button
               onClick={() => closeCartModal()}
               aria-label="button for close modal"
-              className="flex items-center justify-center ease-in duration-150 bg-meta text-dark-5 hover:text-dark"
+              className="flex items-center justify-center p-2 rounded-full ease-in duration-150 bg-[#D9B35A]/10 text-[#8B7355] hover:bg-[#D9B35A]/20 hover:text-[#2D1A11] transition-all"
             >
-              <svg
-                className="fill-current"
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12.5379 11.2121C12.1718 10.846 11.5782 10.846 11.212 11.2121C10.8459 11.5782 10.8459 12.1718 11.212 12.5379L13.6741 15L11.2121 17.4621C10.846 17.8282 10.846 18.4218 11.2121 18.7879C11.5782 19.154 12.1718 19.154 12.5379 18.7879L15 16.3258L17.462 18.7879C17.8281 19.154 18.4217 19.154 18.7878 18.7879C19.154 18.4218 19.154 17.8282 18.7878 17.462L16.3258 15L18.7879 12.5379C19.154 12.1718 19.154 11.5782 18.7879 11.2121C18.4218 10.846 17.8282 10.846 17.462 11.2121L15 13.6742L12.5379 11.2121Z"
-                  fill=""
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M15 1.5625C7.57867 1.5625 1.5625 7.57867 1.5625 15C1.5625 22.4213 7.57867 28.4375 15 28.4375C22.4213 28.4375 28.4375 22.4213 28.4375 15C28.4375 7.57867 22.4213 1.5625 15 1.5625ZM3.4375 15C3.4375 8.61421 8.61421 3.4375 15 3.4375C21.3858 3.4375 26.5625 8.61421 26.5625 15C26.5625 21.3858 21.3858 26.5625 15 26.5625C8.61421 26.5625 3.4375 21.3858 3.4375 15Z"
-                  fill=""
-                />
+              <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.3 5.70997C17.91 5.31997 17.28 5.31997 16.89 5.70997L12 10.59L7.10997 5.69997C6.71997 5.30997 6.08997 5.30997 5.69997 5.69997C5.30997 6.08997 5.30997 6.71997 5.69997 7.10997L10.59 12L5.69997 16.89C5.30997 17.28 5.30997 17.91 5.69997 18.3C6.08997 18.69 6.71997 18.69 7.10997 18.3L12 13.41L16.89 18.3C17.28 18.69 17.91 18.69 18.3 18.3C18.69 17.91 18.69 17.28 18.3 16.89L13.41 12L18.3 7.10997C18.68 6.72997 18.68 6.08997 18.3 5.70997Z" fill=""/>
               </svg>
             </button>
           </div>
 
-          <div className="h-[66vh] overflow-y-auto no-scrollbar">
-            <div className="flex flex-col gap-6">
-              {/* <!-- cart item --> */}
-              {cartItems.length > 0 ? (
-                cartItems.map((item, key) => (
-                  <SingleItem
-                    key={key}
-                    item={item}
-                    removeItemFromCart={removeItemFromCart}
-                  />
-                ))
-              ) : (
-                <EmptyCart />
-              )}
-            </div>
-          </div>
+          <div className="flex-1 overflow-y-auto no-scrollbar pb-4">
+  <div className="flex flex-col gap-6">
+    {cartItems.length > 0 ? (
+      // Hapus 'key' dari parameter map jika tidak digunakan lagi
+      cartItems.map((item) => (
+        // Gunakan item.id sebagai identitas unik komponen
+        <SingleItem key={item.id} item={item} />
+      ))
+    ) : (
+      <EmptyCart />
+    )}
+  </div>
+</div>
 
-          <div className="border-t border-gray-3 bg-white pt-5 pb-4 sm:pb-7.5 lg:pb-11 mt-7.5 sticky bottom-0">
-            <div className="flex items-center justify-between gap-5 mb-6">
-              <p className="font-medium text-xl text-dark">Subtotal:</p>
-
-              <p className="font-medium text-xl text-dark">${totalPrice}</p>
+          <div className="border-t border-[#D9B35A]/30 bg-[#FFFDF5] pt-5 pb-8 mt-auto sticky bottom-0">
+            <div className="flex items-center justify-between gap-5 mb-6 px-2">
+              <p className="font-bold text-lg text-[#8B7355] uppercase tracking-widest text-[11px]">Subtotal:</p>
+              <p className="font-bold text-2xl text-[#2D1A11]">Rp {totalPrice.toLocaleString('id-ID')}</p>
             </div>
 
             <div className="flex items-center gap-4">
               <Link
                 onClick={() => closeCartModal()}
                 href="/cart"
-                className="w-full flex justify-center font-medium text-white bg-blue py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-blue-dark"
+                className="w-full flex justify-center font-bold text-[#8B7355] bg-white border border-[#D9B35A]/50 py-[13px] px-6 rounded-full ease-out duration-200 hover:border-[#D9B35A] hover:shadow-md text-sm uppercase tracking-widest transition-all"
               >
-                View Cart
+                Lihat Cart
               </Link>
 
               <Link
                 href="/checkout"
-                className="w-full flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
+                className="w-full flex justify-center font-bold text-[#1A1A1A] bg-gradient-to-r from-[#EAC135] to-[#DFB121] py-[13px] px-6 rounded-full ease-out duration-200 hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20 text-sm uppercase tracking-widest transition-all"
               >
                 Checkout
               </Link>
             </div>
           </div>
+          
         </div>
       </div>
     </div>

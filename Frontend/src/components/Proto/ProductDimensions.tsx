@@ -74,6 +74,28 @@ export default function ProductDimensions({ productName, image, specifications }
             {/* --- AREA GAMBAR DIMENSI (Atas) --- */}
             <div className="flex-grow p-8 md:p-16 lg:p-20 flex flex-col items-center justify-center relative z-20">
               
+              {image ? (
+                // ✅ Tampilkan gambar kalau ada
+                <img
+                  src={image}
+                  alt={`Dimensi ${productName}`}
+                  className="max-w-full max-h-[400px] object-contain drop-shadow-xl"
+                />
+              ) : (
+                // Fallback kalau tidak ada gambar
+                <div className="flex flex-col items-center gap-4 text-[#2D1A11] p-10 bg-white/40 rounded-full border border-[#C5A059]/30 backdrop-blur-sm shadow-inner relative z-10">
+                  <div className="w-24 h-24 flex items-center justify-center text-[#C5A059] drop-shadow-md">
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <rect x="4" y="8" width="16" height="11" rx="2" ry="2" />
+                      <path d="M8 8V6c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-medium tracking-wide text-[#6B442A] uppercase font-sans text-center">
+                    Ilustrasi Dimensi <br/> Tertunda
+                  </p>
+                </div>
+              )}
+              
               {/* Fallback ilustrasi tas/kotak jika gambar tidak ditemukan */}
               <div className="hidden flex-col items-center gap-4 text-[#2D1A11] p-10 bg-white/40 rounded-full border border-[#C5A059]/30 backdrop-blur-sm shadow-inner relative z-10">
                 <div className="w-24 h-24 flex items-center justify-center text-[#C5A059] drop-shadow-md">

@@ -6,31 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('profiles', function (Blueprint $table) {
-            $table->id();
-            // Relasi ke tabel users. Jika user dihapus, profilnya otomatis terhapus (cascade)
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            // 1. Primary Key wajib UUID
+            $table->uuid('id')->primary();
 
-            // Biodata tambahan
+            // 2. Relasi ke tabel users (UUID)
+            $table->uuid('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            // 3. Biodata tambahan
             $table->date('date_of_birth')->nullable();
+            $table->string('phone', 20)->nullable();
+            
+            // 4. Keamanan Tambahan
+            $table->string('pin')->nullable(); 
 
-            $table->string('phone')->nullable();
-            $table->string('pin')->nullable(); // ← tambah ini
+            // 5. Jenis kelamin (Gunakan string(10) alih-alih enum agar lebih aman saat migrasi)
+            $table->string('gender', 10)->nullable();
+            
+            // 6. Audit Trail (Sesuai Standar ERD Anda)
+            $table->uuid('created_by')->nullable();
+            $table->uuid('updated_by')->nullable();
 
-            // Jenis kelamin (bisa pakai string atau enum)
-            $table->enum('gender', ['Laki-laki', 'Perempuan'])->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('profiles');

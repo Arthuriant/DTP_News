@@ -4,7 +4,8 @@ interface TextureOnlyPartProps {
   productId: string; 
   pov: string;
   partName: string; 
-  texture: string; 
+  texture: string;
+  textureImageUrl?: string; // ← tambah ini
   zIndex: number;
 }
 
@@ -12,15 +13,17 @@ export default function TextureOnlyPart({
   productId, 
   pov, 
   partName, 
-  texture, 
+  texture,
+  textureImageUrl, // ← tambah ini
   zIndex 
 }: TextureOnlyPartProps) {
-  const basePath = `/assets/products/${productId}/${pov.toLowerCase()}`;
+
+  if (!textureImageUrl) return null; // ← jangan render kalau kosong
 
   return (
     <div className="absolute inset-0 animate-soft-fade" style={{ zIndex }}>
       <Image
-        src={`${basePath}/${partName}-${texture}.webp`}
+        src={textureImageUrl}
         alt={`${partName} ${texture}`}
         fill
         className="object-contain"

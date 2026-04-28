@@ -1,66 +1,121 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Image from "next/image";
+import { CartService } from "@/services/CartService";
+// 👇 Import updateCartItemQuantity dari Redux
+import { removeItemFromCart, updateCartItemQuantity } from "@/redux/features/cart-slice";
 
-const SingleItem = ({ item, removeItemFromCart }) => {
+const SingleItem = ({ item }: { item: any }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+const quantity = item.quantity || 1;
 
   const handleRemoveFromCart = async () => {
-    // 1. Hapus dari Redux (Agar tampilan UI langsung hilang tanpa loading)
-    dispatch(removeItemFromCart(item.id));
-
-    // 2. Lapor ke Laravel untuk menghapusnya dari Database
+    setIsDeleting(true);
     try {
-      await fetch(`http://127.0.0.1:8000/cart/${item.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      await CartService.removeItem(item.id);
+      dispatch(removeItemFromCart(item.id));
     } catch (error) {
       console.error("Gagal menghapus dari database", error);
+      setIsDeleting(false); 
     }
   };
 
+  const handleIncreaseQuantity = async () => {
+    const newQty = quantity + 1;
+    // Update Redux
+    dispatch(updateCartItemQuantity({ id: item.id, quantity: newQty }));
+    // Update Database
+    try {
+      await CartService.updateQuantity(item.id, newQty);
+    } catch (error) {
+      console.error("Gagal update kuantiti", error);
+    }
+  };
+
+  const handleDecreaseQuantity = async () => {
+    if (quantity > 1) {
+      const newQty = quantity - 1;
+      dispatch(updateCartItemQuantity({ id: item.id, quantity: newQty }));
+      try {
+        await CartService.updateQuantity(item.id, newQty);
+      } catch (error) {
+        console.error("Gagal update kuantiti", error);
+      }
+    }
+  };
+  // Hitung total harga berdasarkan kuantiti saat ini
+  const itemTotalPrice = Number(item.discountedPrice) * quantity;
+
   return (
-    <div className="flex items-center justify-between gap-5">
-      <div className="w-full flex items-center gap-6">
-        <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5 overflow-hidden">
-          {/* Tampilkan gambar default dari produk */}
+    <div className={`flex items-center justify-between gap-4 p-4 rounded-2xl border border-[#D9B35A]/20 bg-white shadow-sm transition-all ${isDeleting ? 'opacity-50 grayscale' : ''}`}>
+      <div className="w-full flex items-center gap-5">
+        
+        {/* WADAH GAMBAR */}
+        <div className="flex items-center justify-center rounded-xl bg-gray-50 border border-gray-100 min-w-[75px] w-[75px] h-[75px] overflow-hidden relative flex-shrink-0">
           {item.imgs?.thumbnails?.[0] ? (
             <Image
               src={item.imgs.thumbnails[0]}
               alt="product"
-              width={100}
-              height={100}
-              className="object-cover w-full h-full"
+              layout="fill"
+              objectFit="cover"
+              unoptimized
             />
           ) : (
-            <div className="text-xs text-gray-400">No Image</div>
+            <div className="text-[10px] text-gray-400">No Image</div>
           )}
         </div>
 
-        <div>
-          <h3 className="font-medium text-dark mb-1 ease-out duration-200 hover:text-blue">
+        {/* INFO PRODUK & KUSTOMISASI */}
+        <div className="flex-1">
+          <h3 className="font-bold text-[#2D1A11] text-sm mb-1.5 leading-tight line-clamp-2 ease-out duration-200 hover:text-[#D9B35A]">
             <a href="#"> {item.title} </a>
           </h3>
-          <p className="text-custom-sm text-dark font-semibold">
-            Rp {Number(item.discountedPrice).toLocaleString('id-ID')}
-          </p>
 
-          {/* 👇 INI ADALAH BAGIAN DETAIL KUSTOMISASI 👇 */}
+          {/* 👇 HARGA & KONTROL KUANTITI 👇 */}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-[#8B7355] font-bold">
+              Rp {itemTotalPrice.toLocaleString('id-ID')}
+            </p>
+
+            {/* Tombol Plus Minus */}
+            <div className="flex items-center border border-[#D9B35A]/30 rounded-lg overflow-hidden bg-[#FFFDF5] shadow-sm">
+              <button
+                onClick={handleDecreaseQuantity}
+                className="w-6 h-6 flex items-center justify-center text-[#8B7355] hover:bg-[#D9B35A]/20 transition-colors cursor-pointer"
+              >
+                -
+              </button>
+              <span className="w-6 text-center text-[11px] font-bold text-[#2D1A11]">
+                {quantity}
+              </span>
+              <button
+                onClick={handleIncreaseQuantity}
+                className="w-6 h-6 flex items-center justify-center text-[#8B7355] hover:bg-[#D9B35A]/20 transition-colors cursor-pointer"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          {/* 👆 BATAS HARGA & KONTROL KUANTITI 👆 */}
+
+          {/* DETAIL KUSTOMISASI */}
           {item.customizations && (
-            <div className="mt-2 flex flex-col gap-1.5">
-              {/* Ukuran */}
+            <div className="flex flex-col gap-1.5 bg-[#FFFDF5] p-2 rounded-lg border border-[#D9B35A]/10 mt-1">
               {item.customizations.size && (
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">
+                <span className="text-[9px] text-[#8B7355] uppercase font-bold tracking-widest flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-[#D9B35A]"></span>
                   Ukuran: {item.customizations.size}
                 </span>
               )}
-              
-              {/* Warna Badan Tas */}
               {item.customizations.colors?.body && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-gray-400">Warna Utama:</span>
+                  <span className="text-[9px] text-[#8B7355] uppercase font-bold tracking-widest flex items-center gap-1">
+                    <span className="w-1 h-1 rounded-full bg-[#D9B35A]"></span>
+                    Warna Utama:
+                  </span>
                   <span 
                     className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-sm"
                     style={{ backgroundColor: item.customizations.colors.body }}
@@ -70,30 +125,33 @@ const SingleItem = ({ item, removeItemFromCart }) => {
               )}
             </div>
           )}
-          {/* 👆 BATAS DETAIL KUSTOMISASI 👆 */}
 
         </div>
       </div>
 
+      {/* TOMBOL HAPUS */}
       <button
         onClick={handleRemoveFromCart}
+        disabled={isDeleting}
         aria-label="button for remove product from cart"
-        className="flex items-center justify-center rounded-lg max-w-[38px] w-full h-9.5 bg-gray-2 border border-gray-3 text-dark ease-out duration-200 hover:bg-red-light-6 hover:border-red-light-4 hover:text-red"
+        className="flex items-center justify-center rounded-full w-9 h-9 bg-red-50 text-red-400 ease-out duration-200 hover:bg-red-500 hover:text-white transition-all flex-shrink-0 ml-1"
       >
-        <svg
-          className="fill-current"
-          width="22"
-          height="22"
-          viewBox="0 0 22 22"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
         >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M9.45017 2.06252H12.5498C12.7482 2.06239 12.921 2.06228 13.0842 2.08834C13.7289 2.19129 14.2868 2.59338 14.5883 3.17244C14.6646 3.319 14.7192 3.48298 14.7818 3.6712L14.8841 3.97819C14.9014 4.03015 14.9064 4.04486 14.9105 4.05645C15.0711 4.50022 15.4873 4.80021 15.959 4.81217C15.9714 4.81248 15.9866 4.81254 16.0417 4.81254H18.7917C19.1714 4.81254 19.4792 5.12034 19.4792 5.50004C19.4792 5.87973 19.1714 6.18754 18.7917 6.18754H3.20825C2.82856 6.18754 2.52075 5.87973 2.52075 5.50004C2.52075 5.12034 2.82856 4.81254 3.20825 4.81254H5.95833C6.01337 4.81254 6.02856 4.81248 6.04097 4.81217C6.51273 4.80021 6.92892 4.50024 7.08944 4.05647C7.09366 4.0448 7.09852 4.03041 7.11592 3.97819L7.21823 3.67122C7.28083 3.48301 7.33538 3.319 7.41171 3.17244C7.71324 2.59339 8.27112 2.19129 8.91581 2.08834C9.079 2.06228 9.25181 2.06239 9.45017 2.06252ZM8.25739 4.81254C8.30461 4.71993 8.34645 4.6237 8.38245 4.52419C8.39338 4.49397 8.4041 4.4618 8.41787 4.42048L8.50936 4.14601C8.59293 3.8953 8.61217 3.84416 8.63126 3.8075C8.73177 3.61448 8.91773 3.48045 9.13263 3.44614C9.17345 3.43962 9.22803 3.43754 9.49232 3.43754H12.5077C12.772 3.43754 12.8265 3.43962 12.8674 3.44614C13.0823 3.48045 13.2682 3.61449 13.3687 3.8075C13.3878 3.84416 13.4071 3.89529 13.4906 4.14601L13.5821 4.42031L13.6176 4.52421C13.6535 4.62372 13.6954 4.71994 13.7426 4.81254H8.25739Z"
-            fill=""
-          />
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
         </svg>
       </button>
     </div>
