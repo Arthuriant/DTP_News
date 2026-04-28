@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             ProductGallerySeeder::class,
             ProductSizeSeeder::class,
             ProductDimensionSeeder::class,
+            ProductMarketing::class, // Seeder untuk marketing block & features
         ]);
     }
 }

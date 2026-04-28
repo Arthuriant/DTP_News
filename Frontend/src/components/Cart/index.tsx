@@ -8,13 +8,50 @@ import Breadcrumb from "../Common/Breadcrumb";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { CartService } from "@/services/CartService";
-import { addItemToCart, updateCartItemQuantity } from "@/redux/features/cart-slice";
-import { setCartItems } from "@/redux/features/cart-slice";
+import { addItemToCart, updateCartItemQuantity, clearCart, setCartItems } from "@/redux/features/cart-slice";
+import { OrderService } from '@/services/OrderService';
 
 const Cart = () => {
   const dispatch = useDispatch();
   const cartItems = useAppSelector((state) => state.cartReducer.items);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  // Contoh state untuk form alamat sementara
+  const [shippingAddress, setShippingAddress] = useState('Jl. Sekeloa Raya No. 15, Coblong, Bandung');
+  const [paymentMethod, setPaymentMethod] = useState('Bank Transfer BCA');
+
+  const handleCheckout = async () => {
+    if (shippingAddress.length < 10) {
+      alert("Mohon masukkan alamat pengiriman yang lengkap!");
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    try {
+      const response = await OrderService.checkout({
+        shipping_address: shippingAddress,
+        payment_method: paymentMethod
+      });
+
+      // 1. Tampilkan pesan sukses
+      alert("Pesanan berhasil dibuat! ID Pesanan: " + response.order_id);
+
+      // 2. Kosongkan keranjang di tampilan Frontend (Redux)
+      dispatch(clearCart());
+
+      // 3. (Opsional) Arahkan user ke halaman Sukses atau Riwayat Pesanan
+      // router.push(`/order/success/${response.order_id}`);
+
+    } catch (error: any) {
+      console.error("Gagal checkout:", error);
+      alert(error.response?.data?.message || "Terjadi kesalahan saat memproses pesanan.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   // Ambil data dari database saat halaman keranjang dimuat
   useEffect(() => {
@@ -38,8 +75,6 @@ const Cart = () => {
           customizations: dbItem.custom_configuration
         }));
 
-        // 👇 KUNCI PERBAIKAN: HAPUS FOREACH, GANTI JADI 1 BARIS INI 👇
-        // Menggunakan setCartItems akan menimpa Redux dengan angka pasti dari database (misal: 2)
         dispatch(setCartItems(formattedItems));
 
       } catch (error) {
@@ -51,7 +86,7 @@ const Cart = () => {
 
     fetchDbCart();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 👈 Biarkan kurung siku KOSONG agar hanya berjalan 1 kali
+  }, []); 
 
   if (isLoading) {
     return (
@@ -103,7 +138,7 @@ const Cart = () => {
 
                   {/* */}
                   {cartItems.map((item, key) => (
-                    <SingleItem item={item} key={key} />
+                    <SingleItem item={item} key={item.id || key} />
                   ))}
                 </div>
               </div>
@@ -111,7 +146,8 @@ const Cart = () => {
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
               <Discount />
-              <OrderSummary />
+              {/* 👇 Melempar fungsi dan state loading ke OrderSummary 👇 */}
+              <OrderSummary onCheckout={handleCheckout} isCheckingOut={isCheckingOut} />
             </div>
           </div>
         </section>

@@ -276,29 +276,39 @@ export default function Produk() {
               
               <div>
                 <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest ml-1 mb-1 block">Sub-Kategori</label>
-                <select 
-                  required 
-                  value={editForm.sub_categories_id} 
-                  onChange={e => setEditForm({...editForm, sub_categories_id: e.target.value})} 
-                  className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>-- Pilih Sub-Kategori --</option>
+                <div className="relative">
+                  <select 
+                    required 
+                    value={editForm.sub_categories_id} 
+                    onChange={e => setEditForm({...editForm, sub_categories_id: e.target.value})} 
+                    // Penambahan pr-12 untuk memberi ruang pada ikon panah, dan pewarnaan dinamis untuk teks placeholder
+                    className={`w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-5 py-3.5 pr-12 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none text-sm transition-all appearance-none cursor-pointer ${editForm.sub_categories_id === '' ? 'text-gray-400' : 'text-[#2D1A11]'}`}
+                  >
+                    <option value="" disabled className="text-gray-400">-- Pilih Sub-Kategori --</option>
+                    
+                    {/* Looping Kategori Utama sebagai Grup */}
+                    {categories.map((category) => (
+                      <optgroup key={category.id} label={category.name} className="font-bold text-[#2D1A11] bg-white">
+                        
+                        {/* Looping Sub-Kategori sebagai Pilihan */}
+                        {category.sub_categories?.map((sub: any) => (
+                          <option key={sub.id} value={sub.id} className="font-normal text-[#8B7355]">
+                            {sub.name}
+                          </option>
+                        ))}
+                        
+                      </optgroup>
+                    ))}
+                    
+                  </select>
                   
-                  {/* Looping Kategori Utama sebagai Grup */}
-                  {categories.map((category) => (
-                    <optgroup key={category.id} label={category.name} className="font-bold text-[#2D1A11]">
-                      
-                      {/* Looping Sub-Kategori sebagai Pilihan */}
-                      {category.sub_categories?.map((sub: any) => (
-                        <option key={sub.id} value={sub.id} className="font-normal text-[#8B7355]">
-                          {sub.name}
-                        </option>
-                      ))}
-                      
-                    </optgroup>
-                  ))}
-                  
-                </select>
+                  {/* Ikon Panah Kustom (SVG) */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-[#D9B35A]">
+                    <svg className="w-4 h-4 fill-current transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>

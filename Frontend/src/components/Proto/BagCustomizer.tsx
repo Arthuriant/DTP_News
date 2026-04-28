@@ -19,7 +19,7 @@ import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import html2canvas from "html2canvas";
 import { CartService } from '@/services/CartService';
-
+import { flushSync } from "react-dom";
 
     export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -175,6 +175,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const { openCartModal } = useCartModalContext();
 
   const screenshotRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
 
@@ -462,11 +463,28 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
   );
 };
 
-  const handleAddToCart = async () => {
-    // 1. Kumpulkan Data State
+  // 👇 2. TIMPA FUNGSI LAMA DENGAN INI
+ const handleAddToCart = async () => {
+    setIsCapturing(true);
+    
+    const previousView = activeView;
+    const previousHighlightedPart = highlightedPartId; // ✅ ganti activePart
+    
+    if (activeView !== "front") {
+      setActiveView("front");
+    }
+    
+    if (highlightedPartId !== null) { // ✅ ganti activePart
+      setHighlightedPartId(null);     // ✅ ganti setActivePart
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 400)); 
+    
     const finalPrice = calculateTotalPrice();
+    const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
+    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize; 
     const customizationsData = {
-      size: activeSize,
+      size: sizeLabel,
       shapes: shapeSelections,
       textures: textureSelections,
       colors: selections, 
@@ -475,27 +493,30 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
 
     let base64Image = null;
 
-    // 2. Ambil Screenshot jika ref tersedia
     if (screenshotRef.current) {
-  try {
-    // ✅ Tambahan: preload semua gambar ke base64 dulu sebelum screenshot
-    await preloadImagesToBase64(screenshotRef.current);
+      try {
+        await preloadImagesToBase64(screenshotRef.current);
+        const canvas = await html2canvas(screenshotRef.current, {
+          backgroundColor: null,
+          scale: 1, 
+          useCORS: true,
+          logging: false,
+          allowTaint: false,
+        });
+        base64Image = canvas.toDataURL("image/png");
+      } catch (error) {
+        console.error("Gagal mengambil screenshot desain:", error);
+      }
+    }
 
-    const canvas = await html2canvas(screenshotRef.current, {
-      backgroundColor: null,
-      scale: 1,
-      useCORS: true,
-      logging: false,
-      allowTaint: false, // ✅ Tambahan: jangan izinkan gambar "mencemari" canvas
-    });
+    // Kembalikan state ke semula
+    if (previousView !== "front") {
+      setActiveView(previousView);
+    }
+    if (previousHighlightedPart !== null) { // ✅ ganti activePart
+      setHighlightedPartId(previousHighlightedPart); // ✅ ganti setActivePart
+    }
 
-    base64Image = canvas.toDataURL("image/png");
-  } catch (error) {
-    console.error("Gagal mengambil screenshot desain:", error);
-  }
-}
-
-    // 3. Kirim ke Backend Laravel menggunakan Service
     try {
       const res = await CartService.addToCart({
         product_id: product.id,
@@ -505,8 +526,7 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
       });
 
       const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
-
-      // 4. Update Redux Cart lokal agar keranjang di layar langsung ter-update
+      
       dispatch(
         addItemToCart({
           id: realDbId,
@@ -521,10 +541,13 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
           customizations: customizationsData
         } as any)
       );
+      
+      setIsCapturing(false);
       openCartModal();
 
     } catch (error) {
-      console.error("Terjadi kesalahan jaringan atau gagal menyimpan ke database", error);
+      console.error("Terjadi kesalahan jaringan", error);
+      setIsCapturing(false); 
     }
   };
 
@@ -713,6 +736,15 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
                   </button>
 
                   <div className="w-full h-[380px] sm:h-[450px] lg:h-[500px] flex items-center justify-center relative z-10">
+                    {isCapturing && (
+                      <div className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-[#2D1A11]/70 backdrop-blur-3xl rounded-xl transition-all">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C5A059] mb-4 shadow-[0_0_15px_rgba(197,160,89,0.5)]"></div>
+                        <p className="text-[#C5A059] font-bold tracking-[0.2em] text-xs uppercase animate-pulse">
+                          Menyimpan Desain...
+                        </p>
+                      </div>
+                    )}
+                    
                     {activeView !== "360" ? (
                       <div 
                       key={globalAnimationKey} 
@@ -766,6 +798,7 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
                     ))}
                   </div>
                 </div>
+                
             </div>
           </div>
 
@@ -952,6 +985,8 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
 
             </div>
           </div>
+
+          
         </div>
       </section>
 
@@ -1093,6 +1128,25 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
           </div>
         </div>
       )}
+
+      <div
+        ref={screenshotRef}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: "0",
+          width: "500px",
+          height: "417px",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        <div className="relative w-full h-full">
+          {renderProductParts("Front")}
+        </div>
+      </div>
 
     </div>
   );

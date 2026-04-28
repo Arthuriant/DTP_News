@@ -16,15 +16,11 @@ class PartVariantsController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Siapkan query dasar
-        $query = PartVariants::with(['product', 'part']);
 
-        // 2. Jika ada filter 'part_id' di URL, saring datanya!
+        $query = PartVariants::with(['product', 'part']);
         if ($request->has('part_id')) {
             $query->where('part_id', $request->part_id);
         }
-
-        // 3. Ambil datanya
         $data = $query->get();
 
         return response()->json([
@@ -70,7 +66,6 @@ class PartVariantsController extends Controller
 
         return DB::transaction(function () use ($request) {
 
-            // Validasi tambahan: pastikan part milik product yang sama
             $part = ProductParts::find($request->part_id);
 
             if ($part->product_id !== $request->product_id) {
@@ -79,7 +74,6 @@ class PartVariantsController extends Controller
                 ], 422);
             }
 
-            // 1️⃣ Simpan ke DB
             $variant = PartVariants::create([
                 'product_id' => $request->product_id,
                 'part_id'    => $request->part_id,
@@ -87,8 +81,7 @@ class PartVariantsController extends Controller
                 'price'      => $request->price,
             ]);
 
-            // 2️⃣ Buat folder otomatis
-            $directory = "products/{$variant->product_id}/parts/{$variant->id}";
+            $directory = "products/{$variant->product_id}/parts/{$variant->part_id}/{$variant->id}";
 
             Storage::disk('public')->makeDirectory($directory);
 
@@ -126,10 +119,9 @@ class PartVariantsController extends Controller
 
         return DB::transaction(function () use ($request, $variant) {
 
-            $oldPath = "products/{$variant->product_id}/parts/{$variant->id}";
-            $newPath = "products/{$request->product_id}/parts/{$variant->id}";
+            $oldPath = "products/{$variant->product_id}/parts/{$variant->part_id}/{$variant->id}";
+            $newPath = "products/{$request->product_id}/parts/{$request->part_id}/{$variant->id}";
 
-            // Jika product atau part berubah → pindahkan folder
             if ($oldPath !== $newPath) {
                 if (Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->move($oldPath, $newPath);
@@ -166,7 +158,7 @@ class PartVariantsController extends Controller
 
         return DB::transaction(function () use ($variant) {
 
-            $directory = "products/{$variant->product_id}/parts/{$variant->id}";
+            $directory = "products/{$variant->product_id}/parts/{$variant->part_id}/{$variant->id}";
 
             Storage::disk('public')->deleteDirectory($directory);
 
