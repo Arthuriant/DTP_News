@@ -22,6 +22,7 @@ class ProductPartSeeder extends Seeder
                 [
                     'product_id' => $product->id, 
                     'name'       => 'Badan Tas Kiri',
+                    'part_code'  => 'PRT-BADAN-TAS-KIRI',
                     'z_index'    => [
                         'Front' => 20,
                         'Back'  => 10,
@@ -31,6 +32,7 @@ class ProductPartSeeder extends Seeder
                 [
                     'product_id' => $product->id, 
                     'name'       => 'Badan Tas Tengah',
+                    'part_code'  => 'PRT-BADAN-TAS-TENGAH',
                     'z_index'    => [
                         'Front' => 30,
                         'Back'  => 20,
@@ -40,6 +42,7 @@ class ProductPartSeeder extends Seeder
                 [
                     'product_id' => $product->id, 
                     'name'       => 'Badan Tas Kanan',
+                    'part_code'  => 'PRT-BADAN-TAS-KANAN',
                     'z_index'    => [
                         'Front' => 20,
                         'Back'  => 10,
@@ -49,6 +52,7 @@ class ProductPartSeeder extends Seeder
                 [
                     'product_id' => $product->id, 
                     'name'       => 'Tali',
+                    'part_code'  => 'PRT-TALI',
                     'z_index'    => [
                         'Front' => 10,
                         'Back'  => 30,
@@ -58,6 +62,7 @@ class ProductPartSeeder extends Seeder
                 [
                     'product_id' => $product->id, 
                     'name'       => 'Kunci',
+                    'part_code'  => 'PRT-KUNCI',
                     'z_index'    => [
                         'Front' => 40,
                         'Back'  => 10,

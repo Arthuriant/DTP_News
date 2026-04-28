@@ -25,21 +25,21 @@ class PartVariantSeeder extends Seeder
 
         $partsVariantsMapping = [
             'Badan Tas Kiri' => [
-                ['name' => 'Tubuh Tas Kiri Original', 'price' => 0],
+                ['name' => 'Tubuh Tas Kiri Original', 'variant_code' => 'VAR-CMS-BTL-001', 'price' => 0],
             ],
             'Badan Tas Tengah' => [
-                ['name' => 'Tubuh Tas Tengah Original', 'price' => 0],
+                ['name' => 'Tubuh Tas Tengah Original', 'variant_code' => 'VAR-CMS-BTM-001', 'price' => 0],
             ],
             'Badan Tas Kanan' => [
-                ['name' => 'Tubuh Tas Kanan Original', 'price' => 0],
+                ['name' => 'Tubuh Tas Kanan Original', 'variant_code' => 'VAR-CMS-BTR-001', 'price' => 0],
             ],
             'Tali' => [
-                ['name' => 'Tali Original', 'price' => 0],
-                ['name' => 'Tali Selempang', 'price' => 20000],
-                ['name' => 'Tali Rantai', 'price' => 30000],
+                ['name' => 'Tali Original', 'variant_code' => 'VAR-CMS-TLI-000', 'price' => 0],
+                ['name' => 'Tali Selempang', 'variant_code' => 'VAR-CMS-TLI-001', 'price' => 20000],
+                ['name' => 'Tali Rantai', 'variant_code' => 'VAR-CMS-TLI-002', 'price' => 30000],
             ],
             'Kunci' => [
-                ['name' => 'Kunci Original', 'price' => 0],
+                ['name' => 'Kunci Original', 'variant_code' => 'VAR-CMS-KNC-001', 'price' => 0],
             ],
         ];
 
@@ -56,6 +56,7 @@ class PartVariantSeeder extends Seeder
                         'product_id' => $product->id,
                         'part_id'    => $part->id,
                         'name'       => $variantData['name'],
+                        'variant_code' => $variantData['variant_code'],
                         'price'      => $variantData['price'],
                     ]);
 

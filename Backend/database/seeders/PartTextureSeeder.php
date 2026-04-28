@@ -28,33 +28,33 @@ class PartTextureSeeder extends Seeder
         $texturesMapping = [
             'Badan Tas Kiri' => [
                 'Tubuh Tas Kiri Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTL-001-001'],
                 ],
             ],
             'Badan Tas Tengah' => [
                 'Tubuh Tas Tengah Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTM-001'],
                 ],
             ],
             'Badan Tas Kanan' => [
                 'Tubuh Tas Kanan Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTR-001'],
                 ],
             ],
             'Tali' => [
                 'Tali Original' => [
-                    ['name' => 'Brass Metal', 'price' => 0],
+                    ['name' => 'Brass Metal', 'price' => 0, 'texture_code' => 'TEX-CMS-TLI-000'],
                 ],
                 'Tali Selempang' => [
-                    ['name' => 'Premium Leather', 'price' => 50000],
+                    ['name' => 'Premium Leather', 'price' => 50000, 'texture_code' => 'TEX-CMS-TLI-001'],
                 ],
                 'Tali Rantai' => [
-                    ['name' => 'Gold Chain', 'price' => 15000],
+                    ['name' => 'Gold Chain', 'price' => 15000, 'texture_code' => 'TEX-CMS-TLI-002'],
                 ],
             ],
             'Kunci' => [
                 'Kunci Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0], 
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-KNC-001'],
                 ],
             ],
         ];
