@@ -23,6 +23,7 @@ export default function ProductPartsTab() {
     id: '',
     product_id: productId,
     name: '',
+    part_code: '', // tambah
     z_index_front: 20,
     z_index_back: 10,
     z_index_top: 10,
@@ -75,6 +76,7 @@ export default function ProductPartsTab() {
     const payload = {
       product_id: productId, 
       name: editForm.name,
+      part_code: editForm.part_code, // tambah
       z_index: {
         Front: editForm.z_index_front,
         Back: editForm.z_index_back,
@@ -103,6 +105,7 @@ export default function ProductPartsTab() {
       id: part.id,
       product_id: part.product_id,
       name: part.name,
+      part_code: part.part_code, // tambah
       z_index_front: parsedZ.Front || 0,
       z_index_back: parsedZ.Back || 0,
       z_index_top: parsedZ.Top || 0,
@@ -122,7 +125,7 @@ export default function ProductPartsTab() {
   };
 
   const openNewModal = () => {
-    setEditForm({ id: '', product_id: productId, name: '', z_index_front: 20, z_index_back: 10, z_index_top: 10 });
+    setEditForm({ id: '', product_id: productId, name: '', part_code: '', z_index_front: 20, z_index_back: 10, z_index_top: 10 }); // tambah part_code: ''
     setIsModalOpen(true);
   };
 
@@ -157,6 +160,18 @@ export default function ProductPartsTab() {
             <div>
               <label className={labelClass}>Nama Part / Potongan (Cth: Badan Depan)</label>
               <input required type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className={inputClass} placeholder="Ketik nama komponen..." />
+            </div>
+
+            <div>
+              <label className={labelClass}>Kode Part (Cth: PRT-BADAN-TAS-KIRI)</label>
+              <input 
+                required 
+                type="text" 
+                value={editForm.part_code} 
+                onChange={e => setEditForm({...editForm, part_code: e.target.value})} 
+                className={inputClass} 
+                placeholder="Ketik kode part..." 
+              />
             </div>
 
             <div>

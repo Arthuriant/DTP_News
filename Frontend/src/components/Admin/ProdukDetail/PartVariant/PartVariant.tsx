@@ -19,6 +19,7 @@ export default function PartVariant() {
   const [editForm, setEditForm] = useState({
     id: '',
     name: '',
+    variant_code: '', // tambah
     price: 0,
   });
 
@@ -48,6 +49,7 @@ export default function PartVariant() {
       product_id: productId,
       part_id: partId,
       name: editForm.name,
+      variant_code: editForm.variant_code, // tambah
       price: editForm.price,
     };
 
@@ -69,6 +71,7 @@ export default function PartVariant() {
     setEditForm({
       id: variant.id,
       name: variant.name,
+      variant_code: variant.variant_code, // tambah
       price: Number(variant.price),
     });
     setIsModalOpen(true);
@@ -87,8 +90,8 @@ export default function PartVariant() {
   };
 
   const openNewModal = () => {
-    setEditForm({ id: '', name: '', price: 0 });
-    setIsModalOpen(true);
+    setEditForm({ id: '', name: '', variant_code: '', price: 0 }); // tambah
+  setIsModalOpen(true);
   };
 
   return (
@@ -179,6 +182,10 @@ export default function PartVariant() {
                 <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest block mb-1">Nama Varian (cth: Kulit Asli)</label>
                 <input required type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none focus:border-[#D9B35A]" />
               </div>
+              <div>
+              <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest block mb-1">Kode Varian (Cth: VAR-TALI-ORIGINAL)</label>
+              <input required type="text" value={editForm.variant_code} onChange={e => setEditForm({...editForm, variant_code: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none focus:border-[#D9B35A]" />
+            </div>
               <div>
                 <label className="text-[10px] uppercase font-bold text-[#8B7355] tracking-widest block mb-1">Harga Tambahan (Rp)</label>
                 <input required type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: Number(e.target.value)})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none focus:border-[#D9B35A]" />
