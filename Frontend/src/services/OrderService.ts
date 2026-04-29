@@ -42,4 +42,9 @@ export const OrderService = {
     window.URL.revokeObjectURL(url);
   },
 
+  getMyOrders: async () => {
+    return await api<any>("/my-orders", {
+      method: "GET",
+    });
+  },
 };

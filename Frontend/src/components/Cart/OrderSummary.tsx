@@ -1,5 +1,6 @@
 import { useAppSelector } from "@/redux/store";
 import React from "react";
+import Link from "next/link";
 
 // 👇 Tangkap properti dari komponen Cart (onCheckout dan isCheckingOut) 👇
 const OrderSummary = ({ onCheckout, isCheckingOut }: any) => {
@@ -61,18 +62,12 @@ const OrderSummary = ({ onCheckout, isCheckingOut }: any) => {
           </div>
 
           {/* 👇 Update tombol dengan event onClick dan style loading 👇 */}
-          <button
-            type="button" 
-            onClick={onCheckout}
-            disabled={isCheckingOut}
-            className={`w-full flex justify-center font-bold text-[#1A1A1A] py-[15px] px-6 rounded-full ease-out duration-200 uppercase tracking-widest mt-8 transition-all ${
-              isCheckingOut
-                ? "bg-[#D9B35A]/50 cursor-not-allowed shadow-none"
-                : "bg-gradient-to-r from-[#EAC135] to-[#DFB121] hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20"
-            }`}
+          <Link
+            href="/checkout"
+            className="w-full flex justify-center font-bold text-[#1A1A1A] bg-gradient-to-r from-[#EAC135] to-[#DFB121] py-[15px] px-6 rounded-full ease-out duration-200 hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20 uppercase tracking-widest mt-8 transition-all"
           >
-            {isCheckingOut ? "Memproses..." : "Lanjutkan ke Checkout"}
-          </button>
+            Lanjutkan ke Checkout
+          </Link>
         </div>
       </div>
     </div>
