@@ -10,6 +10,7 @@ export interface ProductTexture {
   id: string;
   name: string;
   thumb: string;
+  texture_code?: string;
   image?: string;
   description?: string;
   price: number;
@@ -38,6 +39,7 @@ export interface ProductVariant {
   id: string;
   name: string;
   thumb?: string;
+  variant_code?: string;
   price: number;
   priceLabel?: string;
   textures?: ProductTexture[]; 
@@ -60,6 +62,7 @@ export interface ProductPart {
   id: string;
   name: string;
   basePrice: number;
+  part_code?: string;
   zIndex: number | Record<string, number>;
   textures?: ProductTexture[]; 
   variants?: ProductVariant[];

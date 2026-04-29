@@ -54,11 +54,13 @@ import { flushSync } from "react-dom";
         const mappedParts = (raw.parts || []).map((part: any) => ({
           id:        part.id,
           name:      part.name,
+          part_code: part.part_code || "",
           basePrice: 0,
           zIndex:    part.z_index,
           variants:  (part.variants || []).map((variant: any) => ({
             id:         variant.id,
             name:       variant.name,
+            variant_code: variant.variant_code || "",
             price:      parseFloat(variant.price),
             priceLabel: variant.price > 0
               ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
@@ -66,6 +68,7 @@ import { flushSync } from "react-dom";
             textures: (variant.textures || []).map((texture: any) => ({
               id:        texture.id,
               name:      texture.name,
+              texture_code: texture.texture_code || "",
               price:     parseFloat(texture.price),
               thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
               image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
@@ -484,10 +487,9 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
     const structuredParts = product?.parts
     .filter(part => visibleParts[part.id]) 
     .map(part => {
-      // 1. Cari Variant (Shape) yang dipilih
+
       const activeVariantId = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v: any) => v.id === activeVariantId);
-
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
       const activeTexture = currentTextures.find((t: any) => t.id === activeTextureId) || currentTextures[0];
@@ -495,15 +497,18 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
       return {
         id: part.id,
         name: part.name,
+        part_code: (part as any).part_code || "",
         variants: activeVariant ? [
           {
             id: activeVariant.id,
             name: activeVariant.name,
+            variant_code: (activeVariant as any).variant_code || "",
             price: activeVariant.price,
             textures: activeTexture ? [
               {
                 id: activeTexture.id,
                 name: activeTexture.name,
+                texture_code: (activeTexture as any).texture_code || "",
                 price: activeTexture.price,
                 img_top: activeTexture.img_top || "",
                 img_back: activeTexture.img_back || "",

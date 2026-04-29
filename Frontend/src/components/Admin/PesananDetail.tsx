@@ -16,6 +16,19 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const [deadline, setDeadline] = useState('');
   const [catatan, setCatatan] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      await OrderService.downloadPDF(orderId);
+    } catch (error) {
+      console.error("Gagal mendownload PDF:", error);
+      alert("Terjadi kesalahan saat mengunduh dokumen referensi.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const fetchOrderDetail = useCallback(async () => {
     // Gembok keamanan agar tidak menembak API dengan URL undefined
@@ -270,41 +283,86 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                     Ukuran: {data.detail_material?.size || '-'}
                   </span>
                 </div>
-                
-                <div className="space-y-3 overflow-y-auto pr-2 max-h-[420px] custom-scrollbar">
-                  {data.detail_material?.mapped_materials ? (
-                    data.detail_material.mapped_materials.map((item: any, index: number) => (
-                      <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-sm border border-gray-100 hover:border-[#D9B35A]/40 hover:bg-[#FFFDF5] transition-all duration-300">
-                        <div className="mb-2 sm:mb-0">
-                          <p className="text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Komponen Bagian</p>
-                          <p className="font-bold text-[#2D1A11] text-sm tracking-wide">{item.part}</p>
-                        </div>
-                        <div className="sm:text-right">
-                          <p className="text-gray-500 text-[11px] uppercase tracking-wider mb-1">{item.variant}</p>
-                          <p className="text-xs font-semibold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1 rounded-sm border border-[#D9B35A]/20 inline-block">{item.texture}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-10 text-center border border-dashed border-[#D9B35A]/30 rounded-sm">
-                      <p className="text-[#8B7355] text-xs font-light tracking-wide italic">Menunggu sinkronisasi blueprint komponen...</p>
-                    </div>
-                  )}
-                </div>
+                <div className="overflow-auto pr-2 max-h-[420px] custom-scrollbar">
+                {data.detail_material?.parts && data.detail_material.parts.length > 0 ? (
+                  <table className="w-full text-left border-collapse">
+                    
+                    {/* HEADER TABEL (Sticky) */}
+                    <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                      <tr>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">
+                          Komponen Bagian
+                        </th>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">
+                          Varian Bentuk
+                        </th>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 text-right w-1/3">
+                          Material 
+                        </th>
+                      </tr>
+                    </thead>
+
+                    {/* ISI TABEL */}
+                    <tbody className="divide-y divide-gray-100">
+                      {data.detail_material.parts.map((part: any, index: number) => {
+                        const selectedVariant = part.variants?.[0];
+                        const selectedTexture = selectedVariant?.textures?.[0];
+
+                        return (
+                          <tr key={index} className="hover:bg-[#FFFDF5] transition-colors duration-300 group">
+                            
+                            {/* Kolom 1: Part */}
+                            <td className="py-4 pr-4 align-top">
+                              <p className="font-bold text-[#2D1A11] text-sm tracking-wide">{part.name}</p>
+                              <p className="text-[10px] font-mono text-gray-400 tracking-wider mt-1.5">
+                                {part.part_code || '-'}
+                              </p>
+                            </td>
+
+                            {/* Kolom 2: Variant */}
+                            <td className="py-4 pr-4 align-top">
+                              <p className="text-gray-800 text-[11px] font-semibold uppercase tracking-wider mb-0.5 mt-0.5">
+                                {selectedVariant?.name || 'Default Variant'}
+                              </p>
+                              <p className="text-[9px] font-mono text-gray-400 mt-1.5">
+                                {selectedVariant?.variant_code || '-'}
+                              </p>
+                            </td>
+
+                            {/* Kolom 3: Texture */}
+                            <td className="py-4 align-top text-right">
+                              <div className="flex flex-col items-end">
+                                <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">
+                                  {selectedTexture?.name || 'Default Texture'}
+                                </span>
+                                <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">
+                                  {selectedTexture?.texture_code || '-'}
+                                </span>
+                              </div>
+                            </td>
+
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="py-10 text-center border border-dashed border-[#D9B35A]/30 rounded-sm">
+                    <p className="text-[#8B7355] text-xs font-light tracking-wide italic">Menunggu sinkronisasi blueprint komponen...</p>
+                  </div>
+                )}
+              </div>
               </div>
 
               {/* ACTION BUTTONS */}
               <div className="flex flex-col sm:flex-row gap-4 justify-end pt-2">
-                <button className="px-8 py-3.5 rounded-sm bg-transparent border border-[#D9B35A] text-[#D9B35A] font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-[#D9B35A] hover:text-white transition-all shadow-sm">
-                  Cetak Referensi PDF
-                </button>
                 <button 
-                  onClick={handleProsesProduksi}
-                  disabled={isProcessing}
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
                   className="px-10 py-3.5 rounded-sm bg-[#2D1A11] border border-[#D9B35A]/30 text-[#D9B35A] font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? 'Memproses...' : 'Terbitkan Produksi'}
-                </button>
+                  {isDownloading ? 'Menyiapkan PDF...' : 'Cetak Referensi PDF'}
+                </button> 
               </div>
 
             </div>

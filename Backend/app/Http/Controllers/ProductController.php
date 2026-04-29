@@ -114,17 +114,20 @@ class ProductController extends Controller
             return [
                 'id'       => $part->id,
                 'name'     => $part->name,
+                'part_code' => $part->part_code,
                 'z_index'  => $part->z_index,
                 'variants' => $part->variants->map(function ($variant) {
                     return [
                         'id'       => $variant->id,
                         'name'     => $variant->name,
+                        'variant_code' => $variant->variant_code,
                         'price'    => $variant->price,
                         'textures' => $variant->textures->map(function ($texture) {
 
                             return [
                                 'id'        => $texture->id,
                                 'name'      => $texture->name,
+                                'texture_code' => $texture->texture_code,
                                 'price'     => $texture->price,
                                 'img_top'   => $texture->img_top,
                                 'img_back'  => $texture->img_back,

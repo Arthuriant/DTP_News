@@ -19,4 +19,27 @@ export const OrderService = {
     });
   },
 
+  downloadPDF: async (id: string) => {
+    const response = await fetch(`/api-fe/proxy/admin/order-details/${id}/download-pdf`, {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil file PDF dari server.");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `Referensi-Produksi-${id.split('-')[0]}.pdf`; 
+    document.body.appendChild(a);
+    a.click();
+    
+    
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
 };
