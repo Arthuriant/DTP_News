@@ -26,6 +26,7 @@ use App\Http\Controllers\ProductSizeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderDetailController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -137,7 +138,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
     Route::get('/product-marketing-blocks/{product_id}', [ProductMarketingBlockController::class, 'index']);
     Route::post('/product-marketing-blocks', [ProductMarketingBlockController::class, 'store']);
-Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::class, 'update']);
+    Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::class, 'update']);
     Route::delete('/product-marketing-blocks/{id}', [ProductMarketingBlockController::class, 'destroy']);
 
     Route::get('/product-marketing-features/{block_id}', [ProductMarketingFeatureController::class, 'index']);
@@ -190,6 +191,8 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
 
     Route::post('/checkout', [OrderController::class, 'checkout']);
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
+
+    Route::get('/admin/order-details/{id}', [OrderDetailController::class, 'index']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);

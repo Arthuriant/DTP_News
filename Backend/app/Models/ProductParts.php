@@ -17,6 +17,7 @@ class ProductParts extends Model
     protected $fillable = [
         'product_id',
         'name',
+        'part_code',
         'z_index',
     ];
 

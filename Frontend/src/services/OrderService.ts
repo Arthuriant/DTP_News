@@ -11,4 +11,12 @@ export const OrderService = {
       body: JSON.stringify(payload),
     });
   },
+
+  getOrderDetail: async (id: string) => {
+    return await api<any>(`/admin/order-details/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
 };

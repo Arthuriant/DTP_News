@@ -433,13 +433,11 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
-  // Tambahkan helper ini di LUAR komponen (di atas fungsi komponen)
 const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
   const imgs = container.querySelectorAll<HTMLImageElement>('img');
   await Promise.all(
     Array.from(imgs).map((img) => {
       return new Promise<void>((resolve) => {
-        // Skip gambar yang sudah base64 atau dari domain yang sama
         if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
           return resolve();
         }
@@ -452,43 +450,78 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
           canvas.width = tempImg.naturalWidth;
           canvas.height = tempImg.naturalHeight;
           canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
-          img.src = canvas.toDataURL('image/png'); // ganti src asli ke base64
+          img.src = canvas.toDataURL('image/png'); 
           resolve();
         };
 
-        tempImg.onerror = () => resolve(); // skip jika tetap gagal
+        tempImg.onerror = () => resolve();
         tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
       });
     })
   );
 };
 
-  // 👇 2. TIMPA FUNGSI LAMA DENGAN INI
- const handleAddToCart = async () => {
+  const handleAddToCart = async () => {
     setIsCapturing(true);
     
     const previousView = activeView;
-    const previousHighlightedPart = highlightedPartId; // ✅ ganti activePart
+    const previousHighlightedPart = highlightedPartId;
     
     if (activeView !== "front") {
       setActiveView("front");
     }
     
-    if (highlightedPartId !== null) { // ✅ ganti activePart
-      setHighlightedPartId(null);     // ✅ ganti setActivePart
+    if (highlightedPartId !== null) { 
+      setHighlightedPartId(null);    
     }
 
     await new Promise((resolve) => setTimeout(resolve, 400)); 
     
     const finalPrice = calculateTotalPrice();
     const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
-    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize; 
+    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
+
+    const structuredParts = product?.parts
+    .filter(part => visibleParts[part.id]) 
+    .map(part => {
+      // 1. Cari Variant (Shape) yang dipilih
+      const activeVariantId = shapeSelections[part.id] || part.id;
+      const activeVariant = part.variants?.find((v: any) => v.id === activeVariantId);
+
+      const currentTextures = activeVariant?.textures || part.textures || [];
+      const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
+      const activeTexture = currentTextures.find((t: any) => t.id === activeTextureId) || currentTextures[0];
+
+      return {
+        id: part.id,
+        name: part.name,
+        variants: activeVariant ? [
+          {
+            id: activeVariant.id,
+            name: activeVariant.name,
+            price: activeVariant.price,
+            textures: activeTexture ? [
+              {
+                id: activeTexture.id,
+                name: activeTexture.name,
+                price: activeTexture.price,
+                img_top: activeTexture.img_top || "",
+                img_back: activeTexture.img_back || "",
+                img_front: activeTexture.img_front || "",
+                img_thumb: activeTexture.thumb || "" 
+              }
+            ] : []
+          }
+        ] : []
+      };
+    });
+
+
     const customizationsData = {
-      size: sizeLabel,
-      shapes: shapeSelections,
-      textures: textureSelections,
-      colors: selections, 
-      visibleParts: visibleParts
+    size: sizeLabel,
+    colors: selections, 
+    visibleParts: visibleParts,
+    parts: structuredParts 
     };
 
     let base64Image = null;

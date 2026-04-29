@@ -28,33 +28,33 @@ class PartTextureSeeder extends Seeder
         $texturesMapping = [
             'Badan Tas Kiri' => [
                 'Tubuh Tas Kiri Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTL-001-001'],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-ECO-CORDURA-CANVAS'],
                 ],
             ],
             'Badan Tas Tengah' => [
                 'Tubuh Tas Tengah Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTM-001'],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-ECO-CORDURA-CANVAS'],
                 ],
             ],
             'Badan Tas Kanan' => [
                 'Tubuh Tas Kanan Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-BTR-001'],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-ECO-CORDURA-CANVAS'],
                 ],
             ],
             'Tali' => [
                 'Tali Original' => [
-                    ['name' => 'Brass Metal', 'price' => 0, 'texture_code' => 'TEX-CMS-TLI-000'],
+                    ['name' => 'Brass Metal', 'price' => 0, 'texture_code' => 'TEX-BRASS-METAL'],
                 ],
                 'Tali Selempang' => [
-                    ['name' => 'Premium Leather', 'price' => 50000, 'texture_code' => 'TEX-CMS-TLI-001'],
+                    ['name' => 'Premium Leather', 'price' => 50000, 'texture_code' => 'TEX-PREMIUM-LEATHER'],
                 ],
                 'Tali Rantai' => [
-                    ['name' => 'Gold Chain', 'price' => 15000, 'texture_code' => 'TEX-CMS-TLI-002'],
+                    ['name' => 'Gold Chain', 'price' => 15000, 'texture_code' => 'TEX-GOLD-CHAIN'],
                 ],
             ],
             'Kunci' => [
                 'Kunci Original' => [
-                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-CMS-KNC-001'],
+                    ['name' => 'Eco Cordura Canvas', 'price' => 0, 'texture_code' => 'TEX-ECO-CORDURA-CANVAS'],
                 ],
             ],
         ];
@@ -86,6 +86,7 @@ class PartTextureSeeder extends Seeder
                                 'variant_id' => $variant->id,
                                 'name'       => $textureName,
                                 'price'      => $textureData['price'],
+                                'texture_code' => $textureData['texture_code'],
                             ]);
 
                             $folderPath = "products/{$product->id}/parts/{$part->id}/{$variant->id}/{$texture->id}";

@@ -16,6 +16,7 @@ class PartTextures extends Model
         'product_id',
         'variant_id',
         'name',
+        'texture_code',
         'price',
         'img_top',
         'img_back',
