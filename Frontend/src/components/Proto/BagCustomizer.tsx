@@ -465,91 +465,93 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
 
   // 👇 2. TIMPA FUNGSI LAMA DENGAN INI
  const handleAddToCart = async () => {
-    setIsCapturing(true);
-    
-    const previousView = activeView;
-    const previousHighlightedPart = highlightedPartId; // ✅ ganti activePart
-    
-    if (activeView !== "front") {
-      setActiveView("front");
-    }
-    
-    if (highlightedPartId !== null) { // ✅ ganti activePart
-      setHighlightedPartId(null);     // ✅ ganti setActivePart
-    }
+  setIsCapturing(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 400)); 
-    
-    const finalPrice = calculateTotalPrice();
-    const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
-    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize; 
-    const customizationsData = {
-      size: sizeLabel,
-      shapes: shapeSelections,
-      textures: textureSelections,
-      colors: selections, 
-      visibleParts: visibleParts
-    };
+  const previousView = activeView;
+  const previousHighlightedPart = highlightedPartId;
 
-    let base64Image = null;
+  // ✅ Gabungkan semua state reset dalam SATU flushSync
+  flushSync(() => {
+    setActiveView("front");
+    setHighlightedPartId(null);  // reset highlight sekaligus
+    setShowFullPreview(true);    // pastikan semua part visible (tidak ada yang dim)
+  });
 
-    if (screenshotRef.current) {
-      try {
-        await preloadImagesToBase64(screenshotRef.current);
-        const canvas = await html2canvas(screenshotRef.current, {
-          backgroundColor: null,
-          scale: 1, 
-          useCORS: true,
-          logging: false,
-          allowTaint: false,
-        });
-        base64Image = canvas.toDataURL("image/png");
-      } catch (error) {
-        console.error("Gagal mengambil screenshot desain:", error);
-      }
-    }
+  // Tunggu browser selesai render
+  await new Promise((resolve) => setTimeout(resolve, 600));
 
-    // Kembalikan state ke semula
-    if (previousView !== "front") {
-      setActiveView(previousView);
-    }
-    if (previousHighlightedPart !== null) { // ✅ ganti activePart
-      setHighlightedPartId(previousHighlightedPart); // ✅ ganti setActivePart
-    }
+  const finalPrice = calculateTotalPrice();
+  const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
+  const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
+  const customizationsData = {
+    size: sizeLabel,
+    shapes: shapeSelections,
+    textures: textureSelections,
+    colors: selections,
+    visibleParts: visibleParts
+  };
 
+  let base64Image = null;
+
+  if (screenshotRef.current) {
     try {
-      const res = await CartService.addToCart({
-        product_id: product.id,
-        price: finalPrice,
-        custom_configuration: customizationsData,
-        image_preview: base64Image
+      await preloadImagesToBase64(screenshotRef.current);
+
+      const canvas = await html2canvas(screenshotRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: false,
+        imageTimeout: 5000,
       });
 
-      const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
-      
-      dispatch(
-        addItemToCart({
-          id: realDbId,
-          title: `Kustom ${product.name}`,
-          price: finalPrice,
-          discountedPrice: finalPrice,
-          quantity: 1,
-          imgs: { 
-            previews: [base64Image || product.gallery?.[0] || ""], 
-            thumbnails: [base64Image || product.gallery?.[0] || ""] 
-          },
-          customizations: customizationsData
-        } as any)
-      );
-      
-      setIsCapturing(false);
-      openCartModal();
-
+      base64Image = canvas.toDataURL("image/png");
     } catch (error) {
-      console.error("Terjadi kesalahan jaringan", error);
-      setIsCapturing(false); 
+      console.error("Gagal screenshot:", error);
     }
-  };
+  }
+
+  // ✅ Kembalikan SEMUA state ke kondisi semula
+  flushSync(() => {
+    setActiveView(previousView);
+    setHighlightedPartId(previousHighlightedPart);
+    setShowFullPreview(false);
+  });
+
+  try {
+    const res = await CartService.addToCart({
+      product_id: product.id,
+      price: finalPrice,
+      custom_configuration: customizationsData,
+      image_preview: base64Image
+    });
+
+    const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
+
+    dispatch(
+      addItemToCart({
+        id: realDbId,
+        title: `Kustom ${product.name}`,
+        price: finalPrice,
+        discountedPrice: finalPrice,
+        quantity: 1,
+        imgs: {
+          previews: [base64Image || product.gallery?.[0] || ""],
+          thumbnails: [base64Image || product.gallery?.[0] || ""]
+        },
+        customizations: customizationsData
+      } as any)
+    );
+
+    setIsCapturing(false);
+    openCartModal();
+
+  } catch (error) {
+    console.error("Terjadi kesalahan jaringan", error);
+    setIsCapturing(false);
+  }
+};
 
   const nextStep = () => setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStepIndex((prev) => Math.max(prev - 1, 0));
@@ -1128,26 +1130,6 @@ const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
           </div>
         </div>
       )}
-
-      <div
-        ref={screenshotRef}
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: "0",
-          width: "500px",
-          height: "417px",
-          opacity: 0,
-          pointerEvents: "none",
-          zIndex: -1,
-        }}
-      >
-        <div className="relative w-full h-full">
-          {renderProductParts("Front")}
-        </div>
-      </div>
-
     </div>
   );
 }
