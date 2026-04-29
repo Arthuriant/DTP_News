@@ -11,4 +11,9 @@ export const OrderService = {
       body: JSON.stringify(payload),
     });
   },
+  getMyOrders: async () => {
+    return await api<any>("/my-orders", {
+      method: "GET",
+    });
+  },
 };

@@ -190,6 +190,8 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
 
     Route::post('/checkout', [OrderController::class, 'checkout']);
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
+
+    Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);
