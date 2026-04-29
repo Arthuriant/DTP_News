@@ -192,6 +192,7 @@ Route::put('/product-marketing-blocks/{id}', [ProductMarketingBlockController::c
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
 
     Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
+    
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);

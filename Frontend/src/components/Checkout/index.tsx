@@ -18,21 +18,63 @@ const Checkout = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   
-  // 1. Ambil data asli dari Keranjang Redux
   const cartItems = useAppSelector((state) => state.cartReducer.items);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // 2. Hitung Total yang Akurat
-  const subtotal = cartItems.reduce((acc, item) => {
-    return acc + (Number(item.discountedPrice) * Number(item.quantity || 1));
-  }, 0);
+  // --- STATE FORMS ---
+  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer BCA");
+  const [shippingMethod, setShippingMethod] = useState("fedex");
   
-  const shippingCost = 15000; // Contoh ongkir statis (Nanti bisa dinamis dari ShippingMethod)
-  const total = subtotal + shippingCost;
+  const [billingData, setBillingData] = useState({
+    firstName: "", lastName: "", address: "", town: "", phone: "",
+  });
 
-  // 3. Fungsi Submit ke Laravel
+  const [isDifferentAddress, setIsDifferentAddress] = useState(false);
+  const [shippingData, setShippingData] = useState({
+    address: "", town: "", phone: "",
+  });
+
+  const [notes, setNotes] = useState("");
+
+  // --- STATE KUPON ---
+  const [couponCode, setCouponCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  // --- HANDLERS ---
+  const handleBillingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setBillingData({ ...billingData, [e.target.name]: e.target.value });
+  };
+
+  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setShippingData({ ...shippingData, [e.target.name]: e.target.value });
+  };
+
+  const handleApplyCoupon = () => {
+    if (couponCode === "PROMOTAS") {
+      setDiscountAmount(50000); 
+    } else {
+      alert("Kode kupon tidak valid atau sudah kedaluwarsa.");
+      setDiscountAmount(0);
+      setCouponCode("");
+    }
+  };
+
+  // --- PERHITUNGAN HARGA ---
+  const subtotal = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
+  
+  const getShippingCost = () => {
+    if (shippingMethod === "free") return 0;
+    if (shippingMethod === "fedex") return 15000;
+    if (shippingMethod === "dhl") return 25000;
+    return 0;
+  };
+  const shippingCost = getShippingCost();
+  
+  const total = subtotal + shippingCost - discountAmount;
+
+  // --- SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Mencegah halaman refresh
+    e.preventDefault(); 
     
     if (cartItems.length === 0) {
       alert("Keranjang Anda kosong!");
@@ -42,16 +84,17 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      // Panggil API Checkout yang sudah kita buat
+      const addressToUse = isDifferentAddress ? shippingData : billingData;
+      const penerima = isDifferentAddress ? shippingData.phone : `${billingData.firstName} ${billingData.lastName} - HP: ${billingData.phone}`;
+
+      const fullAddress = `${addressToUse.address}, ${addressToUse.town} (Penerima: ${penerima}) | Catatan: ${notes || '-'}`;
+
       const response = await OrderService.checkout({
-        shipping_address: "Alamat dari Form Billing/Shipping (Sementara Statis)", // Nanti kita hubungkan ke form
-        payment_method: "Bank Transfer BCA", // Nanti kita hubungkan ke PaymentMethod
+        shipping_address: fullAddress,
+        payment_method: paymentMethod, 
       });
 
-      // Kosongkan keranjang setelah berhasil
       dispatch(clearCart());
-
-      // Lempar pembeli ke Halaman Sukses membawa ID Pesanannya
       router.push(`/order/success/${response.order_id}`);
 
     } catch (error: any) {
@@ -64,57 +107,65 @@ const Checkout = () => {
   return (
     <>
       <Breadcrumb title={"Checkout"} pages={["checkout"]} />
-      <section className="overflow-hidden py-20 bg-gray-2">
+      {/* Background utama diubah ke warna krem hangat */}
+      <section className="overflow-hidden py-20 bg-[#F9F6EE]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
-          {/* 👇 Hubungkan form dengan fungsi handleSubmit 👇 */}
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11">
               
-              {/* ================= KOLOM KIRI (FORM) ================= */}
               <div className="lg:max-w-[670px] w-full">
                 <Login />
-                <Billing />
-                <Shipping />
+                <Billing formData={billingData} handleInputChange={handleBillingChange} />
+                <Shipping 
+                  isDifferentAddress={isDifferentAddress}
+                  setIsDifferentAddress={setIsDifferentAddress}
+                  shippingData={shippingData}
+                  handleShippingChange={handleShippingChange}
+                />
 
-                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-7.5">
+                {/* Styling Catatan Tambahan disesuaikan tema */}
+                <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5 mt-7.5">
                   <div>
-                    <label htmlFor="notes" className="block mb-2.5 font-medium text-dark">
-                      Catatan Tambahan (opsional)
-                    </label>
-                    <textarea
-                      name="notes"
-                      id="notes"
-                      rows={5}
-                      placeholder="Contoh: Pesan khusus atau instruksi pengiriman."
-                      className="rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full p-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20"
+                    <label htmlFor="notes" className="block mb-2.5 font-bold text-[#2D1A11]">Catatan Tambahan (opsional)</label>
+                    <textarea 
+                      name="notes" 
+                      id="notes" 
+                      rows={5} 
+                      value={notes} 
+                      onChange={(e) => setNotes(e.target.value)} 
+                      placeholder="Contoh: Pesan khusus atau instruksi pengiriman." 
+                      className="rounded-xl border border-[#D9B35A]/30 bg-white placeholder:text-[#8B7355]/50 w-full p-5 outline-none duration-200 focus:border-[#D9B35A] focus:ring-2 focus:ring-[#D9B35A]/20 text-[#2D1A11]"
                     ></textarea>
                   </div>
                 </div>
               </div>
 
-              {/* ================= KOLOM KANAN (RINGKASAN & SUBMIT) ================= */}
               <div className="max-w-[455px] w-full">
-                <div className="bg-white shadow-1 rounded-[10px]">
-                  <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-                    <h3 className="font-medium text-xl text-dark">Ringkasan Pesanan</h3>
+                {/* Styling Box Ringkasan Pesanan */}
+                <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20">
+                  <div className="border-b border-[#D9B35A]/30 py-5 px-4 sm:px-8.5 bg-[#D9B35A]/5 rounded-t-2xl">
+                    <h3 className="font-bold text-xl text-[#2D1A11] flex items-center gap-2">
+                      <span className="text-[#D9B35A]">✧</span> Ringkasan Pesanan
+                    </h3>
                   </div>
 
                   <div className="pt-2.5 pb-8.5 px-4 sm:px-8.5">
-                    <div className="flex items-center justify-between py-5 border-b border-gray-3">
-                      <h4 className="font-medium text-dark">Produk</h4>
-                      <h4 className="font-medium text-dark text-right">Subtotal</h4>
+                    <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
+                      <h4 className="font-bold text-[#8B7355] text-xs uppercase tracking-widest">Produk</h4>
+                      <h4 className="font-bold text-[#8B7355] text-xs uppercase tracking-widest text-right">Subtotal</h4>
                     </div>
 
-                    {/* 👇 Menampilkan Data Asli dari Keranjang 👇 */}
                     {cartItems.map((item, index) => {
                       const itemSubtotal = Number(item.discountedPrice) * Number(item.quantity || 1);
                       return (
-                        <div key={index} className="flex items-center justify-between py-5 border-b border-gray-3">
+                        <div key={index} className="flex items-center justify-between py-4 border-b border-[#D9B35A]/10 border-dashed">
                           <div className="pr-4">
-                            <p className="text-dark line-clamp-1">{item.title} <span className="text-gray-500 text-sm">(x{item.quantity || 1})</span></p>
+                            <p className="text-[#2D1A11] font-medium text-sm line-clamp-1">
+                              {item.title} <span className="text-[#8B7355] text-xs">(x{item.quantity || 1})</span>
+                            </p>
                           </div>
                           <div>
-                            <p className="text-dark text-right whitespace-nowrap">
+                            <p className="text-[#8B7355] font-bold text-sm whitespace-nowrap text-right">
                               Rp {itemSubtotal.toLocaleString('id-ID')}
                             </p>
                           </div>
@@ -122,31 +173,43 @@ const Checkout = () => {
                       );
                     })}
 
-                    <div className="flex items-center justify-between py-5 border-b border-gray-3">
-                      <p className="text-dark">Biaya Pengiriman</p>
-                      <p className="text-dark text-right">Rp {shippingCost.toLocaleString('id-ID')}</p>
+                    <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
+                      <p className="text-[#2D1A11] font-medium text-sm">Biaya Pengiriman</p>
+                      <p className="text-[#8B7355] font-bold text-sm text-right">Rp {shippingCost.toLocaleString('id-ID')}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-5">
-                      <p className="font-medium text-lg text-dark">Total Akhir</p>
-                      <p className="font-bold text-xl text-[#D9B35A] text-right">
-                        Rp {total.toLocaleString('id-ID')}
-                      </p>
+                    {discountAmount > 0 && (
+                      <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
+                        <p className="text-emerald-600 font-medium text-sm">Diskon Kupon</p>
+                        <p className="text-emerald-600 text-right font-bold text-sm">- Rp {discountAmount.toLocaleString('id-ID')}</p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-6">
+                      <p className="font-bold text-lg text-[#2D1A11]">Total Akhir</p>
+                      <p className="font-bold text-2xl text-[#D9B35A] text-right">Rp {total.toLocaleString('id-ID')}</p>
                     </div>
                   </div>
                 </div>
 
-                <Coupon />
-                <ShippingMethod />
-                <PaymentMethod />
+                <Coupon 
+                  couponCode={couponCode} 
+                  setCouponCode={setCouponCode} 
+                  handleApplyCoupon={handleApplyCoupon} 
+                  discountAmount={discountAmount} 
+                />
+                
+                <ShippingMethod selectedMethod={shippingMethod} onMethodChange={setShippingMethod} />
+                <PaymentMethod selectedPayment={paymentMethod} onPaymentChange={setPaymentMethod} />
 
-                <button
-                  type="submit"
-                  disabled={isProcessing || cartItems.length === 0}
-                  className={`w-full flex justify-center font-bold text-white py-4 px-6 rounded-md ease-out duration-200 mt-7.5 transition-all ${
-                    isProcessing || cartItems.length === 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue hover:bg-blue-dark shadow-md" // Sesuaikan warna dengan tema Anda
+                {/* Tombol Submit Khas UpToYou */}
+                <button 
+                  type="submit" 
+                  disabled={isProcessing || cartItems.length === 0} 
+                  className={`w-full flex justify-center font-bold py-[15px] px-6 rounded-full ease-out duration-200 mt-8 uppercase tracking-widest transition-all ${
+                    isProcessing || cartItems.length === 0 
+                      ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none" 
+                      : "bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20"
                   }`}
                 >
                   {isProcessing ? "Memproses..." : "Selesaikan Pembayaran"}
