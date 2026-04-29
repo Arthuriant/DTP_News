@@ -57,6 +57,7 @@ class PartVariantsController extends Controller
             'product_id' => 'required|uuid|exists:products,id',
             'part_id'    => 'required|uuid|exists:product_parts,id',
             'name'       => 'required|string|max:255',
+            'variant_code' => 'required|string|max:255|unique:part_variants,variant_code', // tambah
             'price'      => 'required|numeric|min:0'
         ]);
 
@@ -78,6 +79,7 @@ class PartVariantsController extends Controller
                 'product_id' => $request->product_id,
                 'part_id'    => $request->part_id,
                 'name'       => $request->name,
+                'variant_code' => $request->variant_code, // tambah
                 'price'      => $request->price,
             ]);
 
@@ -110,6 +112,7 @@ class PartVariantsController extends Controller
             'product_id' => 'required|uuid|exists:products,id',
             'part_id'    => 'required|uuid|exists:product_parts,id',
             'name'       => 'required|string|max:255',
+            'variant_code' => 'required|string|max:255|unique:part_variants,variant_code,' . $id, // tambah, ignore self
             'price'      => 'required|numeric|min:0'
         ]);
 
@@ -132,6 +135,7 @@ class PartVariantsController extends Controller
                 'product_id' => $request->product_id,
                 'part_id'    => $request->part_id,
                 'name'       => $request->name,
+                'variant_code' => $request->variant_code,
                 'price'      => $request->price,
             ]);
 

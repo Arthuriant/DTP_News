@@ -18,6 +18,7 @@ export default function PartTexture() {
   const [editForm, setEditForm] = useState({
     id: '',
     name: '',
+    texture_code: '', // tambah
     price: 0,
     top: null as File | null,
     back: null as File | null,
@@ -50,6 +51,8 @@ export default function PartTexture() {
     formData.append('variant_id', variantId);
     formData.append('name', editForm.name);
     formData.append('price', editForm.price.toString());
+    formData.append('texture_code', editForm.texture_code); // tambah (setelah price)
+
 
     // Hanya tambahkan file jika ada (Penting saat Update!)
     if (editForm.top) formData.append('top', editForm.top);
@@ -82,7 +85,7 @@ export default function PartTexture() {
   };
 
   const openNewModal = () => {
-    setEditForm({ id: '', name: '', price: 0, top: null, back: null, front: null, thumb: null });
+    setEditForm({ id: '', name: '', texture_code: '', price: 0, top: null, back: null, front: null, thumb: null }); // tambah
     setIsModalOpen(true);
   };
 
@@ -212,6 +215,7 @@ export default function PartTexture() {
         setEditForm({
           id: t.id,
           name: t.name,
+          texture_code: t.texture_code, // tambah
           price: Number(t.price),
           top: null,
           back: null,
@@ -253,6 +257,10 @@ export default function PartTexture() {
                   <label className="text-[10px] uppercase font-bold text-[#8B7355] block mb-1">Nama Tekstur / Warna</label>
                   <input required type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none" />
                 </div>
+                <div>
+                <label className="text-[10px] uppercase font-bold text-[#8B7355] block mb-1">Kode Tekstur (Cth: TEX-BRASS-METAL)</label>
+                <input required type="text" value={editForm.texture_code} onChange={e => setEditForm({...editForm, texture_code: e.target.value})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none" />
+              </div>
                 <div>
                   <label className="text-[10px] uppercase font-bold text-[#8B7355] block mb-1">Harga (Rp)</label>
                   <input required type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: Number(e.target.value)})} className="w-full bg-[#FFFDF5] border border-[#D9B35A]/20 px-4 py-2.5 rounded-xl text-sm outline-none" />

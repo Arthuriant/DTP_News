@@ -61,6 +61,8 @@ class PartTexturesController extends Controller
             'variant_id' => 'required|uuid|exists:part_variants,id',
             'name'       => 'required|string|max:255',
             'price'      => 'required|numeric',
+            'texture_code' => 'required|string|max:255|unique:part_textures,texture_code', // tambah
+
 
             'top'   => 'required|image|mimes:webp|max:2048',
             'back'  => 'required|image|mimes:webp|max:2048',
@@ -83,6 +85,7 @@ class PartTexturesController extends Controller
                     'variant_id' => $request->variant_id,
                     'name'       => $request->name,
                     'price'      => $request->price,
+                    'texture_code' => $request->texture_code, // tambah
                 ]);
 
                 // 2️⃣ Folder path di storage/app/public
@@ -146,6 +149,8 @@ class PartTexturesController extends Controller
     $validator = Validator::make($request->all(), [
         'name'  => 'sometimes|string|max:255',
         'price' => 'sometimes|numeric',
+        'texture_code' => 'sometimes|string|max:255|unique:part_textures,texture_code,' . $id, // tambah, ignore self
+
 
         'top'   => 'nullable|image|mimes:webp|max:2048',
         'back'  => 'nullable|image|mimes:webp|max:2048',

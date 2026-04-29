@@ -50,6 +50,7 @@ class ProductPartsController extends Controller
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|uuid|exists:products,id',
             'name'       => 'required|string|max:255',
+            'part_code'  => 'required|string|max:255|unique:product_parts,part_code',
             'z_index'    => 'required|array'
         ]);
 
@@ -63,6 +64,7 @@ class ProductPartsController extends Controller
             $part = ProductParts::create([
                 'product_id' => $request->product_id,
                 'name'       => $request->name,
+                'part_code'  => $request->part_code, // tambah
                 'z_index'    => $request->z_index,
             ]);
 
@@ -95,6 +97,7 @@ class ProductPartsController extends Controller
         $validator = Validator::make($request->all(), [
             'product_id' => 'required|uuid|exists:products,id',
             'name'       => 'required|string|max:255',
+            'part_code'  => 'required|string|max:255|unique:product_parts,part_code,' . $id, // tambah, ignore self
             'z_index'    => 'required|array'
         ]);
 
@@ -118,6 +121,7 @@ class ProductPartsController extends Controller
             $part->update([
                 'product_id' => $request->product_id,
                 'name'       => $request->name,
+                'part_code'  => $request->part_code, // tambah
                 'z_index'    => $request->z_index
             ]);
 

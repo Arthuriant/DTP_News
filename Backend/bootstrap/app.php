@@ -37,3 +37,4 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 401);
         });
     })->create(); // 👈 Pastikan selalu ditutup dengan create()
+
