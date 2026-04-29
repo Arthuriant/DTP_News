@@ -2,6 +2,8 @@
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React, { useState } from "react";
+// 1. Import AlertService
+import { AlertService } from "@/services/AlertService";
 
 const handleGoogleLogin = () => {
   const currentUrl = window.location.href;
@@ -22,11 +24,12 @@ const Signup = () => {
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   // FUNGSI BARU: Mesin pemroses register manual
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== passwordConfirmation) {
-      alert("Password tidak sama!");
+      // 2. Ganti alert bawaan dengan AlertService untuk password mismatch
+      AlertService.error("Peringatan", "Password dan Konfirmasi Password tidak sama!");
       return;
     }
 
@@ -50,19 +53,21 @@ const Signup = () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Register berhasil! Anda otomatis login.");
+        // 3. Ganti alert bawaan dengan AlertService untuk registrasi sukses
+        // Gunakan await agar user membaca notifikasi terlebih dahulu sebelum halaman dialihkan
+        await AlertService.success("Registrasi Berhasil!", "Akun Anda telah dibuat. Anda otomatis masuk ke dalam sistem.");
         window.location.href = "/"; 
       } else {
         if (data.errors) {
-          const firstError = Object.values(data.errors)[0];
-          alert(firstError[0]);
+          const firstError = Object.values(data.errors)[0] as string[];
+          AlertService.error("Registrasi Gagal", firstError[0]);
         } else {
-          alert(data.message || "Register gagal!");
+          AlertService.error("Registrasi Gagal", data.message || "Pastikan data yang Anda masukkan benar.");
         }
       }
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan koneksi!");
+      AlertService.error("Kesalahan Jaringan", "Terjadi kesalahan saat menghubungi server. Silakan coba lagi nanti.");
     } finally {
       setLoading(false);
     }
@@ -131,7 +136,8 @@ const Signup = () => {
               <div className="flex flex-col gap-4.5 font-sans">
                 <button 
                   onClick={handleGoogleLogin}
-                  className="flex justify-center items-center gap-3.5 rounded-lg border border-[#C5A059]/40 bg-transparent text-[#F8F3E9] p-3.5 transition-all duration-300 hover:bg-[#C5A059]/10"
+                  disabled={loading}
+                  className="flex justify-center items-center gap-3.5 rounded-lg border border-[#C5A059]/40 bg-transparent text-[#F8F3E9] p-3.5 transition-all duration-300 hover:bg-[#C5A059]/10 disabled:opacity-50"
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M19.999 10.2218C20.0111 9.53429 19.9387 8.84791 19.7834 8.17737H10.2031V11.8884H15.8267C15.7201 12.5391 15.4804 13.162 15.1219 13.7195C14.7634 14.2771 14.2935 14.7578 13.7405 15.1328L13.7209 15.2571L16.7502 17.5568L16.96 17.5774C18.8873 15.8329 19.999 13.2661 19.999 10.2218Z" fill="#4285F4"/>
@@ -220,9 +226,10 @@ const Signup = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex justify-center items-center font-semibold text-[#2D1A11] bg-[#C5A059] py-3.5 px-6 rounded-lg transition-all duration-300 hover:bg-[#E0B976] hover:shadow-[0_10px_20px_-10px_rgba(197,160,89,0.5)] transform hover:-translate-y-0.5 tracking-widest uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                    className="w-full flex justify-center items-center gap-2 font-semibold text-[#2D1A11] bg-[#C5A059] py-3.5 px-6 rounded-lg transition-all duration-300 hover:bg-[#E0B976] hover:shadow-[0_10px_20px_-10px_rgba(197,160,89,0.5)] transform hover:-translate-y-0.5 tracking-widest uppercase text-sm disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   >
-                    {loading ? "Loading..." : "Create Account"}
+                    {loading && <div className="w-4 h-4 border-2 border-[#2D1A11]/30 border-t-[#2D1A11] rounded-full animate-spin"></div>}
+                    {loading ? "Memproses..." : "Create Account"}
                   </button>
 
                   <p className="text-center mt-7 text-[#F8F3E9]/80 text-sm">

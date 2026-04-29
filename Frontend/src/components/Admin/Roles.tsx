@@ -3,7 +3,8 @@
 import { AuthService } from "@/services/AuthService";
 import { RoleService } from "@/services/RoleService";
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+// 1. Import AlertService (Hapus import Swal bawaan)
+import { AlertService } from "@/services/AlertService";
 
 const AVAILABLE_PERMISSIONS = [
   {
@@ -19,14 +20,6 @@ const AVAILABLE_PERMISSIONS = [
       { id: "delete_products", label: "Hapus Produk Utama" },
     ],
   },
-  // {
-  //   module: "Pesanan Custom",
-  //   actions: [
-  //     { id: "view_orders", label: "Lihat Daftar Pesanan" },
-  //     { id: "update_orders", label: "Update Status Pesanan" },
-  //     { id: "delete_orders", label: "Batalkan / Hapus Pesanan" },
-  //   ],
-  // },
   {
     module: "Data Customer",
     actions: [
@@ -133,7 +126,8 @@ export default function Roles() {
 
   const handleSave = async () => {
     if (!roleName.trim()) {
-      Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Nama role tidak boleh kosong!', confirmButtonColor: '#2A1B14' });
+      // 2. Gunakan AlertService untuk validasi kosong
+      AlertService.error("Peringatan", "Nama role tidak boleh kosong!");
       return;
     }
     
@@ -150,68 +144,36 @@ export default function Roles() {
       setIsModalOpen(false);
       fetchInitialData();
 
-      Swal.fire({
-        title: 'Berhasil!',
-        text: `Role berhasil ${editingRole ? 'diperbarui' : 'ditambahkan'}.`,
-        icon: 'success',
-        background: '#F8F3E9',
-        color: '#2A1B14',
-        showConfirmButton: false,
-        timer: 2000
-      });
+      // 3. Gunakan AlertService untuk sukses
+      AlertService.success("Berhasil!", `Role berhasil ${editingRole ? 'diperbarui' : 'ditambahkan'}.`);
     } catch (error: any) {
-      Swal.fire({
-        title: 'Gagal!',
-        text: error.message || 'Terjadi kesalahan saat menyimpan role.',
-        icon: 'error',
-        confirmButtonColor: '#2A1B14'
-      });
+      // 4. Gunakan AlertService untuk gagal simpan
+      AlertService.error("Gagal!", error.message || 'Terjadi kesalahan saat menyimpan role.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    const result = await Swal.fire({
-      title: 'Hapus Role?',
-      text: "Role yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi hak akses pengguna yang menggunakan role ini.",
-      icon: 'warning',
-      showCancelButton: true,
-      background: '#F8F3E9',
-      color: '#2D1A11',
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal',
-      buttonsStyling: false, 
-      customClass: {
-        confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
-        cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
-      }
-    });
-    
+    // 5. Gunakan AlertService untuk konfirmasi hapus
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Role?", 
+      "Role yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi hak akses pengguna yang menggunakan role ini.",
+      "YA, HAPUS!"
+    );
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     try {
       await RoleService.deleteRole(id);
       fetchInitialData();
       
-      Swal.fire({
-        title: 'Terhapus!',
-        text: 'Role berhasil dihapus dari sistem.',
-        icon: 'success',
-        background: '#F8F3E9',
-        color: '#2A1B14',
-        showConfirmButton: false,
-        timer: 2000
-      });
+      // 6. Gunakan AlertService untuk sukses hapus
+      AlertService.success("Terhapus!", "Role berhasil dihapus dari sistem.");
     } catch (error: any) {
       console.error(error);
-      Swal.fire({
-        title: 'Gagal!',
-        text: error.message || 'Gagal menghapus role.',
-        icon: 'error',
-        confirmButtonColor: '#2A1B14'
-      });
+      // 7. Gunakan AlertService untuk gagal hapus
+      AlertService.error("Gagal!", error.message || 'Gagal menghapus role.');
     }
   };
 

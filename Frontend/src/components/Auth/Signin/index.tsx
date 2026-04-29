@@ -4,11 +4,13 @@ import Breadcrumb from "@/components/Common/Breadcrumb";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { AuthService } from "@/services/AuthService"; 
+// 1. Import AlertService
+import { AlertService } from "@/services/AlertService";
 
 const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // State loading untuk tombol
 
   // URL Aksen Nusantara
   const brownBatikUrl =
@@ -16,7 +18,6 @@ const Signin = () => {
 
   const handleGoogleLogin = () => {
     const currentUrl = window.location.href;
-    // URL backend untuk Google OAuth bisa tetap menembak langsung
     window.location.href =
       process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") + 
       "/auth/google?redirect=" +
@@ -39,7 +40,6 @@ const Signin = () => {
           window.location.href = "/"; // Masuk ke halaman E-Commerce pelanggan
         }
       } catch (err) {
-        // Jika error (misal 401), biarkan di halaman login
         console.log("Belum login atau sesi habis");
       }
     };
@@ -50,13 +50,13 @@ const Signin = () => {
   // FUNGSI BARU: Mesin pemroses login manual menggunakan Service
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setIsSubmitting(true);
 
     try {
-      // 1. Tembak API Login (Error dari api.ts akan otomatis terlempar ke catch)
+      // 1. Tembak API Login 
       const loginRes = await AuthService.login({ email, password });
 
-      // Jika berhasil, kita bisa simpan data user ringan ke localStorage (opsional, untuk UI statis)
+      // Jika berhasil, kita bisa simpan data user ringan ke localStorage 
       if (loginRes.user) {
         localStorage.setItem("user", JSON.stringify(loginRes.user));
       }
@@ -64,7 +64,10 @@ const Signin = () => {
       // 2. Ambil data user lengkap untuk cek Role & Permission
       const userData = await AuthService.getUser();
 
-      // 3. PERBAIKAN: Arahkan berdasarkan Hak Akses (Permission), bukan nama role
+      // 3. Notifikasi Sukses Login (di-await agar pop-up terlihat sebelum redirect)
+      await AlertService.success("Login Berhasil", `Selamat datang kembali, ${userData?.name || 'Pelanggan'}!`);
+
+      // 4. Arahkan berdasarkan Hak Akses (Permission)
       const isSuperAdmin = userData?.roles?.includes("super_admin");
       const canViewDashboard = userData?.permissions?.includes("view_dashboard");
 
@@ -75,8 +78,10 @@ const Signin = () => {
       }
       
     } catch (err: any) {
-      // Error validation dari Laravel akan ditangkap di sini berkat file api.ts
-      setError(err.message || "Terjadi kesalahan server");
+      // 5. Tangkap error menggunakan AlertService
+      AlertService.error("Login Gagal", err.message || "Cek kembali email dan password Anda.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -133,12 +138,7 @@ const Signin = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="font-sans">
-                {error && (
-                  <p className="text-[#C5A059] text-sm mb-6 text-center bg-[#C5A059]/10 border border-[#C5A059]/30 p-3 rounded-lg">
-                    {error}
-                  </p>
-                )}
-
+                
                 <div className="mb-6">
                   <label
                     htmlFor="email"
@@ -180,9 +180,11 @@ const Signin = () => {
 
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center font-semibold text-[#2D1A11] bg-[#C5A059] py-3.5 px-6 rounded-lg transition-all duration-300 hover:bg-[#E0B976] hover:shadow-[0_10px_20px_-10px_rgba(197,160,89,0.5)] transform hover:-translate-y-0.5 tracking-widest uppercase text-sm"
+                  disabled={isSubmitting}
+                  className="w-full flex justify-center items-center gap-2 font-semibold text-[#2D1A11] bg-[#C5A059] py-3.5 px-6 rounded-lg transition-all duration-300 hover:bg-[#E0B976] hover:shadow-[0_10px_20px_-10px_rgba(197,160,89,0.5)] transform hover:-translate-y-0.5 tracking-widest uppercase text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Sign in
+                  {isSubmitting && <div className="w-4 h-4 border-2 border-[#2D1A11]/30 border-t-[#2D1A11] rounded-full animate-spin"></div>}
+                  {isSubmitting ? "Memproses..." : "Sign in"}
                 </button>
 
                 <a
@@ -203,7 +205,8 @@ const Signin = () => {
                   <button
                     type="button"
                     onClick={handleGoogleLogin}
-                    className="flex justify-center items-center gap-3.5 rounded-lg border border-[#C5A059]/40 bg-transparent text-[#F8F3E9] p-3.5 transition-all duration-300 hover:bg-[#C5A059]/10"
+                    disabled={isSubmitting}
+                    className="flex justify-center items-center gap-3.5 rounded-lg border border-[#C5A059]/40 bg-transparent text-[#F8F3E9] p-3.5 transition-all duration-300 hover:bg-[#C5A059]/10 disabled:opacity-50"
                   >
                     <svg
                       width="20"

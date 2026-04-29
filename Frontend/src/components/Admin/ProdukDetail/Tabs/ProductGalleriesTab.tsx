@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { ProductService } from '@/services/ProductService';
+// 1. Import Alert Service
+import { AlertService } from '@/services/AlertService';
 
 export default function GaleriTab() {
   const params = useParams();
@@ -51,20 +53,35 @@ export default function GaleriTab() {
       await ProductService.uploadGalleries(formData);
       if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchGalleries(); 
+      
+      // 2. Tambahkan Notifikasi Sukses Upload
+      AlertService.success("Berhasil", "Gambar baru telah ditambahkan ke galeri mahakarya.");
     } catch (error: any) {
-      alert("Gagal mengunggah gambar: " + error.message);
+      // 3. Ganti alert bawaan dengan AlertService Error
+      AlertService.error("Gagal Mengunggah", error.message);
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus mahakarya ini dari galeri?")) {
+    // 4. Ganti confirm bawaan dengan AlertService Confirm
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Gambar?",
+      "Apakah Anda yakin ingin menghapus gambar ini dari galeri mahakarya?",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteGallery(id);
         setGalleries(galleries.filter(g => g.id !== id));
+        
+        // 5. Tambahkan Notifikasi Sukses Hapus
+        AlertService.success("Terhapus!", "Gambar berhasil dihapus dari galeri.");
       } catch (error: any) {
-        alert("Gagal menghapus gambar: " + error.message);
+        // 6. Ganti alert bawaan dengan AlertService Error
+        AlertService.error("Gagal Menghapus", error.message);
       }
     }
   };
@@ -91,6 +108,8 @@ export default function GaleriTab() {
     } catch (error) {
       console.error("Gagal mengurutkan:", error);
       fetchGalleries(); 
+      // Opsional: Bisa tambahkan AlertService.error jika gagal reorder
+      AlertService.error("Gagal Mengurutkan", "Terjadi kesalahan saat menyimpan urutan gambar.");
     }
   };
 

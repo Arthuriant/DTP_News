@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { ProductService } from '@/services/ProductService';
+// 1. Import Alert Service
+import { AlertService } from '@/services/AlertService';
 
 export default function ProductDimensionsTab() {
   const params = useParams();
@@ -82,15 +84,26 @@ export default function ProductDimensionsTab() {
       setNewImgFile(null);
       setPreviewImg(null);
       fetchDimension(); 
+      
+      // 2. Tambahkan Notifikasi Sukses
+      AlertService.success("Berhasil", "Spesifikasi dimensi mahakarya berhasil disimpan.");
     } catch (error: any) {
-      alert("Gagal menyimpan dimensi: " + error.message);
+      // 3. Ganti alert bawaan dengan AlertService Error
+      AlertService.error("Gagal Menyimpan", error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (confirm("Hapus seluruh data spesifikasi & gambar dimensi ini dari mahakarya?")) {
+    // 4. Ganti confirm bawaan dengan AlertService Confirm
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Spesifikasi?",
+      "Seluruh data spesifikasi & gambar dimensi ini akan dihapus dari mahakarya secara permanen.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteDimension(productId);
         setFormData({ product_style: '', total_volumes: '', weight: '' });
@@ -98,8 +111,12 @@ export default function ProductDimensionsTab() {
         setNewImgFile(null);
         setPreviewImg(null);
         setHasData(false);
+        
+        // 5. Tambahkan Notifikasi Sukses Hapus
+        AlertService.success("Terhapus!", "Data spesifikasi dimensi berhasil dihilangkan.");
       } catch (error: any) {
-        alert("Gagal menghapus data: " + error.message);
+        // 6. Ganti alert bawaan dengan AlertService Error
+        AlertService.error("Gagal Menghapus", error.message);
       }
     }
   };

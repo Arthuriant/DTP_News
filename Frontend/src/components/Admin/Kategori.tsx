@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { CategoryService } from '@/services/CategoryService';
 import { AuthService } from '@/services/AuthService';
-import Swal from 'sweetalert2';
+// IMPORT AlertService yang baru dibuat
+import { AlertService } from '@/services/AlertService'; 
 
 export default function Kategori() {
   // State Data
@@ -33,12 +34,10 @@ export default function Kategori() {
       
       setCategories(catData || []);
       
-      // PERBAIKAN: Gunakan fungsi callback (prev) agar tidak memicu re-render berulang
       setSelectedCategory((prevSelected: any) => {
         if (catData && catData.length > 0 && !prevSelected) {
-          return catData[0]; // Pilih yang pertama jika belum ada
+          return catData[0];
         } else if (prevSelected) {
-          // Jika sudah ada yang dipilih, perbarui datanya (misal ada sub-kategori baru)
           return catData.find((c: any) => c.id === prevSelected.id) || catData[0];
         }
         return null;
@@ -53,7 +52,7 @@ export default function Kategori() {
     } finally {
       setIsLoading(false);
     }
-  }, []); // 👈 KUNCI PERBAIKAN: Array di sini dibiarkan KOSONG
+  }, []);
 
   useEffect(() => {
     fetchInitialData();
@@ -70,27 +69,37 @@ export default function Kategori() {
       if (catForm.id) {
         await CategoryService.updateCategory(catForm.id, { name: catForm.name });
       } else {
-        // PERBAIKAN: Bungkus catForm.name ke dalam objek { name: ... }
         await CategoryService.createCategory({ name: catForm.name });
       }
       setIsCatModalOpen(false);
       fetchInitialData();
-      Swal.fire({ icon: 'success', title: 'Berhasil', showConfirmButton: false, timer: 1500 });
+      
+      // MENGGUNAKAN ALERT SERVICE
+      AlertService.success('Berhasil', 'Kategori utama berhasil disimpan.');
     } catch (error: any) {
-      Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+      // MENGGUNAKAN ALERT SERVICE
+      AlertService.error('Gagal', error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (confirm("Hapus kategori ini? Semua sub-kategori di dalamnya juga akan terhapus!")) {
+    // MENGGUNAKAN ALERT SERVICE UNTUK KONFIRMASI
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Kategori?", 
+      "Semua sub-kategori di dalamnya juga akan terhapus secara permanen!",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await CategoryService.deleteCategory(id);
         if (selectedCategory?.id === id) setSelectedCategory(null);
         fetchInitialData();
+        AlertService.success('Terhapus!', 'Kategori utama beserta sub-kategorinya telah dihapus.');
       } catch (error: any) {
-        Swal.fire({ icon: 'error', title: 'Gagal Menghapus', text: error.message });
+        AlertService.error('Gagal Menghapus', error.message);
       }
     }
   };
@@ -103,7 +112,6 @@ export default function Kategori() {
       if (subForm.id) {
         await CategoryService.updateSubCategory(subForm.id, { name: subForm.name });
       } else {
-        // PERBAIKAN: Jadikan satu objek { categories_id: ..., name: ... }
         await CategoryService.createSubCategory({ 
           categories_id: subForm.category_id, 
           name: subForm.name 
@@ -111,21 +119,31 @@ export default function Kategori() {
       }
       setIsSubModalOpen(false);
       fetchInitialData();
-      Swal.fire({ icon: 'success', title: 'Berhasil', showConfirmButton: false, timer: 1500 });
+      
+      // MENGGUNAKAN ALERT SERVICE
+      AlertService.success('Berhasil', 'Sub-Kategori berhasil disimpan.');
     } catch (error: any) {
-      Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+      AlertService.error('Gagal', error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteSubCategory = async (id: string) => {
-    if (confirm("Hapus sub-kategori ini secara permanen?")) {
+    // MENGGUNAKAN ALERT SERVICE UNTUK KONFIRMASI
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Sub-Kategori?", 
+      "Data sub-kategori ini akan dihapus secara permanen.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await CategoryService.deleteSubCategory(id);
         fetchInitialData();
+        AlertService.success('Terhapus!', 'Sub-Kategori berhasil dihapus.');
       } catch (error: any) {
-        Swal.fire({ icon: 'error', title: 'Gagal Menghapus', text: error.message });
+        AlertService.error('Gagal Menghapus', error.message);
       }
     }
   };

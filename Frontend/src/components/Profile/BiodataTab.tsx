@@ -2,6 +2,8 @@
 
 import { ProfileService } from "@/services/ProfileService";
 import { useState } from "react";
+// 1. Import AlertService
+import { AlertService } from "@/services/AlertService";
 
 interface BiodataTabProps {
   user: any;
@@ -44,8 +46,12 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
       await ProfileService.updateProfile(formData);
       onUpdate({ name: formData.name, email: formData.email }, { ...formData });
       setEditingField(null);
+      
+      // 2. Tambahkan Alert Sukses
+      AlertService.success("Profil Diperbarui", "Data identitas Anda berhasil disimpan ke sistem.");
     } catch (err: any) {
-      console.error("Gagal menyimpan profil:", err.message);
+      // 3. Tambahkan Alert Error
+      AlertService.error("Gagal Menyimpan", err.message || "Terjadi kesalahan saat memperbarui profil.");
     } finally {
       setIsSaving(false);
     }
@@ -53,7 +59,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
 
   // --- LOGIKA KHUSUS PIN ---
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Hanya izinkan angka (replace semua karakter non-digit)
     const val = e.target.value.replace(/\D/g, "");
     if (val.length <= 6) {
       setPinInput(val);
@@ -70,8 +75,11 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
       setFormData(updatedData); 
       setIsPinModalOpen(false);
       setPinInput(""); 
+      
+      // 4. Alert Sukses khusus PIN
+      AlertService.success("Keamanan Terjaga", "PIN Transaksi Anda berhasil diperbarui.");
     } catch (err: any) {
-      console.error("Gagal menyimpan PIN:", err.message);
+      AlertService.error("Gagal Menyimpan PIN", err.message || "Sistem tidak dapat memperbarui PIN Anda.");
     } finally {
       setIsSaving(false);
     }
@@ -86,7 +94,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
       
       <div className="flex-1 w-full">
         {editingField === id ? (
-          // === MODE EDIT ===
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 animate-fadeIn">
             {type === "select" ? (
               <select 
@@ -101,7 +108,7 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
             ) : (
               <input 
                 type={type} 
-                value={formData[id as keyof typeof formData]} 
+                value={formData[id as keyof typeof formData] as string} 
                 onChange={(e) => setFormData({ ...formData, [id]: e.target.value })} 
                 className="w-full bg-[#FFFDF5] border border-[#D9B35A]/30 text-[#2A1B14] px-4 py-2.5 rounded-xl outline-none focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] transition-all font-serif font-bold text-base shadow-inner" 
                 autoFocus 
@@ -124,7 +131,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
             </div>
           </div>
         ) : (
-          // === MODE VIEW ===
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {value ? (
@@ -134,13 +140,10 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
               ) : (
                 <p className="text-gray-400 italic text-sm">{placeholder}</p>
               )}
-              
-              {/* Badge Terverifikasi Khusus Email */}
               {id === 'email' && value && (
                 <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest">Terverifikasi</span>
               )}
             </div>
-            
             <button 
               onClick={() => handleEditClick(id)} 
               className="text-[#D9B35A] text-xs font-bold uppercase tracking-widest hover:text-[#2A1B14] transition-colors opacity-0 group-hover:opacity-100 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-[#D9B35A]/20"
@@ -155,7 +158,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
 
   return (
     <div className="w-full font-sans animate-fadeIn">
-      
       {/* SECTION: IDENTITAS RESMI */}
       <div className="mb-12">
         <h3 className="text-[11px] font-black tracking-[0.2em] uppercase text-[#D9B35A] mb-4 flex items-center gap-3">
@@ -185,12 +187,10 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
           <span className="w-8 h-[1.5px] bg-[#D9B35A]"></span> Autentikasi
         </h3>
         <div className="flex flex-col gap-1">
-          {/* Baris Khusus untuk PIN yang memicu Modal */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-[#FFFDF5] transition-colors group">
             <div className="mb-2 sm:mb-0 w-1/3 shrink-0">
               <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">PIN Transaksi</p>
             </div>
-            
             <div className="flex-1 w-full flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {profile?.pin ? (
@@ -199,10 +199,9 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
                   <p className="text-gray-400 italic text-sm">PIN belum diatur</p>
                 )}
               </div>
-              
               <button 
                 onClick={() => {
-                  setPinInput(""); // Kosongkan input setiap kali buka modal
+                  setPinInput(""); 
                   setIsPinModalOpen(true);
                 }} 
                 className="text-[#D9B35A] text-xs font-bold uppercase tracking-widest hover:text-[#2A1B14] transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-[#D9B35A]/30 hover:border-[#D9B35A]"
@@ -214,16 +213,11 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
         </div>
       </div>
 
-      {/* ========================================= */}
-      {/* MODAL GANTI PIN DENGAN DESAIN NUSANTARA  */}
-      {/* ========================================= */}
+      {/* MODAL GANTI PIN */}
       {isPinModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2A1B14]/40 backdrop-blur-sm animate-fadeIn p-4">
           <div className="bg-[#FFFDF5] w-full max-w-sm p-8 rounded-3xl shadow-2xl border border-[#D9B35A]/30 transform transition-all relative overflow-hidden">
-            
-            {/* Ornamen Desain (Opsional untuk estetika) */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D9B35A] to-transparent"></div>
-
             <div className="text-center mb-6">
               <h4 className="text-xl font-serif font-bold text-[#2A1B14] mb-2">
                 {profile?.pin ? "Ubah PIN Transaksi" : "Buat PIN Baru"}
@@ -232,7 +226,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
                 Masukkan <strong className="text-[#D9B35A]">6 digit angka</strong> untuk mengamankan transaksi Anda.
               </p>
             </div>
-
             <div className="flex justify-center mb-8">
               <input
                 type="password"
@@ -245,7 +238,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
                 className="w-4/5 bg-white border-2 border-[#D9B35A]/40 text-[#2A1B14] px-4 py-3 rounded-2xl outline-none focus:border-[#D9B35A] focus:ring-4 focus:ring-[#D9B35A]/10 transition-all font-sans text-3xl text-center tracking-[0.5em] shadow-inner placeholder:text-gray-300"
               />
             </div>
-
             <div className="flex gap-3">
               <button
                 onClick={() => setIsPinModalOpen(false)}
@@ -264,7 +256,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
           </div>
         </div>
       )}
-
     </div>
   );
 }

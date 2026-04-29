@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams } from 'next/navigation';
 import { ProductService } from '@/services/ProductService';
+// 1. Import Alert Service
+import { AlertService } from '@/services/AlertService';
 
 export default function ProductMarketingTab() {
   const params = useParams();
@@ -82,20 +84,32 @@ export default function ProductMarketingTab() {
       }
       setIsBlockModalOpen(false);
       fetchBlocks();
+      
+      // Menggunakan AlertService untuk Sukses
+      AlertService.success("Berhasil", "Narasi marketing berhasil disimpan.");
     } catch (error: any) {
-      alert("Gagal menyimpan blok: " + error.message);
+      // Menggunakan AlertService untuk Error
+      AlertService.error("Gagal Menyimpan", error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteBlock = async (id: string) => {
-    if (confirm("Hapus narasi marketing beserta gambar dan semua poin fiturnya secara permanen?")) {
+    // Menggunakan AlertService untuk Konfirmasi
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Narasi?",
+      "Narasi marketing beserta gambar dan semua poin fiturnya akan dihapus secara permanen.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteMarketingBlock(id);
         fetchBlocks();
+        AlertService.success("Terhapus!", "Narasi marketing berhasil dihapus.");
       } catch (error: any) {
-        alert("Gagal menghapus blok: " + error.message);
+        AlertService.error("Gagal Menghapus", error.message);
       }
     }
   };
@@ -113,20 +127,32 @@ export default function ProductMarketingTab() {
       setIsFeatureModalOpen(false);
       setFeatureForm({ block_id: '', title: '' }); 
       fetchBlocks(); 
+      
+      // Menggunakan AlertService untuk Sukses
+      AlertService.success("Berhasil", "Poin fitur berhasil ditambahkan.");
     } catch (error: any) {
-      alert("Gagal menyimpan fitur: " + error.message);
+      // Menggunakan AlertService untuk Error
+      AlertService.error("Gagal Menyimpan", error.message);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteFeature = async (featureId: string) => {
-    if (confirm("Hapus poin keunggulan ini?")) {
+    // Menggunakan AlertService untuk Konfirmasi
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Poin?",
+      "Poin keunggulan ini akan dihapus secara permanen.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteMarketingFeature(featureId);
         fetchBlocks();
+        AlertService.success("Terhapus!", "Poin fitur berhasil dihapus.");
       } catch (error: any) {
-        alert("Gagal menghapus fitur: " + error.message);
+        AlertService.error("Gagal Menghapus", error.message);
       }
     }
   };

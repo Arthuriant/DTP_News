@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams } from 'next/navigation';
 import { ProductService } from '@/services/ProductService';
+// 1. Import Alert Service
+import { AlertService } from '@/services/AlertService';
 
 export default function ProductSizesTab() {
   const params = useParams();
@@ -82,8 +84,12 @@ export default function ProductSizesTab() {
       }
       setIsModalOpen(false);
       fetchSizes();
+
+      // 2. Tambahkan Notifikasi Sukses
+      AlertService.success("Berhasil", "Varian ukuran proporsi berhasil disimpan.");
     } catch (error: any) {
-      alert("Gagal menyimpan varian ukuran: " + error.message);
+      // 3. Ganti alert bawaan dengan AlertService Error
+      AlertService.error("Gagal Menyimpan", error.message);
     } finally {
       setIsSaving(false);
     }
@@ -106,12 +112,23 @@ export default function ProductSizesTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Hapus spesifikasi proporsi ini beserta gambarnya secara permanen dari mahakarya?")) {
+    // 4. Ganti confirm bawaan dengan AlertService Confirm
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Varian Ukuran?",
+      "Spesifikasi proporsi ini beserta gambarnya akan dihapus secara permanen dari mahakarya.",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteProductSize(id);
         setSizes(sizes.filter(s => s.id !== id));
+
+        // 5. Tambahkan Notifikasi Sukses Hapus
+        AlertService.success("Terhapus!", "Varian ukuran berhasil dihapus.");
       } catch (error: any) {
-        alert("Gagal menghapus varian ukuran: " + error.message);
+        // 6. Ganti alert bawaan dengan AlertService Error
+        AlertService.error("Gagal Menghapus", error.message);
       }
     }
   };
