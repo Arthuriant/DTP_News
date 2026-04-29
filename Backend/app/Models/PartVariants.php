@@ -15,6 +15,7 @@ class PartVariants extends Model
         'part_id',
         'product_id',
         'name',
+        'variant_code',
         'price',
     ];
 

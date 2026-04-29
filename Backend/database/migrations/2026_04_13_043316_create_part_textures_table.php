@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('variant_id');          // 👈 Foreign Key UUID
 
             $table->string('name', 100);
+            $table->string('texture_code', 50);
             $table->decimal('price', 12, 2);
             $table->string('img_top')->nullable();
             $table->string('img_back')->nullable();

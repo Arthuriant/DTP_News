@@ -1,11 +1,16 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/AdminService';
+import { useRouter } from 'next/navigation';
 
 export default function Pesanan() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const goToDetail = (orderId: string) => {
+    router.push(`/admin/pesanan/${orderId}`);
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -181,8 +186,8 @@ export default function Pesanan() {
                           
                           {o.status !== 'selesai' && (
                             <button 
-                              onClick={() => advanceStatus(o.id)} 
-                              className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 shadow-sm flex items-center justify-center bg-gradient-to-r from-[#D9B35A] via-[#EBC17B] to-[#C5A059] border border-[#FFF6C5]/50 text-[#2D1A11] hover:shadow-[0_5px_15px_rgba(217,179,90,0.4)] hover:-translate-y-0.5"
+                              onClick={() => goToDetail(o.id)} 
+                              className="bg-[#D9B35A] text-white px-4 py-2 rounded font-bold text-xs uppercase tracking-widest hover:bg-[#c29e4b] transition-colors"
                             >
                               Proses
                             </button>

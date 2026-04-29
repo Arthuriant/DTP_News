@@ -11,12 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    /**
-     * PROSES CHECKOUT: Memindahkan isi Keranjang ke Pesanan
-     */
+    
     public function checkout(Request $request)
     {
-        // 1. Validasi Input dari Frontend (Pastikan alamat diisi)
         $request->validate([
             'shipping_address' => 'required|string|min:10',
             'payment_method'   => 'nullable|string'
@@ -24,16 +21,12 @@ class OrderController extends Controller
 
         $user = auth('sanctum')->user();
         
-        // 2. Ambil Keranjang dan isinya
         $cart = Cart::with('items')->where('user_id', $user->id)->first();
 
-        // Cegah checkout jika keranjang kosong
         if (!$cart || $cart->items->count() === 0) {
             return response()->json(['message' => 'Keranjang Anda kosong!'], 400);
         }
 
-        // 3. Gunakan Database Transaction
-        // Ini memastikan jika di tengah jalan mati lampu/error, data tidak setengah-setengah masuknya
         DB::beginTransaction();
 
         try {
@@ -86,10 +79,10 @@ class OrderController extends Controller
             ], 500);
         }
     }
-    // Tambahkan ini di dalam OrderController.php
+
+    
     public function getAllOrders()
     {
-        // 👇 Ubah 'items' menjadi 'details'
         $orders = Order::with(['user', 'details'])->orderBy('created_at', 'desc')->get();
         
         return response()->json($orders, 200);
