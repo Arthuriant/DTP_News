@@ -1,134 +1,92 @@
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 
-const PaymentMethod = () => {
-  const [payment, setPayment] = useState("bank");
+interface PaymentMethodProps {
+  selectedPayment: string;
+  onPaymentChange: (method: string) => void;
+}
+
+const PaymentMethod = ({ selectedPayment, onPaymentChange }: PaymentMethodProps) => {
+  const getCardStyle = (isActive: boolean) => 
+    `rounded-xl border-2 py-3 px-5 transition-all duration-300 w-full cursor-pointer ${
+      isActive 
+        ? "border-[#D9B35A] bg-[#D9B35A]/5 shadow-[0_4px_12px_rgba(217,179,90,0.15)]" 
+        : "border-gray-200 bg-white hover:border-[#D9B35A]/50"
+    }`;
+
+  const getRadioStyle = (isActive: boolean) =>
+    `flex h-5 w-5 items-center justify-center rounded-full transition-all duration-300 ${
+      isActive ? "border-[5px] border-[#D9B35A] bg-white shadow-sm" : "border-2 border-gray-300"
+    }`;
+
   return (
-    <div className="bg-white shadow-1 rounded-[10px] mt-7.5">
-      <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-        <h3 className="font-medium text-xl text-dark">Payment Method</h3>
+    <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 mt-7.5">
+      <div className="border-b border-[#D9B35A]/30 py-5 px-4 sm:px-8.5 bg-[#D9B35A]/5 rounded-t-2xl">
+        <h3 className="font-bold text-xl text-[#2D1A11] flex items-center gap-2">
+          <span className="text-[#D9B35A]">✧</span> Pembayaran
+        </h3>
       </div>
 
       <div className="p-4 sm:p-8.5">
-        <div className="flex flex-col gap-3">
-          <label
-            htmlFor="bank"
-            className="flex cursor-pointer select-none items-center gap-4"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                name="bank"
-                id="bank"
-                className="sr-only"
-                onChange={() => setPayment("bank")}
-              />
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full ${
-                  payment === "bank"
-                    ? "border-4 border-blue"
-                    : "border border-gray-4"
-                }`}
-              ></div>
+        <div className="flex flex-col gap-4">
+          
+          {/* BANK TRANSFER */}
+          <label htmlFor="bank" className="flex items-center gap-4 group cursor-pointer">
+            <div className="relative shrink-0">
+              <input type="checkbox" name="bank" id="bank" className="sr-only" checked={selectedPayment === "Bank Transfer BCA"} onChange={() => onPaymentChange("Bank Transfer BCA")} />
+              <div className={getRadioStyle(selectedPayment === "Bank Transfer BCA")}></div>
             </div>
-
-            <div
-              className={`rounded-md border-[0.5px] py-3.5 px-5 ease-out duration-200 hover:bg-gray-2 hover:border-transparent hover:shadow-none ${
-                payment === "bank"
-                  ? "border-transparent bg-gray-2"
-                  : " border-gray-4 shadow-1"
-              }`}
-            >
+            <div className={getCardStyle(selectedPayment === "Bank Transfer BCA")}>
               <div className="flex items-center">
-                <div className="pr-2.5">
-                  <Image src="/images/checkout/bank.svg" alt="bank" width={29} height={12}/>
+                <div className="pr-4 border-r border-[#D9B35A]/20 mr-4 w-16 flex justify-center opacity-90">
+                  <Image src="/images/checkout/bank.svg" alt="bank" width={35} height={20}/>
                 </div>
-
-                <div className="border-l border-gray-4 pl-2.5">
-                  <p>Direct bank transfer</p>
+                <div>
+                  <p className="font-bold text-[#2D1A11] text-sm">Direct Bank Transfer</p>
+                  <p className="text-[#8B7355] text-xs mt-0.5">Transfer manual via BCA / Mandiri</p>
                 </div>
               </div>
             </div>
           </label>
 
-          <label
-            htmlFor="cash"
-            className="flex cursor-pointer select-none items-center gap-4"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                name="cash"
-                id="cash"
-                className="sr-only"
-                onChange={() => setPayment("cash")}
-              />
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full ${
-                  payment === "cash"
-                    ? "border-4 border-blue"
-                    : "border border-gray-4"
-                }`}
-              ></div>
+          {/* CASH ON DELIVERY */}
+          <label htmlFor="cash" className="flex items-center gap-4 group cursor-pointer">
+            <div className="relative shrink-0">
+              <input type="checkbox" name="cash" id="cash" className="sr-only" checked={selectedPayment === "Cash on Delivery"} onChange={() => onPaymentChange("Cash on Delivery")} />
+              <div className={getRadioStyle(selectedPayment === "Cash on Delivery")}></div>
             </div>
-
-            <div
-              className={`rounded-md border-[0.5px] py-3.5 px-5 ease-out duration-200 hover:bg-gray-2 hover:border-transparent hover:shadow-none min-w-[240px] ${
-                payment === "cash"
-                  ? "border-transparent bg-gray-2"
-                  : " border-gray-4 shadow-1"
-              }`}
-            >
+            <div className={getCardStyle(selectedPayment === "Cash on Delivery")}>
               <div className="flex items-center">
-                <div className="pr-2.5">
-                  <Image src="/images/checkout/cash.svg" alt="cash" width={21} height={21} />
+                <div className="pr-4 border-r border-[#D9B35A]/20 mr-4 w-16 flex justify-center opacity-80">
+                  <Image src="/images/checkout/cash.svg" alt="cash" width={24} height={24} />
                 </div>
-
-                <div className="border-l border-gray-4 pl-2.5">
-                  <p>Cash on delivery</p>
+                <div>
+                  <p className="font-bold text-[#2D1A11] text-sm">Cash on Delivery (COD)</p>
+                  <p className="text-[#8B7355] text-xs mt-0.5">Bayar tunai di tempat</p>
                 </div>
               </div>
             </div>
           </label>
 
-          <label
-            htmlFor="paypal"
-            className="flex cursor-pointer select-none items-center gap-4"
-          >
-            <div className="relative">
-              <input
-                type="checkbox"
-                name="paypal"
-                id="paypal"
-                className="sr-only"
-                onChange={() => setPayment("paypal")}
-              />
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full ${
-                  payment === "paypal"
-                    ? "border-4 border-blue"
-                    : "border border-gray-4"
-                }`}
-              ></div>
+          {/* PAYPAL */}
+          <label htmlFor="paypal" className="flex items-center gap-4 group cursor-pointer">
+            <div className="relative shrink-0">
+              <input type="checkbox" name="paypal" id="paypal" className="sr-only" checked={selectedPayment === "PayPal"} onChange={() => onPaymentChange("PayPal")} />
+              <div className={getRadioStyle(selectedPayment === "PayPal")}></div>
             </div>
-            <div
-              className={`rounded-md border-[0.5px] py-3.5 px-5 ease-out duration-200 hover:bg-gray-2 hover:border-transparent hover:shadow-none min-w-[240px] ${
-                payment === "paypal"
-                  ? "border-transparent bg-gray-2"
-                  : " border-gray-4 shadow-1"
-              }`}
-            >
+            <div className={getCardStyle(selectedPayment === "PayPal")}>
               <div className="flex items-center">
-                <div className="pr-2.5">
-                  <Image src="/images/checkout/paypal.svg" alt="paypal" width={75} height={20}/>
+                <div className="pr-4 border-r border-[#D9B35A]/20 mr-4 w-16 flex justify-center opacity-90">
+                  <Image src="/images/checkout/paypal.svg" alt="paypal" width={60} height={16}/>
                 </div>
-
-                <div className="border-l border-gray-4 pl-2.5">
-                  <p>Paypal</p>
+                <div>
+                  <p className="font-bold text-[#2D1A11] text-sm">PayPal</p>
+                  <p className="text-[#8B7355] text-xs mt-0.5">Kartu Kredit / Saldo PayPal</p>
                 </div>
               </div>
             </div>
           </label>
+
         </div>
       </div>
     </div>
