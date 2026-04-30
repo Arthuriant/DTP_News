@@ -42,9 +42,18 @@ export const OrderService = {
     window.URL.revokeObjectURL(url);
   },
 
-  getMyOrders: async () => {
-    return await api<any>("/my-orders", {
-      method: "GET",
+  getMyOrders: async (date?: string) => {
+      const queryParam = date ? `?date=${date}` : "";
+      
+      return await api<any>(`/my-orders${queryParam}`, {
+        method: "GET",
+      });
+    },
+
+  confirmDelivery: async (id: string) => {
+    return await api<any>(`/my-orders/${id}/complete`, {
+      method: "POST", 
     });
   },
+
 };

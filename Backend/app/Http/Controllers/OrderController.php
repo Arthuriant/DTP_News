@@ -88,17 +88,44 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
-    public function getMyOrders()
+    public function getMyOrders(Request $request)
+    {
+        $user = auth('sanctum')->user();
+        $query = Order::with(['details.product']) 
+                      ->where('user_id', $user->id);
+        
+        if ($request->filled('date')) {
+            $query->whereDate('order_date', $request->date);
+        }
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        
+        $orders->transform(function ($order) {
+            foreach ($order->details as $detail) {
+                if ($detail->product && $detail->product->img) {
+                    $detail->product->img_full_url = asset('storage/' . $detail->product->img);
+                }
+            }
+            return $order;
+        });
+        
+        return response()->json($orders, 200);
+    }
+
+    public function confirmDelivery($id)
     {
         $user = auth('sanctum')->user();
         
-        // Mengambil pesanan milik user yang login, diurutkan dari yang terbaru
-        $orders = Order::with('details') // Ganti 'details' jika nama relasi Anda berbeda
-                        ->where('user_id', $user->id)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+        $order = Order::where('id', $id)
+                      ->where('user_id', $user->id)
+                      ->firstOrFail();
         
-        return response()->json($orders, 200);
+        $order->status = 'completed'; 
+        $order->save();
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dikonfirmasi selesai', 
+            'data' => $order
+        ], 200);
     }
     
 }

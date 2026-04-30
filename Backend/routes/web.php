@@ -197,6 +197,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::get('/admin/order-details/{id}', [OrderDetailController::class, 'index']);
     Route::get('/admin/order-details/{id}/download-pdf', [OrderDetailController::class, 'downloadPdf']);
     Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
+    Route::post('/my-orders/{id}/complete', [OrderController::class, 'confirmDelivery']);
     
 });
 
