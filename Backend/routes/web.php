@@ -191,13 +191,15 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::delete('/cart/{id}', [CartController::class, 'removeItem']);
     Route::put('/cart/{id}', [CartController::class, 'updateQuantity']);
 
-    Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::post('/checkout',    [OrderController::class, 'checkout']);
+    Route::get('/my-orders',    [OrderController::class, 'getMyOrders']);
+    Route::put('/my-orders/{id}/confirm',       [OrderController::class, 'confirmReceived']);
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
 
     Route::get('/admin/order-details/{id}', [OrderDetailController::class, 'index']);
     Route::get('/admin/order-details/{id}/download-pdf', [OrderDetailController::class, 'downloadPdf']);
     Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
-    
+
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);
@@ -221,3 +223,4 @@ Route::get('/cart', [CartController::class, 'getCart']);
     Route::get('/status/{id}',     [PaymentController::class, 'status']);
     Route::post('/callback',       [PaymentController::class, 'callback']);
 });
+    Route::post('/webhook/xendit', [OrderController::class, 'webhook']);

@@ -3,8 +3,16 @@ import { api } from "@/lib/api";
 export const OrderService = {
   // Mengirim data checkout ke backend
   checkout: async (payload: {
-    shipping_address: string;
-    payment_method: string;
+    shipping_address:  string;
+    payment_method:    string;
+    shipping_cost:     number;
+    shipping_courier:  string;
+    shipping_service:  string;
+    origin_id:         number;
+    destination_id:    number;
+    customer_name:     string;
+    customer_email:    string;
+    customer_phone:    string;
   }) => {
     return await api<any>("/checkout", {
       method: "POST",
@@ -43,8 +51,17 @@ export const OrderService = {
   },
 
   getMyOrders: async () => {
-    return await api<any>("/my-orders", {
-      method: "GET",
+     return await api<any>("/my-orders", {
+          method: "GET",
+      });
+  },
+
+  // Tambah di OrderService.ts
+  confirmReceived: async (orderId: string) => {
+    return await api<any>(`/my-orders/${orderId}/confirm`, {
+      method: "PUT",
     });
   },
+
+  
 };

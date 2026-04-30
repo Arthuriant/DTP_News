@@ -9,7 +9,6 @@ import { OrderService } from "@/services/OrderService";
 import Breadcrumb from "../Common/Breadcrumb";
 import Login from "./Login";
 import Shipping from "./Shipping";
-import ShippingMethod from "./ShippingMethod";
 import PaymentMethod from "./PaymentMethod";
 import Coupon from "./Coupon";
 import Billing from "./Billing";
@@ -23,15 +22,23 @@ const Checkout = () => {
 
   // --- STATE FORMS ---
   const [paymentMethod, setPaymentMethod] = useState("Bank Transfer BCA");
-  const [shippingMethod, setShippingMethod] = useState("fedex");
+  // const [shippingInfo, setShippingInfo] = useState<any>(null);
+  const [shippingInfo, setShippingInfo] = useState<any>({
+    address: "Alamat toko",
+    destination_id: 4866,
+    courier: "jne",
+    service: "REG",
+    cost: 0,
+    etd: "-",
+  });
   
   const [billingData, setBillingData] = useState({
-    firstName: "", lastName: "", address: "", town: "", phone: "",
-  });
-
-  const [isDifferentAddress, setIsDifferentAddress] = useState(false);
-  const [shippingData, setShippingData] = useState({
-    address: "", town: "", phone: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    address: "",
+    town: "",
+    phone: "",
   });
 
   const [notes, setNotes] = useState("");
@@ -45,13 +52,9 @@ const Checkout = () => {
     setBillingData({ ...billingData, [e.target.name]: e.target.value });
   };
 
-  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setShippingData({ ...shippingData, [e.target.name]: e.target.value });
-  };
-
   const handleApplyCoupon = () => {
     if (couponCode === "PROMOTAS") {
-      setDiscountAmount(50000); 
+      setDiscountAmount(50000);
     } else {
       alert("Kode kupon tidak valid atau sudah kedaluwarsa.");
       setDiscountAmount(0);
@@ -61,45 +64,47 @@ const Checkout = () => {
 
   // --- PERHITUNGAN HARGA ---
   const subtotal = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
-  
-  const getShippingCost = () => {
-    if (shippingMethod === "free") return 0;
-    if (shippingMethod === "fedex") return 15000;
-    if (shippingMethod === "dhl") return 25000;
-    return 0;
-  };
-  const shippingCost = getShippingCost();
-  
+  const shippingCost = shippingInfo?.cost ?? 0; // dari API RajaOngkir
   const total = subtotal + shippingCost - discountAmount;
 
   // --- SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); 
-    
+    e.preventDefault();
+
     if (cartItems.length === 0) {
       alert("Keranjang Anda kosong!");
       return;
     }
 
+    // if (!shippingInfo) {
+    //   alert("Pilih layanan pengiriman terlebih dahulu!");
+    //   return;
+    // }
+
     setIsProcessing(true);
 
     try {
-      const addressToUse = isDifferentAddress ? shippingData : billingData;
-      const penerima = isDifferentAddress ? shippingData.phone : `${billingData.firstName} ${billingData.lastName} - HP: ${billingData.phone}`;
-
-      const fullAddress = `${addressToUse.address}, ${addressToUse.town} (Penerima: ${penerima}) | Catatan: ${notes || '-'}`;
+      const fullAddress = `${shippingInfo.address} | Catatan: ${notes || '-'}`;
 
       const response = await OrderService.checkout({
         shipping_address: fullAddress,
-        payment_method: paymentMethod, 
+        payment_method:   paymentMethod,
+        shipping_cost:    shippingInfo.cost,
+        shipping_courier: shippingInfo.courier,
+        shipping_service: shippingInfo.service,
+        origin_id:        4816,
+        destination_id:   shippingInfo.destination_id,
+        customer_name:    `${billingData.firstName} ${billingData.lastName}`,
+        customer_email:   billingData.email,
+        customer_phone:   billingData.phone,
       });
 
       dispatch(clearCart());
-      router.push(`/order/success/${response.order_id}`);
+      window.location.href = response.invoice_url;
 
     } catch (error: any) {
       console.error("Gagal checkout:", error);
-      alert(error.response?.data?.message || "Terjadi kesalahan saat memproses pesanan.");
+      alert(error.message || "Terjadi kesalahan saat memproses pesanan.");
       setIsProcessing(false);
     }
   };
@@ -107,7 +112,6 @@ const Checkout = () => {
   return (
     <>
       <Breadcrumb title={"Checkout"} pages={["checkout"]} />
-      {/* Background utama diubah ke warna krem hangat */}
       <section className="overflow-hidden py-20 bg-[#F9F6EE]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
           <form onSubmit={handleSubmit}>
@@ -116,24 +120,18 @@ const Checkout = () => {
               <div className="lg:max-w-[670px] w-full">
                 <Login />
                 <Billing formData={billingData} handleInputChange={handleBillingChange} />
-                <Shipping 
-                  isDifferentAddress={isDifferentAddress}
-                  setIsDifferentAddress={setIsDifferentAddress}
-                  shippingData={shippingData}
-                  handleShippingChange={handleShippingChange}
-                />
+                {/* <Shipping onShippingChange={setShippingInfo} /> */}
 
-                {/* Styling Catatan Tambahan disesuaikan tema */}
                 <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5 mt-7.5">
                   <div>
                     <label htmlFor="notes" className="block mb-2.5 font-bold text-[#2D1A11]">Catatan Tambahan (opsional)</label>
-                    <textarea 
-                      name="notes" 
-                      id="notes" 
-                      rows={5} 
-                      value={notes} 
-                      onChange={(e) => setNotes(e.target.value)} 
-                      placeholder="Contoh: Pesan khusus atau instruksi pengiriman." 
+                    <textarea
+                      name="notes"
+                      id="notes"
+                      rows={5}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Contoh: Pesan khusus atau instruksi pengiriman."
                       className="rounded-xl border border-[#D9B35A]/30 bg-white placeholder:text-[#8B7355]/50 w-full p-5 outline-none duration-200 focus:border-[#D9B35A] focus:ring-2 focus:ring-[#D9B35A]/20 text-[#2D1A11]"
                     ></textarea>
                   </div>
@@ -141,7 +139,6 @@ const Checkout = () => {
               </div>
 
               <div className="max-w-[455px] w-full">
-                {/* Styling Box Ringkasan Pesanan */}
                 <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20">
                   <div className="border-b border-[#D9B35A]/30 py-5 px-4 sm:px-8.5 bg-[#D9B35A]/5 rounded-t-2xl">
                     <h3 className="font-bold text-xl text-[#2D1A11] flex items-center gap-2">
@@ -164,18 +161,26 @@ const Checkout = () => {
                               {item.title} <span className="text-[#8B7355] text-xs">(x{item.quantity || 1})</span>
                             </p>
                           </div>
-                          <div>
-                            <p className="text-[#8B7355] font-bold text-sm whitespace-nowrap text-right">
-                              Rp {itemSubtotal.toLocaleString('id-ID')}
-                            </p>
-                          </div>
+                          <p className="text-[#8B7355] font-bold text-sm whitespace-nowrap text-right">
+                            Rp {itemSubtotal.toLocaleString('id-ID')}
+                          </p>
                         </div>
                       );
                     })}
 
+                    {/* Ongkir dari RajaOngkir */}
                     <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
-                      <p className="text-[#2D1A11] font-medium text-sm">Biaya Pengiriman</p>
-                      <p className="text-[#8B7355] font-bold text-sm text-right">Rp {shippingCost.toLocaleString('id-ID')}</p>
+                      <p className="text-[#2D1A11] font-medium text-sm">
+                        Biaya Pengiriman
+                        {shippingInfo && (
+                          <span className="text-[#8B7355] text-xs block">
+                            {shippingInfo.courier.toUpperCase()} - {shippingInfo.service}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[#8B7355] font-bold text-sm text-right">
+                        {shippingInfo ? `Rp ${shippingCost.toLocaleString('id-ID')}` : '-'}
+                      </p>
                     </div>
 
                     {discountAmount > 0 && (
@@ -192,23 +197,22 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <Coupon 
-                  couponCode={couponCode} 
-                  setCouponCode={setCouponCode} 
-                  handleApplyCoupon={handleApplyCoupon} 
-                  discountAmount={discountAmount} 
+                <Coupon
+                  couponCode={couponCode}
+                  setCouponCode={setCouponCode}
+                  handleApplyCoupon={handleApplyCoupon}
+                  discountAmount={discountAmount}
                 />
-                
-                <ShippingMethod selectedMethod={shippingMethod} onMethodChange={setShippingMethod} />
+
                 <PaymentMethod selectedPayment={paymentMethod} onPaymentChange={setPaymentMethod} />
 
-                {/* Tombol Submit Khas UpToYou */}
-                <button 
-                  type="submit" 
-                  disabled={isProcessing || cartItems.length === 0} 
+                <button
+                  type="submit"
+                  // disabled={isProcessing || cartItems.length === 0 || !shippingInfo}
+                  disabled={isProcessing || cartItems.length === 0}
                   className={`w-full flex justify-center font-bold py-[15px] px-6 rounded-full ease-out duration-200 mt-8 uppercase tracking-widest transition-all ${
-                    isProcessing || cartItems.length === 0 
-                      ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none" 
+                    isProcessing || cartItems.length === 0 || !shippingInfo
+                      ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none"
                       : "bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20"
                   }`}
                 >
