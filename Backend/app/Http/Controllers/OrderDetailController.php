@@ -28,6 +28,11 @@ class OrderDetailController extends Controller
                     'produk'            => $orderDetail->product->name ?? 'Produk Tidak Ditemukan',
                     'tanggal_masuk'     => $orderDetail->order->order_date->format('Y-m-d H:i:s'),
                     'detail_material'   => $orderDetail->custom_configuration, 
+
+                    'total_amount'      => $orderDetail->order->total_amount,
+                    'shipping_address'  => $orderDetail->order->shipping_address,
+                    'resi'              => $orderDetail->order->resi,
+                    'status'            => $orderDetail->order->status,
                 ]
             ]);
 
@@ -104,6 +109,7 @@ class OrderDetailController extends Controller
             'layers_back'     => $buildLayers('back'),
             'layers_top'      => $buildLayers('top'),
             'detail_material' => $config,
+            
         ];
 
         // 3. Render PDF

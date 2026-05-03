@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { OrderService } from '@/services/OrderService';
+import { AlertService } from '@/services/AlertService';
 
 export default function PesananDetail({ orderId }: { orderId: string }) {
   const router = useRouter();
@@ -17,6 +18,10 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const [catatan, setCatatan] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  
+  // 👇 STATE BARU UNTUK RAJAONGKIR 👇
+  const [resi, setResi] = useState('');
+  const [isRequestingResi, setIsRequestingResi] = useState(false);
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
@@ -31,7 +36,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   };
 
   const fetchOrderDetail = useCallback(async () => {
-    // Gembok keamanan agar tidak menembak API dengan URL undefined
     if (!orderId || orderId === 'undefined') {
       setIsLoading(false);
       return;
@@ -44,13 +48,16 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       if (response && response.data) {
         setData(response.data);
         
-        // Isi otomatis form
         if (response.data.deadline) {
           const dateStr = new Date(response.data.deadline).toISOString().split('T')[0];
           setDeadline(dateStr);
         }
         if (response.data.catatan) {
           setCatatan(response.data.catatan);
+        }
+        // Jika data dari database sudah punya resi, masukkan ke state
+        if (response.data.resi) {
+          setResi(response.data.resi);
         }
       }
     } catch (error) {
@@ -65,17 +72,32 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
 
-  const handleProsesProduksi = async () => {
-    if (!deadline) {
-      alert("Tentukan deadline produksi terlebih dahulu!");
-      return;
-    }
-    setIsProcessing(true);
-    // Simulasi proses
-    setTimeout(() => {
-      alert("Work Order berhasil di-generate!");
-      setIsProcessing(false);
-    }, 1000);
+  // FUNGSI SIMULASI API RAJAONGKIR
+  const handleRequestResi = async () => {
+    setIsRequestingResi(true);
+    
+    // Simulasi jeda waktu menembak API Komerce (1.5 detik)
+    setTimeout(async () => { // 👈 Tambahkan kata async di sini
+      try {
+        const dummyResi = "JP" + Math.floor(100000000 + Math.random() * 900000000);
+        
+        // 1. SIMPAN RESI KE DATABASE LARAVEL 👇
+        await OrderService.updateResi(orderId, dummyResi);
+        
+        // 2. JIKA BERHASIL, UBAH TAMPILAN DI LAYAR 👇
+        setResi(dummyResi);
+        setIsRequestingResi(false);
+        
+        AlertService.success(
+          "Resi Berhasil Diterbitkan!", 
+          `Sistem RajaOngkir telah merilis nomor resi ${dummyResi} secara Cashless. Data telah tersimpan di database.`
+        );
+      } catch (error) {
+        console.error("Gagal menyimpan resi:", error);
+        setIsRequestingResi(false);
+        AlertService.error("Error", "Gagal menyimpan resi ke database.");
+      }
+    }, 1500);
   };
 
   if (isLoading) {
@@ -90,7 +112,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     return <div className="p-10 text-center text-red-500 font-sans">Data pesanan tidak ditemukan.</div>;
   }
 
-  // Fungsi untuk merakit dan me-render tumpukan gambar tas
   const renderPreview = (pov: 'front' | 'back' | 'top') => {
     const parts = data?.detail_material?.parts;
     const colors = data?.detail_material?.colors || {};
@@ -139,8 +160,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   maskPosition: 'center',
                 }}
               />
-              
-              {/* Layer 2: Tekstur asli dan Bayangan tas (Mix Blend Multiply) */}
               <img 
                 src={imageUrl} 
                 alt={part.name}
@@ -158,8 +177,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       
       {/* ================= HEADER & BACK BUTTON ================= */}
       <div className="flex flex-col md:flex-row md:items-end gap-8 border-b border-[#D9B35A]/20 pb-8 px-2 relative z-10">
-        
-        {/* Tombol Kembali Eksklusif */}
         <button 
           onClick={() => router.push('/admin/pesanan')}
           className="group flex items-center justify-center w-12 h-12 bg-transparent border border-[#D9B35A]/50 rounded-none shadow-sm hover:bg-[#2D1A11] transition-all duration-500 ease-out shrink-0"
@@ -184,85 +201,55 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       {/* ================= MAIN CONTENT AREA ================= */}
       <div className="relative w-full min-h-[600px] bg-[#FFFDF5] border border-[#D9B35A]/20 shadow-sm p-6 md:p-10 overflow-hidden rounded-sm">
         
-        {/* Latar Belakang Tekstur Kain/Batik Halus */}
-        <div 
-          className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-multiply"
-          style={{ backgroundImage: `url('${batikPatternUrl}')`, backgroundRepeat: 'repeat' }}
-        ></div>
+        <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-multiply" style={{ backgroundImage: `url('${batikPatternUrl}')`, backgroundRepeat: 'repeat' }}></div>
 
-        {/* Aksen Gunungan Wayang (Pojok Kanan Bawah) */}
         <div 
           className="absolute -right-32 -bottom-32 w-[700px] h-[700px] opacity-[0.03] pointer-events-none grayscale sepia mix-blend-multiply transition-transform duration-1000 hover:scale-105"
-          style={{ 
-            backgroundImage: `url('${gununganUrl}')`, 
-            backgroundSize: 'contain', 
-            backgroundPosition: 'bottom right',
-            backgroundRepeat: 'no-repeat' 
-          }}
+          style={{ backgroundImage: `url('${gununganUrl}')`, backgroundSize: 'contain', backgroundPosition: 'bottom right', backgroundRepeat: 'no-repeat' }}
         ></div>
 
-        {/* ================= WRAPPER KONTEN (Z-INDEX) ================= */}
         <div className="relative z-10 space-y-8 font-sans">
           
-          {/* BAGIAN ATAS: PREVIEW 3 SISI */}
+          {/* PREVIEW 3 SISI */}
           <div className="bg-[#2D1A11] rounded-sm p-8 shadow-xl border border-[#D9B35A]/30 relative overflow-hidden">
             <h2 className="text-[#D9B35A] font-sans text-xs font-semibold uppercase tracking-[0.3em] mb-8 text-center relative z-10">
               Preview Visual 3D
             </h2>
-            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-              
-              {/* View Depan */}
               <div className="bg-white/5 backdrop-blur-sm rounded-sm p-4 border border-white/10 flex flex-col items-center">
                 <span className="text-white/60 text-[10px] uppercase tracking-[0.2em] mb-3">Tampak Depan</span>
-                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">
-                  {renderPreview('front')}
-                </div>
+                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">{renderPreview('front')}</div>
               </div>
-              
-              {/* View Atas */}
               <div className="bg-white/5 backdrop-blur-sm rounded-sm p-4 border border-white/10 flex flex-col items-center justify-center">
                 <span className="text-white/60 text-[10px] uppercase tracking-[0.2em] mb-3">Tampak Atas</span>
-                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">
-                  {renderPreview('top')}
-                </div>
+                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">{renderPreview('top')}</div>
               </div>
-              
-              {/* View Belakang */}
               <div className="bg-white/5 backdrop-blur-sm rounded-sm p-4 border border-white/10 flex flex-col items-center justify-center">
                 <span className="text-white/60 text-[10px] uppercase tracking-[0.2em] mb-3">Tampak Belakang</span>
-                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">
-                  {renderPreview('back')}
-                </div>
+                <div className="w-full h-48 md:h-56 relative drop-shadow-2xl">{renderPreview('back')}</div>
               </div>
-
             </div>
           </div>
 
-          {/* BAGIAN BAWAH: GRID 2 KOLOM */}
+          {/* GRID BAWAH */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* KOLOM KIRI: INFO & FORM */}
+            {/* KOLOM KIRI: INFO & PENGIRIMAN */}
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
                 <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Informasi Transaksi</h3>
-                
                 <div className="space-y-5 text-sm">
                   <div>
                     <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">ID Transaksi</span>
-                    <span className="font-medium text-gray-800">{data.id_transaksi}</span>
+                    <span className="font-medium text-gray-800">{data.id_transaksi || data.id}</span>
                   </div>
                   <div>
-                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Produk Utama</span>
-                    <span className="font-bold text-[#D9B35A] text-base tracking-wide">{data.produk}</span>
+                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Total Pembayaran</span>
+                    <span className="font-bold text-[#D9B35A] text-base tracking-wide">Rp {Number(data.total_amount || 0).toLocaleString('id-ID')}</span>
                   </div>
                   <div>
                     <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Customer</span>
-                    <span className="font-medium text-gray-800">{data.customer}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Tanggal Masuk</span>
-                    <span className="font-medium text-gray-800">{data.tanggal_masuk}</span>
+                    <span className="font-medium text-gray-800">{data.customer || data.user?.name || '-'}</span>
                   </div>
                   {data.refnumber && (
                     <div className="bg-[#FFFDF5] p-4 rounded-sm border border-[#D9B35A]/30 mt-6">
@@ -272,9 +259,58 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   )}
                 </div>
               </div>
+
+              {/* 👇 PANEL LOGISTIK RAJAONGKIR BARU 👇 */}
+              <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
+                <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
+                
+                <div className="space-y-5 text-sm">
+                  <div>
+                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Alamat Tujuan</span>
+                    <span className="font-medium text-gray-800 leading-relaxed block">{data.shipping_address || 'Alamat belum diatur saat checkout'}</span>
+                  </div>
+                  
+                  {/* Status Resi / Tombol */}
+                  <div className="mt-6 p-5 bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-sm">
+                     <span className="block text-[#D9B35A] text-[10px] uppercase font-bold tracking-widest mb-3">Status Pengiriman (RajaOngkir)</span>
+                     
+                     {resi ? (
+                       <div className="animate-fadeIn">
+                         <p className="text-gray-800 font-medium mb-2">Nomor Resi Resmi:</p>
+                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                           <span className="font-mono font-black text-xl text-[#2D1A11] tracking-widest bg-white px-4 py-2 border border-[#D9B35A]/50 rounded shadow-sm">{resi}</span>
+                           <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded border border-emerald-200 text-center">Menunggu Pick-up Kurir</span>
+                         </div>
+                         <button className="mt-4 w-full py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors">
+                           Cetak Label Pengiriman (AWB)
+                         </button>
+                       </div>
+                     ) : (
+                       <div>
+                         <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi. Pastikan tas sudah diproduksi sebelum men-generate resi otomatis secara Cashless.</p>
+                         <button 
+                           onClick={handleRequestResi}
+                           disabled={isRequestingResi}
+                           className="w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-[11px] uppercase tracking-[0.1em] rounded-sm shadow-md hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                         >
+                           {isRequestingResi ? (
+                             <>
+                               <svg className="animate-spin h-4 w-4 text-[#D9B35A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                               Menghubungi RajaOngkir...
+                             </>
+                           ) : (
+                             'Request Resi RajaOngkir'
+                           )}
+                         </button>
+                       </div>
+                     )}
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            {/* KOLOM KANAN: DETAIL MATERIAL */}
+            {/* KOLOM KANAN: DETAIL MATERIAL (TETAP SAMA) */}
             <div className="lg:col-span-7 flex flex-col h-full space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20 flex-grow">
                 <div className="flex justify-between items-end mb-6 border-b border-[#D9B35A]/20 pb-4">
@@ -286,23 +322,13 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                 <div className="overflow-auto pr-2 max-h-[420px] custom-scrollbar">
                 {data.detail_material?.parts && data.detail_material.parts.length > 0 ? (
                   <table className="w-full text-left border-collapse">
-                    
-                    {/* HEADER TABEL (Sticky) */}
                     <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
                       <tr>
-                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">
-                          Komponen Bagian
-                        </th>
-                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">
-                          Varian Bentuk
-                        </th>
-                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 text-right w-1/3">
-                          Material 
-                        </th>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">Komponen Bagian</th>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 w-1/3">Varian Bentuk</th>
+                        <th className="pb-3 pt-2 text-[#8B7355] text-[10px] uppercase font-bold tracking-widest border-b border-[#D9B35A]/30 text-right w-1/3">Material</th>
                       </tr>
                     </thead>
-
-                    {/* ISI TABEL */}
                     <tbody className="divide-y divide-gray-100">
                       {data.detail_material.parts.map((part: any, index: number) => {
                         const selectedVariant = part.variants?.[0];
@@ -310,37 +336,20 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
 
                         return (
                           <tr key={index} className="hover:bg-[#FFFDF5] transition-colors duration-300 group">
-                            
-                            {/* Kolom 1: Part */}
                             <td className="py-4 pr-4 align-top">
                               <p className="font-bold text-[#2D1A11] text-sm tracking-wide">{part.name}</p>
-                              <p className="text-[10px] font-mono text-gray-400 tracking-wider mt-1.5">
-                                {part.part_code || '-'}
-                              </p>
+                              <p className="text-[10px] font-mono text-gray-400 tracking-wider mt-1.5">{part.part_code || '-'}</p>
                             </td>
-
-                            {/* Kolom 2: Variant */}
                             <td className="py-4 pr-4 align-top">
-                              <p className="text-gray-800 text-[11px] font-semibold uppercase tracking-wider mb-0.5 mt-0.5">
-                                {selectedVariant?.name || 'Default Variant'}
-                              </p>
-                              <p className="text-[9px] font-mono text-gray-400 mt-1.5">
-                                {selectedVariant?.variant_code || '-'}
-                              </p>
+                              <p className="text-gray-800 text-[11px] font-semibold uppercase tracking-wider mb-0.5 mt-0.5">{selectedVariant?.name || 'Default Variant'}</p>
+                              <p className="text-[9px] font-mono text-gray-400 mt-1.5">{selectedVariant?.variant_code || '-'}</p>
                             </td>
-
-                            {/* Kolom 3: Texture */}
                             <td className="py-4 align-top text-right">
                               <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">
-                                  {selectedTexture?.name || 'Default Texture'}
-                                </span>
-                                <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">
-                                  {selectedTexture?.texture_code || '-'}
-                                </span>
+                                <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">{selectedTexture?.name || 'Default Texture'}</span>
+                                <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">{selectedTexture?.texture_code || '-'}</span>
                               </div>
                             </td>
-
                           </tr>
                         );
                       })}
@@ -371,4 +380,4 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       </div>
     </div>
   );
-} 
+}

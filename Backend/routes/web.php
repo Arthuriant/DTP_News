@@ -199,7 +199,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::get('/admin/order-details/{id}', [OrderDetailController::class, 'index']);
     Route::get('/admin/order-details/{id}/download-pdf', [OrderDetailController::class, 'downloadPdf']);
     Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
-
+    Route::post('/my-orders/{id}/complete', [OrderController::class, 'confirmDelivery']);
+    Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::put('/admin/orders/{id}/resi', [OrderController::class, 'updateResi']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);
