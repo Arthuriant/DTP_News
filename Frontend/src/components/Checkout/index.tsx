@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/redux/store";
 import { useDispatch } from "react-redux";
@@ -9,8 +9,6 @@ import { OrderService } from "@/services/OrderService";
 import Breadcrumb from "../Common/Breadcrumb";
 import Login from "./Login";
 import Shipping from "./Shipping";
-import PaymentMethod from "./PaymentMethod";
-import Coupon from "./Coupon";
 import Billing from "./Billing";
 
 const Checkout = () => {
@@ -20,9 +18,13 @@ const Checkout = () => {
   const cartItems = useAppSelector((state) => state.cartReducer.items);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // --- STATE PROFILE & ALAMAT ---
+  const [profile, setProfile] = useState<any>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
   // --- STATE FORMS ---
-  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer BCA");
-  // const [shippingInfo, setShippingInfo] = useState<any>(null);
   const [shippingInfo, setShippingInfo] = useState<any>({
     address: "Alamat toko",
     destination_id: 4866,
@@ -43,29 +45,93 @@ const Checkout = () => {
 
   const [notes, setNotes] = useState("");
 
-  // --- STATE KUPON ---
-  const [couponCode, setCouponCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
+  // --- FETCH PROFILE & ALAMAT ---
+  useEffect(() => {
+    const fetchProfileAndAddress = async () => {
+      try {
+        // Fetch user
+        const userRes = await fetch('/api-fe/proxy/user', {
+          credentials: 'include',
+        });
+
+        // Fetch profile
+        const profileRes = await fetch('/api-fe/proxy/profile', {
+          credentials: 'include',
+        });
+
+        // Fetch alamat
+        const addressRes = await fetch('/api-fe/proxy/addresses', {
+          credentials: 'include',
+        });
+
+        if (userRes.ok && profileRes.ok) {
+          const userData    = await userRes.json();
+          const profileData = await profileRes.json();
+
+          // Split nama jadi firstName & lastName
+          const nameParts = (userData.name || '').split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName  = nameParts.slice(1).join(' ') || '';
+
+          setProfile({ ...userData, ...profileData });
+
+          // Auto-fill billing data dari profile
+          setBillingData(prev => ({
+            ...prev,
+            firstName: firstName,
+            lastName:  lastName,
+            email:     userData.email || '',
+            phone:     profileData.phone || '',
+          }));
+        }
+
+        if (addressRes.ok) {
+          const addressData = await addressRes.json();
+          setAddresses(addressData);
+
+          // Auto-select alamat utama
+          const primaryAddress = addressData.find((a: any) => a.is_primary) || addressData[0];
+          if (primaryAddress) {
+            setSelectedAddress(primaryAddress);
+            setBillingData(prev => ({
+              ...prev,
+              address: primaryAddress.street || '',
+              town:    primaryAddress.region || '',
+              phone:   primaryAddress.phone_number || prev.phone,
+            }));
+          }
+        }
+
+      } catch (err) {
+        console.error("Gagal fetch profile/alamat:", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfileAndAddress();
+  }, []);
 
   // --- HANDLERS ---
   const handleBillingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBillingData({ ...billingData, [e.target.name]: e.target.value });
   };
 
-  const handleApplyCoupon = () => {
-    if (couponCode === "PROMOTAS") {
-      setDiscountAmount(50000);
-    } else {
-      alert("Kode kupon tidak valid atau sudah kedaluwarsa.");
-      setDiscountAmount(0);
-      setCouponCode("");
-    }
+  const handleAddressSelect = (address: any) => {
+    setSelectedAddress(address);
+    setBillingData(prev => ({
+      ...prev,
+      address: address.street || '',
+      town:    address.region || '',
+      phone:   address.phone_number || prev.phone,
+    }));
   };
 
+
   // --- PERHITUNGAN HARGA ---
-  const subtotal = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
-  const shippingCost = shippingInfo?.cost ?? 0; // dari API RajaOngkir
-  const total = subtotal + shippingCost - discountAmount;
+  const subtotal    = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
+  const shippingCost = shippingInfo?.cost ?? 0;
+  const total        = subtotal + shippingCost ;
 
   // --- SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,19 +142,14 @@ const Checkout = () => {
       return;
     }
 
-    // if (!shippingInfo) {
-    //   alert("Pilih layanan pengiriman terlebih dahulu!");
-    //   return;
-    // }
-
     setIsProcessing(true);
 
     try {
-      const fullAddress = `${shippingInfo.address} | Catatan: ${notes || '-'}`;
+      const fullAddress = `${billingData.address}, ${billingData.town} | Catatan: ${notes || '-'}`;
 
       const response = await OrderService.checkout({
         shipping_address: fullAddress,
-        payment_method:   paymentMethod,
+        payment_method:   "xendit_invoice",
         shipping_cost:    shippingInfo.cost,
         shipping_courier: shippingInfo.courier,
         shipping_service: shippingInfo.service,
@@ -119,8 +180,50 @@ const Checkout = () => {
               
               <div className="lg:max-w-[670px] w-full">
                 <Login />
+
+                {/* PILIH ALAMAT */}
+                {addresses.length > 0 && (
+                  <div className="mt-9">
+                    <h2 className="font-bold text-[#2D1A11] text-xl sm:text-2xl mb-5.5 flex items-center gap-2">
+                      <span className="text-[#D9B35A]">✧</span> Pilih Alamat Pengiriman
+                    </h2>
+                    <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-6 space-y-3">
+                      {addresses.map((address) => (
+                        <div
+                          key={address.id}
+                          onClick={() => handleAddressSelect(address)}
+                          className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
+                            selectedAddress?.id === address.id
+                              ? 'border-[#D9B35A] bg-[#D9B35A]/10'
+                              : 'border-[#D9B35A]/20 hover:border-[#D9B35A]/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              selectedAddress?.id === address.id ? 'border-[#D9B35A]' : 'border-gray-300'
+                            }`}>
+                              {selectedAddress?.id === address.id && (
+                                <div className="w-2 h-2 rounded-full bg-[#D9B35A]"></div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#2D1A11] text-sm">
+                                {address.recipient_name} ({address.phone_number})
+                                {address.is_primary && (
+                                  <span className="ml-2 text-xs bg-[#D9B35A] text-white px-2 py-0.5 rounded-full">Utama</span>
+                                )}
+                              </p>
+                              <p className="text-[#8B7355] text-xs mt-1">{address.street}</p>
+                              <p className="text-[#8B7355] text-xs">{address.region}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <Billing formData={billingData} handleInputChange={handleBillingChange} />
-                {/* <Shipping onShippingChange={setShippingInfo} /> */}
 
                 <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5 mt-7.5">
                   <div>
@@ -168,7 +271,6 @@ const Checkout = () => {
                       );
                     })}
 
-                    {/* Ongkir dari RajaOngkir */}
                     <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
                       <p className="text-[#2D1A11] font-medium text-sm">
                         Biaya Pengiriman
@@ -183,13 +285,6 @@ const Checkout = () => {
                       </p>
                     </div>
 
-                    {discountAmount > 0 && (
-                      <div className="flex items-center justify-between py-5 border-b border-[#D9B35A]/20">
-                        <p className="text-emerald-600 font-medium text-sm">Diskon Kupon</p>
-                        <p className="text-emerald-600 text-right font-bold text-sm">- Rp {discountAmount.toLocaleString('id-ID')}</p>
-                      </div>
-                    )}
-
                     <div className="flex items-center justify-between pt-6">
                       <p className="font-bold text-lg text-[#2D1A11]">Total Akhir</p>
                       <p className="font-bold text-2xl text-[#D9B35A] text-right">Rp {total.toLocaleString('id-ID')}</p>
@@ -197,21 +292,12 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <Coupon
-                  couponCode={couponCode}
-                  setCouponCode={setCouponCode}
-                  handleApplyCoupon={handleApplyCoupon}
-                  discountAmount={discountAmount}
-                />
-
-                <PaymentMethod selectedPayment={paymentMethod} onPaymentChange={setPaymentMethod} />
 
                 <button
                   type="submit"
-                  // disabled={isProcessing || cartItems.length === 0 || !shippingInfo}
                   disabled={isProcessing || cartItems.length === 0}
                   className={`w-full flex justify-center font-bold py-[15px] px-6 rounded-full ease-out duration-200 mt-8 uppercase tracking-widest transition-all ${
-                    isProcessing || cartItems.length === 0 || !shippingInfo
+                    isProcessing || cartItems.length === 0
                       ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none"
                       : "bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20"
                   }`}
