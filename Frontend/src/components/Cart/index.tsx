@@ -164,7 +164,7 @@ const Cart = () => {
             </div>
             <p className="pb-6 text-[#8B7355] font-medium text-lg">Keranjang Anda masih kosong!</p>
             <Link
-              href="/shop"
+              href="/shop-with-sidebar"
               className="w-96 mx-auto flex justify-center font-bold text-[#1A1A1A] bg-gradient-to-r from-[#EAC135] to-[#DFB121] py-[13px] px-6 rounded-full ease-out duration-200 hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20 uppercase tracking-widest"
             >
               Mulai Belanja
