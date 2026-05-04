@@ -7,8 +7,6 @@ const History = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
-
   useEffect(() => {
     const fetchMyOrders = async () => {
       try {
@@ -24,16 +22,22 @@ const History = () => {
     fetchMyOrders();
   }, []);
 
+  // 👇 PERBARUI 7 STATUS BARU BESERTA WARNANYA 👇
   const getStatusBadge = (status: string) => {
+    const normalizedStatus = status?.toLowerCase() || "pending";
     const styles: any = {
-      pending: "bg-amber-50 text-amber-600 border-amber-200",
-      diproses: "bg-blue-50 text-blue-600 border-blue-200",
-      dikirim: "bg-purple-50 text-purple-600 border-purple-200",
-      selesai: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      pending: "bg-amber-50 text-amber-600 border-amber-200",        
+      confirmed: "bg-sky-50 text-sky-600 border-sky-200",            
+      processing: "bg-indigo-50 text-indigo-600 border-indigo-200",  
+      shipped: "bg-blue-50 text-blue-600 border-blue-200",           
+      delivered: "bg-teal-50 text-teal-600 border-teal-200",         
+      completed: "bg-[#D9B35A]/10 text-[#D9B35A] border-[#D9B35A]", 
+      cancelled: "bg-rose-50 text-rose-600 border-rose-200",         
     };
+    
     return (
-      <span className={`px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${styles[status?.toLowerCase()] || "bg-gray-50 text-gray-600"}`}>
-        {status || "Pending"}
+      <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border shadow-sm ${styles[normalizedStatus] || "bg-gray-50 text-gray-600"}`}>
+        {normalizedStatus}
       </span>
     );
   };
@@ -55,43 +59,51 @@ const History = () => {
 
       {orders.length > 0 ? (
         <div className="grid gap-6">
-          {orders.map((order) => (
-            <div key={order.id} className="group bg-[#FFFDF5] border border-[#D9B35A]/20 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row">
-              {/* Gambar Desain (Dari Item Pertama) */}
-              <div className="w-full md:w-48 h-48 bg-white flex items-center justify-center p-4 border-r border-[#D9B35A]/10">
-                {order.details?.[0]?.image_preview ? (
-                  <img src={order.details[0].image_preview} alt="Preview" className="w-full h-full object-contain" />
-                ) : (
-                  <div className="text-[#D9B35A] opacity-20 text-4xl italic">UpToYou</div>
-                )}
-              </div>
+          {orders.map((order) => {
+            const currentStatus = order.status?.toLowerCase();
 
-              {/* Detail Pesanan */}
-              <div className="flex-1 p-6 flex flex-col justify-between">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-[#8B7355] font-sans text-[10px] uppercase tracking-[0.2em] font-bold mb-1">ID Pesanan: {order.id.split('-')[0]}</p>
-                    <h3 className="text-[#2D1A11] font-bold text-xl">Kustom {order.details?.[0]?.product?.name || "Tas"}</h3>
-                    <p className="text-[#8B7355] font-sans text-xs mt-1 italic">{order.details?.length || 1} Item • Dipesan pada {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                  {getStatusBadge(order.status)}
+            return (
+              <div key={order.id} className="group bg-[#FFFDF5] border border-[#D9B35A]/20 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row">
+                {/* Gambar Desain */}
+                <div className="w-full md:w-48 h-48 bg-white flex items-center justify-center p-4 border-r border-[#D9B35A]/10">
+                  {order.details?.[0]?.image_preview ? (
+                    <img src={order.details[0].image_preview} alt="Preview" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-[#D9B35A] opacity-20 text-4xl italic">UpToYou</div>
+                  )}
                 </div>
 
-                <div className="flex justify-between items-end border-t border-[#D9B35A]/10 pt-4">
-                  <div>
-                    <p className="text-[#8B7355] font-sans text-[10px] uppercase font-bold">Total Pembayaran</p>
-                    <p className="text-[#D9B35A] font-black text-xl">Rp {Number(order.total_amount).toLocaleString('id-ID')}</p>
+                {/* Detail Pesanan */}
+                <div className="flex-1 p-6 flex flex-col justify-between">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-[#8B7355] font-sans text-[10px] uppercase tracking-[0.2em] font-bold mb-1">ID Pesanan: {order.id.split('-')[0]}</p>
+                      <h3 className="text-[#2D1A11] font-bold text-xl">Kustom {order.details?.[0]?.product?.name || "Tas"}</h3>
+                      <p className="text-[#8B7355] font-sans text-xs mt-1 italic">{order.details?.length || 1} Item • Dipesan pada {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                    {getStatusBadge(order.status)}
                   </div>
-                  <Link 
-                    href={`/order/success/${order.id}`} 
-                    className="bg-[#2D1A11] text-[#D9B35A] px-6 py-2 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#3d2519] transition-colors"
-                  >
-                    Detail & Bayar
-                  </Link>
+
+                  <div className="flex justify-between items-end border-t border-[#D9B35A]/10 pt-4 mt-auto">
+                    <div>
+                      <p className="text-[#8B7355] font-sans text-[10px] uppercase font-bold">Total Pembayaran</p>
+                      <p className="text-[#D9B35A] font-black text-xl">Rp {Number(order.total_amount).toLocaleString('id-ID')}</p>
+                    </div>
+                    
+                    {currentStatus === 'pending' ? (
+                      <Link href={`/order/success/${order.id}`} className="bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#3d2519] transition-colors shadow-md">
+                        Bayar Sekarang
+                      </Link>
+                    ) : (
+                      <Link href={`/order/success/${order.id}`} className="bg-white border border-[#D9B35A] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-colors">
+                        Detail Struk
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-20 bg-white/40 rounded-3xl border border-dashed border-[#D9B35A]/30">

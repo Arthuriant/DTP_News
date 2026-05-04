@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import CustomSelect from "./CustomSelect";
 import { menuData } from "./menuData";
@@ -19,6 +19,17 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('transaksi');
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) setIsNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   // 1. Tambahkan state untuk menyimpan data user
   const [userData, setUserData] = useState<{ name: string } | null>(null);
@@ -175,18 +186,138 @@ const Header = () => {
           {/* Action Icons (Support, Account, Cart) */}
           <div className="flex items-center gap-6 lg:gap-8">
             
-            {/* Support - Disembunyikan saat scroll */}
-            {!stickyMenu && (
-              <div className="hidden xl:flex items-center gap-3 transition-opacity duration-300 group cursor-pointer animate-fadeIn">
-                <div className="p-2.5 bg-[#C5A059]/10 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-300 shadow-sm border border-[#C5A059]/20">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4.7 3.1C5.9 1.8 8 2 9 3.5l1.2 1.8c.8 1.1.7 2.7-.3 3.7l-.2.3c-.4.4-.3.9-.1 1.4 1.4 1.5 2.3 1.9 2.7 2 .4.1.6-.1.6-.2l.4-.4c.9-.9 2.2-1.1 3.3-.5l1.9 1.1c1.6.9 2 3.2.7 4.6l-1.4 1.5c-.4.5-1 .9-1.7 1-1.8.2-6 0-10.4-4.7C3.1 12.6 2.3 8.8 2.2 7l.7-.1c-.1-.9.3-1.7.9-2.2l1.6-1.6z"/></svg>
+            <div className="relative hidden xl:block" ref={notifRef}>
+              
+              {/* Trigger Button Notifikasi */}
+              <div 
+                className="flex items-center gap-3 transition-opacity duration-300 group cursor-pointer animate-fadeIn"
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+              >
+                <div className="relative p-2.5 bg-[#C5A059]/10 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-300 shadow-sm border border-[#C5A059]/20">
+                  {/* Ikon Lonceng */}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                  {/* Titik Merah Indikator (Red Dot) */}
+                  <span className="absolute top-0 right-0.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#F8F3E9] rounded-full"></span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">BANTUAN</span>
-                  <p className="font-serif font-semibold text-sm text-[#2D1A11] tracking-wide">(+62) 2500241</p>
+                  <span className="block text-[9px] text-[#C5A059] uppercase tracking-[0.2em] font-bold leading-none mb-1">NOTIFIKASI</span>
+                  <p className="font-serif font-semibold text-sm text-[#2D1A11] tracking-wide">Pembaruan</p>
                 </div>
               </div>
-            )}
+
+              {/* Dropdown Pop-up Notifikasi */}
+              {isNotifOpen && (
+                <div className="absolute top-full right-0 mt-6 w-[380px] bg-[#FFFDF5] border border-[#C5A059]/30 rounded-xl shadow-[0_20px_40px_-15px_rgba(45,26,17,0.15)] z-50 overflow-hidden flex flex-col cursor-default animate-fadeIn">
+                  
+                  {/* Header Dropdown */}
+                  <div className="px-5 py-4 flex justify-between items-center border-b border-[#C5A059]/10">
+                    <h3 className="font-serif text-lg font-bold text-[#2D1A11] tracking-wide">Notifikasi</h3>
+                    <a href="#" className="text-[#8B7355] hover:text-[#C5A059] transition-colors">
+                      {/* Ikon Pengaturan */}
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </a>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="flex border-b border-[#C5A059]/10">
+                    <button 
+                      onClick={() => setActiveTab('transaksi')}
+                      className={`flex-1 py-3 text-sm font-bold tracking-wide transition-colors relative ${activeTab === 'transaksi' ? 'text-[#C5A059]' : 'text-[#8B7355] hover:text-[#2D1A11]'}`}
+                    >
+                      Transaksi
+                      {activeTab === 'transaksi' && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C5A059]"></span>}
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('update')}
+                      className={`flex-1 py-3 text-sm font-bold tracking-wide transition-colors relative flex items-center justify-center gap-2 ${activeTab === 'update' ? 'text-[#C5A059]' : 'text-[#8B7355] hover:text-[#2D1A11]'}`}
+                    >
+                      Update (1)
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      {activeTab === 'update' && <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#C5A059]"></span>}
+                    </button>
+                  </div>
+
+                  {/* Konten Tab */}
+                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-white">
+                    {activeTab === 'transaksi' ? (
+                      <div className="p-5">
+                        
+                        {/* Bagian Pembelian */}
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="font-bold text-[#2D1A11] text-base">Pembelian</h4>
+                          <a href="#" className="text-[11px] font-bold text-[#C5A059] hover:text-[#2D1A11] transition-colors">Lihat Semua</a>
+                        </div>
+
+                        {/* Status Menunggu Pembayaran */}
+                        <a href="/order/history" className="flex justify-between items-center bg-[#FFFDF5] p-3 rounded-lg border border-[#C5A059]/20 hover:border-[#C5A059] transition-colors mb-5 group">
+                          <span className="text-sm font-semibold text-[#8B7355] group-hover:text-[#2D1A11] transition-colors">Menunggu Pembayaran</span>
+                          <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">1</span>
+                        </a>
+
+                        {/* Grid 4 Icon Status */}
+                        <div className="grid grid-cols-4 gap-2 mb-6">
+                          <a href="#" className="flex flex-col items-center gap-2 group">
+                            <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white flex items-center justify-center transition-all duration-300">
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </div>
+                            <span className="text-[10px] text-center font-medium leading-tight text-[#8B7355] group-hover:text-[#2D1A11]">Menunggu<br/>Konfirmasi</span>
+                          </a>
+                          <a href="#" className="flex flex-col items-center gap-2 group">
+                            <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white flex items-center justify-center transition-all duration-300">
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            </div>
+                            <span className="text-[10px] text-center font-medium leading-tight text-[#8B7355] group-hover:text-[#2D1A11]">Pesanan<br/>Diproses</span>
+                          </a>
+                          <a href="#" className="flex flex-col items-center gap-2 group">
+                            <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white flex items-center justify-center transition-all duration-300">
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            </div>
+                            <span className="text-[10px] text-center font-medium leading-tight text-[#8B7355] group-hover:text-[#2D1A11]">Sedang<br/>Dikirim</span>
+                          </a>
+                          <a href="#" className="flex flex-col items-center gap-2 group">
+                            <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white flex items-center justify-center transition-all duration-300">
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </div>
+                            <span className="text-[10px] text-center font-medium leading-tight text-[#8B7355] group-hover:text-[#2D1A11]">Sampai<br/>Tujuan</span>
+                          </a>
+                        </div>
+
+                        <div className="w-full h-[1px] bg-[#C5A059]/10 my-4"></div>
+
+                        {/* Bagian Penjualan (Opsional - Bisa dihapus jika web Anda bukan marketplace) */}
+                        <div className="mb-2">
+                          <h4 className="font-bold text-[#2D1A11] text-base mb-2">Penjualan</h4>
+                          <p className="text-xs text-[#8B7355] leading-relaxed mb-4">Cek pesanan yang masuk dan perkembangan tokomu secara rutin di satu tempat.</p>
+                          <a href="#" className="block w-full py-2.5 text-center text-sm font-bold text-[#C5A059] bg-transparent border border-[#C5A059] hover:bg-[#C5A059] hover:text-white rounded-lg transition-all duration-300">
+                            Masuk ke Dashboard Seller
+                          </a>
+                        </div>
+
+                      </div>
+                    ) : (
+                      <div className="p-5 flex flex-col items-center justify-center h-[250px] text-center">
+                        <div className="w-12 h-12 rounded-full bg-[#C5A059]/10 text-[#C5A059] flex items-center justify-center mb-3">
+                          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <p className="text-sm font-bold text-[#2D1A11] mb-1">Coming Soon</p>
+                        <p className="text-xs text-[#8B7355]">Tunggu update terbaru dari kami ya!</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer Dropdown */}
+                  <div className="p-4 bg-[#F8F3E9] border-t border-[#C5A059]/20 flex justify-between items-center mt-auto">
+                    <a href="#" className="text-[11px] font-bold text-[#8B7355] hover:text-[#2D1A11] transition-colors">Tandai semua dibaca</a>
+                    <a href="#" className="text-[11px] font-bold text-[#C5A059] hover:text-[#2D1A11] transition-colors">Lihat selengkapnya</a>
+                  </div>
+
+                </div>
+              )}
+            </div>
+          
 
             <div className="flex items-center gap-6">
               

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminService } from '@/services/AdminService';
 import { useRouter } from 'next/navigation';
-// 1. Import AlertService
 import { AlertService } from '@/services/AlertService';
 
 export default function Pesanan() {
@@ -10,6 +9,10 @@ export default function Pesanan() {
   const [search, setSearch] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State untuk mengontrol Dropdown mana yang sedang terbuka
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
   const goToDetail = (orderId: string) => {
     router.push(`/admin/pesanan/${orderId}`);
   };
@@ -22,39 +25,39 @@ export default function Pesanan() {
         setOrders(data);
       } catch (error: any) {
         console.error("Gagal mengambil data pesanan:", error);
-        // 2. Gunakan AlertService untuk error fetch
         AlertService.error("Gagal Memuat Data", "Tidak dapat mengambil data pesanan dari server.");
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchOrders();
   }, []);
 
-  // 3. Ubah menjadi async untuk mengakomodasi pop-up konfirmasi
-  const advanceStatus = async (id: string) => {
-    // 4. Tambahkan pop-up konfirmasi
+  const handleStatusChange = async (id: string, newStatus: string) => {
     const isConfirmed = await AlertService.confirm(
-      "Majukan Status Pesanan?",
-      "Apakah Anda yakin pesanan ini sudah masuk ke tahap selanjutnya?",
-      "YA, PROSES!"
+      "Ubah Status Pesanan?",
+      `Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus.toUpperCase()}?`,
+      "Ya, Ubah!"
     );
 
     if (isConfirmed) {
-      setOrders(orders.map(o => {
-        if (o.id === id) {
-          let nextStatus = o.status;
-          if (o.status === 'pending') nextStatus = 'diproses';
-          else if (o.status === 'diproses') nextStatus = 'dikirim';
-          else if (o.status === 'dikirim') nextStatus = 'selesai';
-          return { ...o, status: nextStatus };
-        }
-        return o;
-      }));
+      try {
+        // 1. Simpan ke database menggunakan lib/api bawaan Anda
+        await AdminService.updateOrderStatus(id, newStatus);
 
-      // 5. Tambahkan notifikasi sukses (nanti bisa dipindah setelah API update sukses)
-      AlertService.success("Berhasil", "Status pesanan berhasil diperbarui.");
+        // 2. Ubah UI setelah berhasil
+        setOrders(orders.map(o => {
+          if (o.id === id) {
+            return { ...o, status: newStatus };
+          }
+          return o;
+        }));
+
+        AlertService.success("Berhasil", "Status pesanan berhasil disimpan ke database.");
+      } catch (error) {
+        console.error("Gagal mengubah status:", error);
+        AlertService.error("Gagal", "Gagal menyimpan perubahan ke server. Coba lagi.");
+      }
     }
   };
 
@@ -68,12 +71,16 @@ export default function Pesanan() {
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
   const getStatusStyle = (status: string) => {
-    switch(status?.toLowerCase()) {
-      case 'pending': return 'bg-amber-50/80 text-amber-600 border-amber-200';
-      case 'diproses': return 'bg-blue-50/80 text-blue-600 border-blue-200';
-      case 'dikirim': return 'bg-purple-50/80 text-purple-600 border-purple-200';
-      case 'selesai': return 'bg-emerald-50/80 text-emerald-600 border-emerald-200';
-      default: return 'bg-gray-50/80 text-gray-600 border-gray-200';
+    const normalizedStatus = status?.toLowerCase() || "pending";
+    switch(normalizedStatus) {
+      case 'pending': return 'bg-amber-50 text-amber-600 border-amber-200';
+      case 'confirmed': return 'bg-sky-50 text-sky-600 border-sky-200';
+      case 'processing': return 'bg-indigo-50 text-indigo-600 border-indigo-200';
+      case 'shipped': return 'bg-blue-50 text-blue-600 border-blue-200';
+      case 'delivered': return 'bg-teal-50 text-teal-600 border-teal-200';
+      case 'completed': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+      case 'cancelled': return 'bg-rose-50 text-rose-600 border-rose-200';
+      default: return 'bg-gray-50 text-gray-600 border-gray-200';
     }
   };
 
@@ -82,6 +89,8 @@ export default function Pesanan() {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
+
+  const statusOptions = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'];
 
   if (isLoading) {
     return (
@@ -94,7 +103,7 @@ export default function Pesanan() {
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
       
-      {/* ================= HEADER SECTION ================= */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2">
         <div>
           <p className="text-[#D9B35A] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Manajemen Transaksi</p>
@@ -107,9 +116,7 @@ export default function Pesanan() {
         
         <div className="relative group w-full md:w-80">
           <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-[#D9B35A]">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           </span>
           <input 
             type="text" 
@@ -121,21 +128,19 @@ export default function Pesanan() {
         </div>
       </div>
 
-      {/* ================= MAIN DATA SECTION ================= */}
+      {/* MAIN DATA SECTION */}
       <div className="relative w-full pb-10 pt-2">
-        <div 
-          className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}
-        ></div>
+        <div className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}></div>
 
-        <div className="overflow-x-auto px-4 -mx-4">
+        {/* 👇 BANTALAN BAWAH DIPERBESAR (pb-64) AGAR DROPDOWN PALING BAWAH TIDAK TERPOTONG 👇 */}
+        <div className="overflow-x-auto px-4 -mx-4 pb-64"> 
           <table className="w-full min-w-[1100px] text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
             
             <thead className="text-[#D9B35A] uppercase text-[11px] font-bold tracking-[0.25em] shadow-xl">
                <tr className="bg-[#2D1A11] shadow-[0_10px_20px_rgba(45,26,17,0.2)]" style={{ backgroundImage: `linear-gradient(rgba(45, 26, 17, 0.95), rgba(45, 26, 17, 0.95)), url('${brownBatikUrl}')`, backgroundSize: '250px', backgroundRepeat: 'repeat' }}>
                  <th className="py-5 pl-8 pr-4 text-left rounded-l-2xl w-[20%] border-y border-l border-[#D9B35A]/20">ID & Tanggal</th>
                  <th className="py-5 px-4 text-left w-[25%] border-y border-[#D9B35A]/20">Informasi Pelanggan</th>
-                 <th className="py-5 px-4 text-right w-[20%] border-y border-[#D9B35A]/20">Pembayaran</th>
+                 <th className="py-5 px-4 text-right w-[20%] border-y border-[#D9B35A]/20">Pembayaran & Resi</th>
                  <th className="py-5 px-4 text-center w-[15%] border-y border-[#D9B35A]/20">Status</th>
                  <th className="py-5 pr-8 pl-4 text-right rounded-r-2xl w-[20%] border-y border-r border-[#D9B35A]/20">Aksi Pesanan</th>
                </tr>
@@ -147,27 +152,25 @@ export default function Pesanan() {
                   const userName = o.user?.name || "Pelanggan Guest";
                   const userEmail = o.user?.email || "-";
                   const itemsCount = o.details ? o.details.length : 0;
+                  const currentStatus = o.status?.toLowerCase() || 'pending';
+                  
+                  // Deteksi apakah dropdown di baris ini sedang dibuka
+                  const isDropdownOpen = openDropdownId === o.id;
                   
                   return (
-                    <tr key={o.id} className="group transition-all duration-300 hover:-translate-y-1.5">
-
-                      <td className="py-5 pl-8 pr-4 text-left bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
+                    // 👇 KUNCI 1: Jika dropdown terbuka, paksa baris ini jadi z-index tertinggi (99) 👇
+                    <tr key={o.id} className={`group transition-all duration-300 ${isDropdownOpen ? 'relative z-[99]' : 'relative z-10 hover:-translate-y-1.5'}`}>
+                      
+                      <td className="py-5 pl-8 pr-4 text-left bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
                         <div className="flex flex-col">
-                          <span className="font-bold text-[#2D1A11] text-base block max-w-[150px] truncate" title={o.id}>
-                            {String(o.id).split('-')[0]}-...
-                          </span>
-                          <span className="text-[#8B7355] text-xs font-medium mt-0.5 flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            {formatDate(o.created_at)}
-                          </span>
+                          <span className="font-bold text-[#2D1A11] text-base block max-w-[150px] truncate" title={o.id}>{String(o.id).split('-')[0]}-...</span>
+                          <span className="text-[#8B7355] text-xs font-medium mt-0.5 flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>{formatDate(o.created_at)}</span>
                         </div>
                       </td>
 
-                      <td className="py-5 px-4 text-left bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
+                      <td className="py-5 px-4 text-left bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#FFFDF5] border border-[#D9B35A]/30 flex items-center justify-center text-[#D9B35A] font-bold shadow-sm shrink-0">
-                            {userName.charAt(0).toUpperCase()}
-                          </div>
+                          <div className="w-10 h-10 rounded-full bg-[#FFFDF5] border border-[#D9B35A]/30 flex items-center justify-center text-[#D9B35A] font-bold shadow-sm shrink-0">{userName.charAt(0).toUpperCase()}</div>
                           <div>
                             <span className="font-bold text-[#2D1A11] text-sm block">{userName}</span>
                             <span className="text-[#8B7355] text-[11px] block">{userEmail}</span>
@@ -175,38 +178,69 @@ export default function Pesanan() {
                         </div>
                       </td>
 
-                      <td className="py-5 px-4 text-right bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
+                      <td className="py-5 px-4 text-right bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
                         <div className="flex flex-col items-end">
-                          <span className="font-black text-[#D9B35A] text-lg block">
-                            Rp {Number(o.total_amount).toLocaleString('id-ID')}
-                          </span>
-                          <span className="text-[#8B7355] text-[10px] font-bold tracking-widest mt-0.5 block uppercase">
-                            {o.payment_method} • {itemsCount} Item
-                          </span>
+                          <span className="font-black text-[#D9B35A] text-lg block">Rp {Number(o.total_amount).toLocaleString('id-ID')}</span>
+                          <span className="text-[#8B7355] text-[10px] font-bold tracking-widest mt-0.5 block uppercase">{o.payment_method} • {itemsCount} Item</span>
+                          {o.resi && (
+                            <span className="mt-1.5 inline-block bg-[#D9B35A]/10 text-[#D9B35A] border border-[#D9B35A]/30 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                              RESI: {o.resi}
+                            </span>
+                          )}
                         </div>
                       </td>
                       
-                      <td className="py-5 px-4 text-center bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
-                          <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-bold border shadow-sm ${getStatusStyle(o.status)}`}>
-                            {o.status === 'pending' && <span className="w-1.5 h-1.5 bg-amber-400 rounded-full mr-2 animate-pulse"></span>}
-                            {o.status || 'Pending'}
+                      {/* 👇 KUNCI 2: Pastikan sel ini juga memiliki z-index tinggi jika dropdown terbuka 👇 */}
+                      <td className={`py-5 px-4 text-center bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)] ${isDropdownOpen ? 'relative z-[100]' : ''}`}>
+                          
+                          <div className="relative inline-block w-full max-w-[140px] text-left">
+                            <button 
+                              type="button"
+                              onClick={() => setOpenDropdownId(isDropdownOpen ? null : o.id)}
+                              className={`w-full flex items-center justify-between px-4 py-2 rounded-full text-[10px] uppercase tracking-widest font-bold border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#D9B35A]/50 ${getStatusStyle(currentStatus)}`}
+                            >
+                              <span>{currentStatus}</span>
+                              <svg className={`w-3 h-3 transition-transform duration-200 ml-2 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isDropdownOpen && (
+                              <>
+                                {/* Overlay transparan untuk klik di luar dropdown */}
+                                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
+                                
+                                <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-[#D9B35A]/30 rounded-xl shadow-2xl z-50 overflow-hidden py-1 origin-top">
+                                  {statusOptions.map((status) => (
+                                    <button
+                                      key={status}
+                                      onClick={() => {
+                                        handleStatusChange(o.id, status);
+                                        setOpenDropdownId(null);
+                                      }}
+                                      className={`block w-full text-left px-5 py-3 text-[11px] font-bold tracking-widest uppercase transition-colors ${
+                                        currentStatus === status 
+                                          ? 'bg-[#D9B35A]/10 text-[#D9B35A]' 
+                                          : 'text-[#2D1A11] hover:bg-[#FFFDF5] hover:text-[#D9B35A]'
+                                      }`}
+                                    >
+                                      {status}
+                                    </button>
+                                  ))}
+                                </div>
+                              </>
+                            )}
                           </div>
+
                       </td>
                       
-                      <td className="py-5 pr-8 pl-4 bg-white/60 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow">
+                      <td className="py-5 pr-8 pl-4 bg-white/60 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
                         <div className="flex justify-end items-center gap-2">
-                          <button className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-[#D9B35A] hover:border-[#D9B35A] transition-all flex items-center justify-center shadow-sm">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                          <button 
+                            onClick={() => goToDetail(o.id)} 
+                            className="bg-white text-[#D9B35A] border border-[#D9B35A] px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all shadow-sm whitespace-nowrap"
+                          >
+                            Detail Pesanan
                           </button>
-                          
-                          {o.status !== 'selesai' && (
-                            <button 
-                              onClick={() => goToDetail(o.id)} 
-                              className="bg-[#D9B35A] text-white px-4 py-2 rounded font-bold text-xs uppercase tracking-widest hover:bg-[#c29e4b] transition-colors"
-                            >
-                              Proses
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -214,7 +248,7 @@ export default function Pesanan() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-24 text-center bg-white/60 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08),inner_0_2px_4px_rgba(255,255,255,0.8)] border border-white/40">
+                  <td colSpan={5} className="py-24 text-center bg-white/60 backdrop-blur-xl rounded-3xl shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)] border border-white/40">
                     <div className="flex flex-col items-center justify-center">
                       <span className="text-5xl mb-4 opacity-40 text-[#8B7355]">𓍯</span>
                       <p className="text-[#2D1A11] font-bold text-xl font-serif">Tidak Ada Pesanan</p>
@@ -224,7 +258,6 @@ export default function Pesanan() {
                 </tr>
               )}
             </tbody>
-
           </table>
         </div>
       </div>

@@ -45,23 +45,37 @@ export const OrderService = {
     document.body.appendChild(a);
     a.click();
     
-    
     a.remove();
     window.URL.revokeObjectURL(url);
   },
 
-  getMyOrders: async () => {
-     return await api<any>("/my-orders", {
-          method: "GET",
+  // 1. Menggunakan versi temanmu untuk mendukung filter tanggal di Backend
+  getMyOrders: async (date?: string) => {
+      const queryParam = date ? `?date=${date}` : "";
+      
+      return await api<any>(`/my-orders${queryParam}`, {
+        method: "GET",
       });
   },
 
-  // Tambah di OrderService.ts
+  // 2. Mempertahankan Kodemu (Jaga-jaga jika ada komponen UI yang masih memakai ini)
   confirmReceived: async (orderId: string) => {
     return await api<any>(`/my-orders/${orderId}/confirm`, {
       method: "PUT",
     });
   },
 
+  // 3. Mempertahankan Kode Temanmu (Sesuai dengan fungsi backend confirmDelivery)
+  confirmDelivery: async (id: string) => {
+    return await api<any>(`/my-orders/${id}/complete`, {
+      method: "POST", 
+    });
+  },
   
+  updateResi: async (orderId: string, resi: string) => {
+    return await api<any>(`/admin/orders/${orderId}/resi`, {
+      method: "PUT",
+      body: JSON.stringify({ resi }),
+    });
+  },
 };

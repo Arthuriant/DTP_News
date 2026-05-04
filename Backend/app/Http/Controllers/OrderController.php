@@ -157,16 +157,35 @@ class OrderController extends Controller
         return response()->json($orders, 200);
     }
 
-    public function getMyOrders()
+    public function getMyOrders(Request $request)
     {
         $user = auth('sanctum')->user();
-        $orders = Order::with(['details', 'payment'])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        
+        // 1. Gabungkan relasi milikmu ('payment') dan milik temanmu ('details.product')
+        $query = Order::with(['details.product', 'payment']) 
+                      ->where('user_id', $user->id);
+        
+        // 2. Pertahankan fitur filter tanggal milik temanmu
+        if ($request->filled('date')) {
+            $query->whereDate('order_date', $request->date);
+        }
+        
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        
+        // 3. Pertahankan logika penampilan URL gambar penuh milik temanmu
+        $orders->transform(function ($order) {
+            foreach ($order->details as $detail) {
+                if ($detail->product && $detail->product->img) {
+                    $detail->product->img_full_url = asset('storage/' . $detail->product->img);
+                }
+            }
+            return $order;
+        });
+        
         return response()->json($orders, 200);
     }
 
+    // 4. Pertahankan fitur Webhook Xendit milikmu
     public function webhook(Request $request)
     {
         // Verifikasi token webhook dari Xendit
@@ -200,6 +219,7 @@ class OrderController extends Controller
         } elseif ($status === 'EXPIRED') {
             $order->update(['status' => 'cancelled']);
 
+            // Update payment juga
             Payment::where('order_id', $order->id)
                 ->update(['status' => 'failed']);
         }
@@ -207,4 +227,71 @@ class OrderController extends Controller
         return response()->json(['message' => 'Webhook processed']);
     }
 
+    // 5. Pertahankan fitur Confirm Delivery milik temanmu
+    public function confirmDelivery($id)
+    {
+        $user = auth('sanctum')->user();
+        
+        $order = Order::where('id', $id)
+                      ->where('user_id', $user->id)
+                      ->firstOrFail();
+        
+        $order->status = 'completed'; 
+        $order->save();
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dikonfirmasi selesai', 
+            'data' => $order
+        ], 200);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            // Validasi agar hanya 7 status ini yang boleh masuk
+            'status' => 'required|string|in:pending,confirmed,processing,shipped,delivered,completed,cancelled'
+        ]);
+
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        $order->status = $request->status;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Status pesanan berhasil diperbarui', 
+            'data' => $order
+        ], 200);
+    }
+
+    // 2. Fungsi untuk menyimpan Nomor Resi dari Komerce/RajaOngkir
+    public function updateResi(Request $request, $id)
+    {
+        $request->validate([
+            'resi' => 'required|string'
+        ]);
+
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        $order->resi = $request->resi;
+        
+        // Opsional: Otomatis ubah status jadi "shipped" jika resi diinput
+        if ($order->status === 'processing') {
+            $order->status = 'shipped';
+        }
+        
+        $order->save();
+
+        return response()->json([
+            'message' => 'Nomor resi berhasil disimpan', 
+            'data' => $order
+        ], 200);
+    }
 }

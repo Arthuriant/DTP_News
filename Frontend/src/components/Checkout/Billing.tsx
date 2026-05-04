@@ -11,8 +11,9 @@ const Billing = ({ formData, handleInputChange }: BillingProps) => {
 
   return (
     <div className="mt-9">
+      {/* Judul diubah agar lebih sesuai dengan fungsinya */}
       <h2 className="font-bold text-[#2D1A11] text-xl sm:text-2xl mb-5.5 flex items-center gap-2">
-        <span className="text-[#D9B35A]">✧</span> Detail Pengiriman
+        <span className="text-[#D9B35A]">✧</span> Informasi Kontak
       </h2>
 
       <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5">
@@ -21,11 +22,11 @@ const Billing = ({ formData, handleInputChange }: BillingProps) => {
         <div className="flex flex-col lg:flex-row gap-5 sm:gap-8 mb-5">
           <div className="w-full">
             <label htmlFor="firstName" className={labelClass}>Nama Depan <span className="text-rose-500">*</span></label>
-            <input type="text" name="firstName" id="firstName" required value={formData.firstName} onChange={handleInputChange} placeholder="John" className={inputClass} />
+            <input type="text" name="firstName" id="firstName" required value={formData.firstName} onChange={handleInputChange} placeholder="Cth: Bayu" className={inputClass} />
           </div>
           <div className="w-full">
             <label htmlFor="lastName" className={labelClass}>Nama Belakang <span className="text-rose-500">*</span></label>
-            <input type="text" name="lastName" id="lastName" required value={formData.lastName} onChange={handleInputChange} placeholder="Doe" className={inputClass} />
+            <input type="text" name="lastName" id="lastName" required value={formData.lastName} onChange={handleInputChange} placeholder="Cth: Putra" className={inputClass} />
           </div>
         </div>
 
@@ -35,22 +36,11 @@ const Billing = ({ formData, handleInputChange }: BillingProps) => {
           <input type="email" name="email" id="email" required value={formData.email} onChange={handleInputChange} placeholder="contoh@email.com" className={inputClass} />
         </div>
 
-        {/* Alamat */}
-        <div className="mb-5">
-          <label htmlFor="address" className={labelClass}>Alamat Lengkap <span className="text-rose-500">*</span></label>
-          <input type="text" name="address" id="address" required value={formData.address} onChange={handleInputChange} placeholder="Nama jalan, nomor rumah, RT/RW" className={inputClass} />
-        </div>
-
-        {/* Kota */}
-        <div className="mb-5">
-          <label htmlFor="town" className={labelClass}>Kota / Kabupaten <span className="text-rose-500">*</span></label>
-          <input type="text" name="town" id="town" required value={formData.town} onChange={handleInputChange} placeholder="Contoh: Bandung" className={inputClass} />
-        </div>
-
         {/* Telepon */}
         <div className="mb-5">
           <label htmlFor="phone" className={labelClass}>Nomor Telepon / WhatsApp <span className="text-rose-500">*</span></label>
           <input type="text" name="phone" id="phone" required value={formData.phone} onChange={handleInputChange} placeholder="08123456789" className={inputClass} />
+          <p className="text-xs text-[#8B7355] mt-2 italic">*Kami akan mengirimkan notifikasi resi dan tagihan ke nomor ini.</p>
         </div>
 
       </div>
