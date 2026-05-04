@@ -5,8 +5,10 @@ import AddressTab from "./AddressTab";
 import BiodataTab from "./BiodataTab";
 import { AuthService } from "@/services/AuthService";
 import { ProfileService } from "@/services/ProfileService";
+import { useSearchParams } from "next/navigation";
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams(); // ← tambah ini
   const [activeTab, setActiveTab] = useState("biodata");
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -14,18 +16,25 @@ export default function ProfilePage() {
 
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
 
-  useEffect(() => {
+  
+  // useEffect 1 - untuk tab dari query param
+    useEffect(() => {
+      const tab = searchParams.get("tab");
+      if (tab === "alamat") {
+        setActiveTab("alamat");
+      }
+    }, [searchParams]);
+
+    // useEffect 2 - untuk load data profile
+    useEffect(() => {
       const loadAllData = async () => {
         try {
-
           const [userData, profileData] = await Promise.all([
             AuthService.getUser(),
             ProfileService.getProfile()
           ]);
-
           if (userData) setUser(userData);
           if (profileData) setProfile(profileData);
-
         } catch (err) {
           console.error("Gagal mengambil data:", err);
         } finally {

@@ -61,19 +61,23 @@ const Cart = () => {
         const res = await CartService.getCart();
         const dbItems = res?.items || res || []; 
         
-        const formattedItems = dbItems.map((dbItem: any) => ({
-          id: dbItem.id, 
+       const formattedItems = dbItems.map((dbItem: any) => {
+        console.log("Cart item:", dbItem);
+        console.log("image_preview:", dbItem.image_preview);
+        return {
+          id: dbItem.id,
           product_id: dbItem.product_id,
           title: `Kustom ${dbItem.product?.name || 'Produk'}`,
           price: dbItem.price,
           discountedPrice: dbItem.price,
           quantity: dbItem.qty,
           imgs: {
-            thumbnails: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""],
-            previews: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""]
+            thumbnails: [dbItem.image_preview || dbItem.product?.img || ""],
+            previews:   [dbItem.image_preview || dbItem.product?.img || ""],
           },
           customizations: dbItem.custom_configuration
-        }));
+        };
+      });
 
         dispatch(setCartItems(formattedItems));
 

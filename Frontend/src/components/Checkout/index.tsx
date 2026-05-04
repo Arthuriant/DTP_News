@@ -5,16 +5,12 @@ import { useAppSelector } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import { clearCart } from "@/redux/features/cart-slice";
 import { OrderService } from "@/services/OrderService";
+import Link from "next/link";
 
 import Breadcrumb from "../Common/Breadcrumb";
 import Login from "./Login";
 import Shipping from "./Shipping";
-<<<<<<< HEAD
 import Billing from "./Billing";
-=======
-import PaymentMethod from "./PaymentMethod";
-import Coupon from "./Coupon";
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
 
 const Checkout = () => {
   const router = useRouter();
@@ -23,7 +19,6 @@ const Checkout = () => {
   const cartItems = useAppSelector((state) => state.cartReducer.items);
   const [isProcessing, setIsProcessing] = useState(false);
 
-<<<<<<< HEAD
   // --- STATE PROFILE & ALAMAT ---
   const [profile, setProfile] = useState<any>(null);
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -49,19 +44,7 @@ const Checkout = () => {
     phone: "",
   });
 
-=======
-  // 👇 MOCKUP DATA USER LOGIN (Nanti tarik data ini dari Redux / Auth Context Anda) 👇
-  const loggedInUser = {
-    name: "Customer Biasa",
-    email: "customer@uptoyou.com",
-    phone: "08123456789"
-  };
-
-  // --- STATE FORMS ---
-  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer BCA");
-  const [shippingInfo, setShippingInfo] = useState<any>(null); // Di-reset ke null agar validasi berjalan
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(""); 
 
   // --- FETCH PROFILE & ALAMAT ---
   useEffect(() => {
@@ -131,7 +114,6 @@ const Checkout = () => {
   }, []);
 
   // --- HANDLERS ---
-<<<<<<< HEAD
   const handleBillingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBillingData({ ...billingData, [e.target.name]: e.target.value });
   };
@@ -144,29 +126,13 @@ const Checkout = () => {
       town:    address.region || '',
       phone:   address.phone_number || prev.phone,
     }));
-=======
-  const handleApplyCoupon = () => {
-    if (couponCode === "PROMOTAS") {
-      setDiscountAmount(50000);
-    } else {
-      alert("Kode kupon tidak valid atau sudah kedaluwarsa.");
-      setDiscountAmount(0);
-      setCouponCode("");
-    }
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
   };
 
 
   // --- PERHITUNGAN HARGA ---
-<<<<<<< HEAD
   const subtotal    = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
   const shippingCost = shippingInfo?.cost ?? 0;
-  const total        = subtotal + shippingCost ;
-=======
-  const subtotal = cartItems.reduce((acc, item) => acc + (Number(item.discountedPrice) * Number(item.quantity || 1)), 0);
-  const shippingCost = shippingInfo?.cost ?? 0;
-  const total = subtotal + shippingCost - discountAmount;
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
+  const total        = subtotal + shippingCost;
 
   // --- SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,33 +143,23 @@ const Checkout = () => {
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Validasi diaktifkan kembali: Wajib pilih ongkir dari Shipping.tsx
-    if (!shippingInfo) {
-      alert("Pilih layanan pengiriman terlebih dahulu!");
-      return;
-    }
-
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
     setIsProcessing(true);
 
     try {
       const fullAddress = `${billingData.address}, ${billingData.town} | Catatan: ${notes || '-'}`;
 
       const response = await OrderService.checkout({
-        shipping_address: fullAddress,
-        payment_method:   "xendit_invoice",
-        shipping_cost:    shippingInfo.cost,
-        shipping_courier: shippingInfo.courier,
-        shipping_service: shippingInfo.service,
-        origin_id:        4816,
-        destination_id:   shippingInfo.destination_id,
-        // Data diambil langsung dari state user, bukan dari form input lagi
-        customer_name:    loggedInUser.name,
-        customer_email:   loggedInUser.email,
-        customer_phone:   loggedInUser.phone,
-      });
+      shipping_address: fullAddress,
+      payment_method:   "xendit_invoice", // ← fixed
+      shipping_cost:    shippingInfo.cost,
+      shipping_courier: shippingInfo.courier,
+      shipping_service: shippingInfo.service,
+      origin_id:        4816,
+      destination_id:   shippingInfo.destination_id,
+      customer_name:    `${billingData.firstName} ${billingData.lastName}`,
+      customer_email:   billingData.email,
+      customer_phone:   billingData.phone,
+    });
 
       dispatch(clearCart());
       window.location.href = response.invoice_url;
@@ -225,7 +181,6 @@ const Checkout = () => {
               
               <div className="lg:max-w-[670px] w-full">
                 <Login />
-<<<<<<< HEAD
 
                 {/* PILIH ALAMAT */}
                 {addresses.length > 0 && (
@@ -265,16 +220,21 @@ const Checkout = () => {
                           </div>
                         </div>
                       ))}
+                      {/* ✅ Tombol Tambah Alamat Baru */}
+                      <Link
+                        href="/Profile?tab=alamat"
+                        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-dashed border-[#D9B35A]/50 text-[#D9B35A] text-sm font-bold hover:bg-[#D9B35A]/10 transition-all duration-200 mt-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Alamat Baru
+                      </Link>
                     </div>
                   </div>
                 )}
 
                 <Billing formData={billingData} handleInputChange={handleBillingChange} />
-=======
-                
-                {/* Billing dihapus, Shipping dimunculkan */}
-                <Shipping onShippingChange={setShippingInfo} />
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
 
                 <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5 mt-7.5">
                   <div>
@@ -326,8 +286,8 @@ const Checkout = () => {
                       <p className="text-[#2D1A11] font-medium text-sm">
                         Biaya Pengiriman
                         {shippingInfo && (
-                          <span className="text-[#8B7355] text-xs block mt-1 uppercase tracking-wider font-bold">
-                            {shippingInfo.courier} - {shippingInfo.service}
+                          <span className="text-[#8B7355] text-xs block">
+                            {shippingInfo.courier.toUpperCase()} - {shippingInfo.service}
                           </span>
                         )}
                       </p>
@@ -343,14 +303,9 @@ const Checkout = () => {
                   </div>
                 </div>
 
-
                 <button
                   type="submit"
-<<<<<<< HEAD
                   disabled={isProcessing || cartItems.length === 0}
-=======
-                  disabled={isProcessing || cartItems.length === 0 || !shippingInfo}
->>>>>>> 61549e5f0e20a5a7dc7cd636673a892e34b7de84
                   className={`w-full flex justify-center font-bold py-[15px] px-6 rounded-full ease-out duration-200 mt-8 uppercase tracking-widest transition-all ${
                     isProcessing || cartItems.length === 0
                       ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none"
