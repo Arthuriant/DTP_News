@@ -436,122 +436,156 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
-const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
-  const imgs = container.querySelectorAll<HTMLImageElement>('img');
-  await Promise.all(
-    Array.from(imgs).map((img) => {
-      return new Promise<void>((resolve) => {
-        if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
-          return resolve();
-        }
+  const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
+    const imgs = container.querySelectorAll<HTMLImageElement>('img');
+    await Promise.all(
+      Array.from(imgs).map((img) => {
+        return new Promise<void>((resolve) => {
+          if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
+            return resolve();
+          }
 
-        const tempImg = new Image();
-        tempImg.crossOrigin = 'anonymous';
+          const tempImg = new Image();
+          tempImg.crossOrigin = 'anonymous';
 
-        tempImg.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = tempImg.naturalWidth;
-          canvas.height = tempImg.naturalHeight;
-          canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
-          img.src = canvas.toDataURL('image/png'); 
-          resolve();
-        };
+          tempImg.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = tempImg.naturalWidth;
+            canvas.height = tempImg.naturalHeight;
+            canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
+            img.src = canvas.toDataURL('image/png'); 
+            resolve();
+          };
 
-        tempImg.onerror = () => resolve();
-        tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
-      });
-    })
-  );
-};
-
-  const handleAddToCart = async () => {
-  setIsCapturing(true);
-
-  const previousView = activeView;
-  const previousHighlightedPart = highlightedPartId;
-
-  // ✅ Gabungkan semua state reset dalam SATU flushSync
-  flushSync(() => {
-    setActiveView("front");
-    setHighlightedPartId(null);  // reset highlight sekaligus
-    setShowFullPreview(true);    // pastikan semua part visible (tidak ada yang dim)
-  });
-
-  // Tunggu browser selesai render
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  const finalPrice = calculateTotalPrice();
-  const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
-  const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
-  const customizationsData = {
-    size: sizeLabel,
-    shapes: shapeSelections,
-    textures: textureSelections,
-    colors: selections,
-    visibleParts: visibleParts
+          tempImg.onerror = () => resolve();
+          tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+        });
+      })
+    );
   };
 
-  let base64Image = null;
+  const handleAddToCart = async () => {
+    setIsCapturing(true);
 
-  if (screenshotRef.current) {
-    try {
-      await preloadImagesToBase64(screenshotRef.current);
+    const previousView = activeView;
+    const previousHighlightedPart = highlightedPartId;
 
-      const canvas = await html2canvas(screenshotRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        allowTaint: false,
-        imageTimeout: 5000,
-      });
-
-      base64Image = canvas.toDataURL("image/png");
-    } catch (error) {
-      console.error("Gagal screenshot:", error);
-    }
-  }
-
-  // ✅ Kembalikan SEMUA state ke kondisi semula
-  flushSync(() => {
-    setActiveView(previousView);
-    setHighlightedPartId(previousHighlightedPart);
-    setShowFullPreview(false);
-  });
-
-  try {
-    const res = await CartService.addToCart({
-      product_id: product.id,
-      price: finalPrice,
-      custom_configuration: customizationsData,
-      image_preview: base64Image
+    flushSync(() => {
+      setActiveView("front");
+      setHighlightedPartId(null);  
+      setShowFullPreview(true);  
     });
 
-    const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
+    await new Promise((resolve) => setTimeout(resolve, 600));
 
-    dispatch(
-      addItemToCart({
-        id: realDbId,
-        title: `Kustom ${product.name}`,
+    const finalPrice = calculateTotalPrice();
+    const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
+    const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
+
+    const mappedPartsPayload = product.parts.map((part: any) => {
+      const activeShapeId = shapeSelections[part.id] || part.id;
+      const activeVariant = part.variants?.find((v: any) => v.id === activeShapeId);
+      
+      const currentTextures = activeVariant?.textures || part.textures || [];
+      const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
+      const activeTexture = currentTextures.find((t: any) => t.id === activeTextureId) || currentTextures[0];
+
+      return {
+        id: part.id,
+        name: part.name,
+        part_code: part.part_code || "",
+        variants: activeVariant ? [
+          {
+            id: activeVariant.id,
+            name: activeVariant.name,
+            price: activeVariant.price || 0,
+            variant_code: activeVariant.variant_code || "",
+            textures: activeTexture ? [
+              {
+                id: activeTexture.id,
+                name: activeTexture.name,
+                price: activeTexture.price || 0,
+                img_top: activeTexture.img_top || "",
+                img_back: activeTexture.img_back || "",
+                img_front: activeTexture.img_front || "",
+                img_thumb: activeTexture.thumb || activeTexture.img_thumb || "", 
+                texture_code: activeTexture.texture_code || ""
+              }
+            ] : []
+          }
+        ] : []
+      };
+    });
+
+    const customizationsData: any = {
+      size: sizeLabel,
+      parts: mappedPartsPayload,
+      colors: selections,
+      visibleParts: visibleParts
+    };
+
+    let base64Image = null;
+
+    if (screenshotRef.current) {
+      try {
+        await preloadImagesToBase64(screenshotRef.current);
+
+        const canvas = await html2canvas(screenshotRef.current, {
+          backgroundColor: null,
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: false,
+          imageTimeout: 5000,
+        });
+
+        base64Image = canvas.toDataURL("image/png");
+        customizationsData.image_preview = base64Image;
+      } catch (error) {
+        console.error("Gagal screenshot:", error);
+      }
+    }
+
+    flushSync(() => {
+      setActiveView(previousView);
+      setHighlightedPartId(previousHighlightedPart);
+      setShowFullPreview(false);
+    });
+
+    try {
+      const res = await CartService.addToCart({
+        product_id: product.id,
         price: finalPrice,
-        discountedPrice: finalPrice,
-        quantity: 1,
-        imgs: {
-          previews: [base64Image || product.gallery?.[0] || ""],
-          thumbnails: [base64Image || product.gallery?.[0] || ""]
-        },
-        customizations: customizationsData
-      } as any)
-    );
+        custom_configuration: customizationsData, // Sekarang berisi array "parts"
+        image_preview: base64Image
+      });
 
-    setIsCapturing(false);
-    openCartModal();
+      const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
 
-  } catch (error) {
-    console.error("Terjadi kesalahan jaringan", error);
-    setIsCapturing(false);
-  }
-};
+      dispatch(
+        addItemToCart({
+          id: realDbId,
+          title: `Kustom ${product.name}`,
+          price: finalPrice,
+          discountedPrice: finalPrice,
+          quantity: 1,
+          imgs: {
+            previews: [base64Image || product.gallery?.[0] || ""],
+            thumbnails: [base64Image || product.gallery?.[0] || ""]
+          },
+          customizations: customizationsData
+        } as any)
+      );
+
+      setIsCapturing(false);
+      openCartModal();
+
+    } catch (error) {
+      console.error("Terjadi kesalahan jaringan", error);
+      setIsCapturing(false);
+    }
+  };
+
 
   const nextStep = () => setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStepIndex((prev) => Math.max(prev - 1, 0));

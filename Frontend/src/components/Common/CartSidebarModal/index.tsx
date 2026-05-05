@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import SingleItem from "./SingleItem";
 import Link from "next/link";
 import EmptyCart from "./EmptyCart";
-import { CartService } from "@/services/CartService"; // 👈 Import Service
+import { CartService } from "@/services/CartService"; 
 import { setCartItems } from "@/redux/features/cart-slice";
 
 

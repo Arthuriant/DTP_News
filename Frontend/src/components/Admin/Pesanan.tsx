@@ -9,8 +9,6 @@ export default function Pesanan() {
   const [search, setSearch] = useState('');
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // State untuk mengontrol Dropdown mana yang sedang terbuka
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const goToDetail = (orderId: string) => {
@@ -33,22 +31,19 @@ export default function Pesanan() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
+  const handleStatusChange = async (id: string, newStatusValue: string, newStatusLabel: string) => {
     const isConfirmed = await AlertService.confirm(
       "Ubah Status Pesanan?",
-      `Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus.toUpperCase()}?`,
+      `Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatusLabel.toUpperCase()}?`,
       "Ya, Ubah!"
     );
 
     if (isConfirmed) {
       try {
-        // 1. Simpan ke database menggunakan lib/api bawaan Anda
-        await AdminService.updateOrderStatus(id, newStatus);
-
-        // 2. Ubah UI setelah berhasil
+        await AdminService.updateOrderStatus(id, newStatusValue);
         setOrders(orders.map(o => {
           if (o.id === id) {
-            return { ...o, status: newStatus };
+            return { ...o, status: newStatusValue };
           }
           return o;
         }));
@@ -90,7 +85,21 @@ export default function Pesanan() {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const statusOptions = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'];
+  const statusOptions = [
+    { value: 'pending', label: 'Tunggu Pembayaran' },
+    { value: 'confirmed', label: 'Tunggu Konfirmasi' },
+    { value: 'processing', label: 'Sedang Diproses' },
+    { value: 'shipped', label: 'Sedang Diantar' },
+    { value: 'delivered', label: 'Pesanan Tiba' },
+    { value: 'completed', label: 'Selesai' },
+    { value: 'cancelled', label: 'Dibatalkan' }
+  ];
+
+  // Fungsi helper untuk menerjemahkan status di tombol
+  const getStatusLabel = (statusValue: string) => {
+    const found = statusOptions.find(opt => opt.value === statusValue?.toLowerCase());
+    return found ? found.label : statusValue;
+  };
 
   if (isLoading) {
     return (
@@ -132,7 +141,6 @@ export default function Pesanan() {
       <div className="relative w-full pb-10 pt-2">
         <div className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}></div>
 
-        {/* 👇 BANTALAN BAWAH DIPERBESAR (pb-64) AGAR DROPDOWN PALING BAWAH TIDAK TERPOTONG 👇 */}
         <div className="overflow-x-auto px-4 -mx-4 pb-64"> 
           <table className="w-full min-w-[1100px] text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
             
@@ -154,11 +162,9 @@ export default function Pesanan() {
                   const itemsCount = o.details ? o.details.length : 0;
                   const currentStatus = o.status?.toLowerCase() || 'pending';
                   
-                  // Deteksi apakah dropdown di baris ini sedang dibuka
                   const isDropdownOpen = openDropdownId === o.id;
                   
                   return (
-                    // 👇 KUNCI 1: Jika dropdown terbuka, paksa baris ini jadi z-index tertinggi (99) 👇
                     <tr key={o.id} className={`group transition-all duration-300 ${isDropdownOpen ? 'relative z-[99]' : 'relative z-10 hover:-translate-y-1.5'}`}>
                       
                       <td className="py-5 pl-8 pr-4 text-left bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
@@ -190,7 +196,6 @@ export default function Pesanan() {
                         </div>
                       </td>
                       
-                      {/* 👇 KUNCI 2: Pastikan sel ini juga memiliki z-index tinggi jika dropdown terbuka 👇 */}
                       <td className={`py-5 px-4 text-center bg-white/60 backdrop-blur-xl border-y border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)] ${isDropdownOpen ? 'relative z-[100]' : ''}`}>
                           
                           <div className="relative inline-block w-full max-w-[140px] text-left">
@@ -199,31 +204,32 @@ export default function Pesanan() {
                               onClick={() => setOpenDropdownId(isDropdownOpen ? null : o.id)}
                               className={`w-full flex items-center justify-between px-4 py-2 rounded-full text-[10px] uppercase tracking-widest font-bold border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#D9B35A]/50 ${getStatusStyle(currentStatus)}`}
                             >
-                              <span>{currentStatus}</span>
-                              <svg className={`w-3 h-3 transition-transform duration-200 ml-2 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                              {/* 👇 PERUBAHAN 2: Menampilkan label Bahasa Indonesia di tombol utama 👇 */}
+                              <span className="truncate">{getStatusLabel(currentStatus)}</span>
+                              <svg className={`w-3 h-3 transition-transform duration-200 ml-2 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
 
                             {/* Dropdown Menu */}
                             {isDropdownOpen && (
                               <>
-                                {/* Overlay transparan untuk klik di luar dropdown */}
                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
                                 
                                 <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-[#D9B35A]/30 rounded-xl shadow-2xl z-50 overflow-hidden py-1 origin-top">
-                                  {statusOptions.map((status) => (
+                                  {statusOptions.map((opt) => (
                                     <button
-                                      key={status}
+                                      key={opt.value}
                                       onClick={() => {
-                                        handleStatusChange(o.id, status);
+                                        // 👇 PERUBAHAN 3: Mengirim value asli (Inggris) ke API, tapi popup memunculkan label Indonesia 👇
+                                        handleStatusChange(o.id, opt.value, opt.label);
                                         setOpenDropdownId(null);
                                       }}
                                       className={`block w-full text-left px-5 py-3 text-[11px] font-bold tracking-widest uppercase transition-colors ${
-                                        currentStatus === status 
+                                        currentStatus === opt.value 
                                           ? 'bg-[#D9B35A]/10 text-[#D9B35A]' 
                                           : 'text-[#2D1A11] hover:bg-[#FFFDF5] hover:text-[#D9B35A]'
                                       }`}
                                     >
-                                      {status}
+                                      {opt.label}
                                     </button>
                                   ))}
                                 </div>

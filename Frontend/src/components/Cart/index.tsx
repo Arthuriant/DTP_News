@@ -149,7 +149,7 @@ const Cart = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
-              <Discount />
+              <Discount  />
               {/* 👇 Melempar fungsi dan state loading ke OrderSummary 👇 */}
               <OrderSummary onCheckout={handleCheckout} isCheckingOut={isCheckingOut} />
             </div>
