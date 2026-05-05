@@ -27,9 +27,14 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     setIsDownloading(true);
     try {
       await OrderService.downloadPDF(orderId);
+      
+      // Munculkan notifikasi sukses setelah file PDF berhasil digenerate/diunduh
+      AlertService.success("Berhasil", "Dokumen referensi PDF pesanan berhasil diunduh.");
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      alert("Terjadi kesalahan saat mengunduh dokumen referensi.");
+      
+      // Ganti alert browser yang kaku dengan AlertService error
+      AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
     } finally {
       setIsDownloading(false);
     }

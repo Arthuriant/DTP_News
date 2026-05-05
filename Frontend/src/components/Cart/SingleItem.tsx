@@ -1,25 +1,37 @@
+"use client";
 import React, { useState } from "react";
 import { AppDispatch } from "@/redux/store";
 import { useDispatch } from "react-redux";
 import { removeItemFromCart, updateCartItemQuantity } from "@/redux/features/cart-slice";
 import Image from "next/image";
 import { CartService } from "@/services/CartService";
+import { AlertService } from "@/services/AlertService"; // 👈 Import AlertService ditambahkan
 
 const SingleItem = ({ item }: { item: any }) => {
-  // 👇 KUNCI PERBAIKAN: Baca langsung dari Redux, BUKAN dari useState 👇
   const quantity = item.quantity || 1; 
   const [isDeleting, setIsDeleting] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
   const handleRemoveFromCart = async () => {
-    if (confirm("Hapus desain ini dari keranjang?")) {
+    // 👇 Menggunakan AlertService untuk konfirmasi 👇
+    const isConfirmed = await AlertService.confirm(
+      "Hapus dari Keranjang?",
+      "Apakah Anda yakin ingin menghapus desain tas ini dari keranjang belanja?",
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       setIsDeleting(true);
       try {
         await CartService.removeItem(item.id);
         dispatch(removeItemFromCart(item.id));
+        
+        // Memunculkan notifikasi sukses (opsional, karena item biasanya langsung hilang dari UI)
+        AlertService.success("Terhapus!", "Desain berhasil dihapus dari keranjang.");
       } catch (error) {
         console.error("Gagal menghapus item:", error);
-        alert("Gagal menghapus barang.");
+        // Menggunakan AlertService untuk error
+        AlertService.error("Gagal Menghapus", "Terjadi kesalahan koneksi ke server.");
         setIsDeleting(false);
       }
     }
