@@ -20,6 +20,7 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import html2canvas from "html2canvas";
 import { CartService } from '@/services/CartService';
 import { flushSync } from "react-dom";
+import { AlertService } from "@/services/AlertService";
 
     export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -300,41 +301,42 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   // Toggle wishlist
   const handleToggleWishlist = async () => {
-    setWishlistLoading(true);
-    try {
-      if (isWishlisted) {
-        // Hapus dari wishlist
-        await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
-        setIsWishlisted(false);
-      } else {
-        // Tambah ke wishlist
-          await fetch(`/api-fe/proxy/wishlist`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: product.id,
-            customizations: {
-              size:         activeSize,
-              shapes:       shapeSelections,
-              textures:     textureSelections,
-              colors:       selections,
-              visibleParts: visibleParts,
-            },
-            total_price: calculateTotalPrice(), // ← tambah ini
-          }),
-        });
-        setIsWishlisted(true);
-      }
-    } catch (err) {
-      console.error("Gagal toggle wishlist:", err);
-    } finally {
-      setWishlistLoading(false);
+  setWishlistLoading(true);
+  try {
+    if (isWishlisted) {
+      await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      setIsWishlisted(false);
+      AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); // ✅
+    } else {
+      await fetch(`/api-fe/proxy/wishlist`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          customizations: {
+            size:         activeSize,
+            shapes:       shapeSelections,
+            textures:     textureSelections,
+            colors:       selections,
+            visibleParts: visibleParts,
+          },
+          total_price: calculateTotalPrice(),
+        }),
+      });
+      setIsWishlisted(true);
+      AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); // ✅
     }
-  };
+  } catch (err) {
+    console.error("Gagal toggle wishlist:", err);
+    AlertService.error("Gagal", "Terjadi kesalahan, coba lagi."); // ✅ tambah error alert
+  } finally {
+    setWishlistLoading(false);
+  }
+};
 
   if (!isHydrated) return null;
   // 360 ROTATION

@@ -9,6 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { AlertService } from "@/services/AlertService";
 
 // 1. Sesuaikan Interface dengan JSON API Laravel kamu
 export interface ProductAPI {
@@ -54,7 +55,7 @@ const SingleGridItem = ({ item }: { item: ProductAPI }) => {
   checkWishlist();
 }, [item.id]);
 
-// Toggle wishlist
+// Ubah fungsi handleItemToWishList
 const handleItemToWishList = async () => {
   setWishlistLoading(true);
   try {
@@ -64,6 +65,7 @@ const handleItemToWishList = async () => {
         credentials: 'include',
       });
       setIsWishlisted(false);
+      AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); // ✅ pindah ke sini
     } else {
       await fetch(`/api-fe/proxy/wishlist`, {
         method: 'POST',
@@ -72,6 +74,7 @@ const handleItemToWishList = async () => {
         body: JSON.stringify({ product_id: item.id }),
       });
       setIsWishlisted(true);
+      AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); // ✅ pindah ke sini
     }
   } catch (err) {
     console.error("Gagal toggle wishlist:", err);
@@ -146,7 +149,10 @@ const handleItemToWishList = async () => {
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); handleItemToWishList(); }}
+            onClick={(e) => { 
+  e.stopPropagation(); 
+  handleItemToWishList(); // ✅ cukup ini saja
+}}
             disabled={wishlistLoading}
             aria-label="tombol untuk pilih favorit"
             title={isWishlisted ? "Hapus dari Favorit" : "Tambah ke Favorit"}

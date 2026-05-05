@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
 import { AuthService } from '@/services/AuthService'; 
 import { CategoryService } from '@/services/CategoryService';
+import { AlertService } from '@/services/AlertService';
 
 export default function Produk() {
   const router = useRouter();
@@ -71,6 +72,10 @@ export default function Produk() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Tampilkan Alert Loading (Opsional tapi bagus untuk UX)
+    // Jika Anda punya custom loading alert di AlertService bisa dipakai,
+    // jika tidak, logika try/catch di bawah sudah cukup.
+    
     const formData = new FormData();
     formData.append('name', editForm.name);
     formData.append('base_price', editForm.base_price.toString());
@@ -84,15 +89,17 @@ export default function Produk() {
     try {
       if (editForm.id) {
         await ProductService.updateProduct(editForm.id, formData);
+        AlertService.success("Berhasil Diperbarui", `Karya ${editForm.name} berhasil dimodifikasi.`);
       } else {
         await ProductService.createProduct(formData);
+        AlertService.success("Berhasil Didaftarkan", `Karya ${editForm.name} berhasil ditambahkan ke galeri.`);
       }
       
       await fetchInitialData(); 
       setIsModalOpen(false);
     } catch (error: any) {
       console.error("Terjadi kesalahan simpan:", error);
-      alert("Gagal menyimpan data!");
+      AlertService.error("Gagal Menyimpan", "Terjadi kesalahan sistem saat menyimpan mahakarya.");
     }
   };
 
@@ -109,13 +116,26 @@ export default function Produk() {
   };
 
   // 3. FUNGSI HAPUS MENGGUNAKAN SERVICE
-  const handleDelete = async (id: string) => { 
-    if (confirm("Hapus produk mahakarya ini secara permanen?")) {
+  const handleDelete = async (id: string, productName: string) => { 
+    // Ganti window.confirm bawaan browser dengan AlertService.confirm yang elegan
+    const isConfirmed = await AlertService.confirm(
+      "Hapus Mahakarya?",
+      `Apakah Anda yakin ingin menghapus "${productName}" secara permanen dari galeri?`,
+      "YA, HAPUS!"
+    );
+
+    if (isConfirmed) {
       try {
         await ProductService.deleteProduct(id);
+        
+        // Update state lokal
         setProducts(products.filter(p => p.id !== id));
+        
+        // Munculkan notifikasi sukses
+        AlertService.success("Terhapus!", "Mahakarya berhasil dihapus dari inventaris.");
       } catch (error) {
         console.error("Gagal menghapus:", error);
+        AlertService.error("Gagal Menghapus", "Terjadi kesalahan server saat mencoba menghapus produk.");
       }
     } 
   };
@@ -242,13 +262,13 @@ export default function Produk() {
                     </button>
                   )}
                   {canDelete && (
-                    <button 
-                      onClick={(e) => {e.stopPropagation(); handleDelete(p.id)}} 
-                      className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
-                    >
-                      Hapus
-                    </button>
-                  )}
+  <button 
+    onClick={(e) => {e.stopPropagation(); handleDelete(p.id, p.name)}} // SESUDAHNYA
+    className="flex-1 py-3 text-xs font-bold font-sans uppercase tracking-widest text-rose-400 bg-white border border-rose-200 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-300 shadow-sm"
+  >
+    Hapus
+  </button>
+)}
                   {!canEdit && !canDelete && (
                      <p className="w-full text-center text-[10px] font-bold text-[#8B7355] uppercase tracking-widest py-3">Hanya Lihat</p>
                   )}
