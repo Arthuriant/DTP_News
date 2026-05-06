@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import { Metadata } from "next";
 import OrderList from "@/components/Orders/OrderList";
@@ -14,7 +14,9 @@ const OrderListPage = () => {
       <Breadcrumb title={"Daftar Transaksi"} pages={["Orders"]} />
       <section className="py-20 bg-[#F9F6EE]">
         <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8">
-          <OrderList />
+          <Suspense fallback={<div className="text-center py-20 text-[#C5A059]">Memuat riwayat transaksi...</div>}>
+            <OrderList />
+          </Suspense>
         </div>
       </section>
     </>

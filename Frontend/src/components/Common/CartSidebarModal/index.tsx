@@ -26,23 +26,35 @@ const CartSidebarModal = () => {
           const res = await CartService.getCart();
           const dbItems = res?.items || res || []; 
           
-          const formattedItems = dbItems.map((dbItem: any) => ({
-            id: dbItem.id, 
-            product_id: dbItem.product_id,
-            title: `Kustom ${dbItem.product?.name || 'Produk'}`,
-            price: dbItem.price,
-            discountedPrice: dbItem.price,
-            quantity: dbItem.qty,
-            imgs: {
-              thumbnails: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""],
-              previews: [dbItem.image_preview || dbItem.product?.gallery?.[0] || ""]
-            },
-            customizations: dbItem.custom_configuration
-          }));
-
-          // 👇 KUNCI PERBAIKAN: Harus setCartItems juga 👇
+          const formattedItems = dbItems.map((dbItem: any) => {
+          
+            let finalImageUrl = "";
+            const previewData = dbItem.custom_configuration?.image_preview;
+            if (previewData) {
+              // Jika datanya sudah berupa full URL (http) atau Base64, biarkan saja
+              if (previewData.startsWith("http") || previewData.startsWith("data:image")) {
+                finalImageUrl = previewData;
+              } else {
+                finalImageUrl = `http://127.0.0.1:8000/storage/${previewData}`;
+              }
+            } else if (dbItem.product?.img) {
+              finalImageUrl = `http://127.0.0.1:8000/storage/${dbItem.product.img}`;
+            }
+            return {
+              id: dbItem.id, 
+              product_id: dbItem.product_id,
+              title: `Kustom ${dbItem.product?.name || 'Produk'}`,
+              price: dbItem.price,
+              discountedPrice: dbItem.price,
+              quantity: dbItem.qty,
+              imgs: {
+                thumbnails: [finalImageUrl],
+                previews: [finalImageUrl]
+              },
+              customizations: dbItem.custom_configuration
+            };
+          });
           dispatch(setCartItems(formattedItems));
-
         } catch (error) {
           console.error("Gagal mengambil keranjang sidebar:", error);
         }
@@ -50,9 +62,7 @@ const CartSidebarModal = () => {
     };
 
     fetchDbCart();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]); // Cukup dispatch saja
-
+  }, [dispatch]);
   useEffect(() => {
     function handleClickOutside(event: any) {
       if (!event.target.closest(".modal-content")) {

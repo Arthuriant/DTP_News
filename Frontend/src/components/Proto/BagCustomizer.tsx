@@ -438,47 +438,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
-  const preloadImagesToBase64 = async (container: HTMLElement): Promise<void> => {
-    const imgs = container.querySelectorAll<HTMLImageElement>('img');
-    await Promise.all(
-      Array.from(imgs).map((img) => {
-        return new Promise<void>((resolve) => {
-          if (img.src.startsWith('data:') || img.src.includes('127.0.0.1:3000') || img.src.includes('localhost:3000')) {
-            return resolve();
-          }
-
-          const tempImg = new Image();
-          tempImg.crossOrigin = 'anonymous';
-
-          tempImg.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = tempImg.naturalWidth;
-            canvas.height = tempImg.naturalHeight;
-            canvas.getContext('2d')?.drawImage(tempImg, 0, 0);
-            img.src = canvas.toDataURL('image/png'); 
-            resolve();
-          };
-
-          tempImg.onerror = () => resolve();
-          tempImg.src = img.src + (img.src.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
-        });
-      })
-    );
-  };
 
   const handleAddToCart = async () => {
     setIsCapturing(true);
-
-    const previousView = activeView;
-    const previousHighlightedPart = highlightedPartId;
-
-    flushSync(() => {
-      setActiveView("front");
-      setHighlightedPartId(null);  
-      setShowFullPreview(true);  
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 600));
 
     const finalPrice = calculateTotalPrice();
     const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
@@ -519,47 +481,27 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       };
     });
 
+    const fullImageUrl = product?.thumbnails?.[0] || product?.gallery?.[0] || "";
+    
+    let dbFormattedImage = fullImageUrl;
+    if (fullImageUrl.includes("/storage/")) {
+      dbFormattedImage = fullImageUrl.split("/storage/")[1]; 
+    }
+
     const customizationsData: any = {
       size: sizeLabel,
       parts: mappedPartsPayload,
       colors: selections,
-      visibleParts: visibleParts
+      visibleParts: visibleParts,
+      image_preview: dbFormattedImage 
     };
-
-    let base64Image = null;
-
-    if (screenshotRef.current) {
-      try {
-        await preloadImagesToBase64(screenshotRef.current);
-
-        const canvas = await html2canvas(screenshotRef.current, {
-          backgroundColor: null,
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: false,
-          imageTimeout: 5000,
-        });
-
-        base64Image = canvas.toDataURL("image/png");
-        customizationsData.image_preview = base64Image;
-      } catch (error) {
-        console.error("Gagal screenshot:", error);
-      }
-    }
-
-    flushSync(() => {
-      setActiveView(previousView);
-      setHighlightedPartId(previousHighlightedPart);
-      setShowFullPreview(false);
-    });
 
     try {
       const res = await CartService.addToCart({
         product_id: product.id,
         price: finalPrice,
-        custom_configuration: customizationsData, // Sekarang berisi array "parts"
-        image_preview: base64Image
+        custom_configuration: customizationsData,
+        image_preview: dbFormattedImage 
       });
 
       const realDbId = res?.id || res?.data?.id || res?.item?.id || res?.cart_item?.id;
@@ -572,8 +514,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           discountedPrice: finalPrice,
           quantity: 1,
           imgs: {
-            previews: [base64Image || product.gallery?.[0] || ""],
-            thumbnails: [base64Image || product.gallery?.[0] || ""]
+            previews: [fullImageUrl], 
+            thumbnails: [fullImageUrl]
           },
           customizations: customizationsData
         } as any)
