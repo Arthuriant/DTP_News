@@ -97,15 +97,21 @@ const History = () => {
                       <p className="text-[#D9B35A] font-black text-xl">Rp {Number(order.total_amount).toLocaleString('id-ID')}</p>
                     </div>
                     
-                    {currentStatus === 'pending' ? (
-                      <Link href={`/order/success/${order.id}`} className="bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#3d2519] transition-colors shadow-md">
-                        Bayar Sekarang
-                      </Link>
-                    ) : (
-                      <Link href={`/order/success/${order.id}`} className="bg-white border border-[#D9B35A] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-colors">
-                        Detail Struk
-                      </Link>
-                    )}
+                    {currentStatus === 'pending' && order.payment?.receipt_url ? (
+                        <a 
+                          href={order.payment.receipt_url}
+                          target="_blank"
+                          className="bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#3d2519] transition-colors shadow-md"
+                        >
+                          Bayar Sekarang
+                        </a>
+                      ) : currentStatus === 'pending' ? (
+                        <span className="text-xs text-gray-400">Invoice tidak tersedia</span>
+                      ) : (
+                        <Link href={`/order/success/${order.id}`} className="bg-white border border-[#D9B35A] text-[#D9B35A] px-6 py-2.5 rounded-full text-xs font-bold font-sans uppercase tracking-widest hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-colors">
+                          Detail Struk
+                        </Link>
+                      )}
                   </div>
                 </div>
               </div>
