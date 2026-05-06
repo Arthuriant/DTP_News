@@ -4,9 +4,13 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { OrderService } from "@/services/OrderService"; 
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { useSearchParams } from "next/navigation";
 
 export default function OrderList() {
   const [orders, setOrders] = useState<any[]>([]);
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get("status");
+
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   
@@ -26,6 +30,23 @@ export default function OrderList() {
     { label: "Sedang Diantar", value: "shipped" },
     { label: "Pesanan Tiba", value: "delivered" },
   ];
+
+  const getInitialTab = () => {
+    if (statusParam === "confirmed") return "Menunggu Konfirmasi";
+    if (["pending", "processing", "shipped", "delivered"].includes(statusParam || "")) return "Berlangsung";
+    return "Semua";
+  };
+
+  const getInitialSubTab = () => {
+    if (statusParam === "pending") return "Menunggu Pembayaran";
+    if (statusParam === "processing") return "Sedang Diproses";
+    if (statusParam === "shipped") return "Sedang Diantar";
+    if (statusParam === "delivered") return "Pesanan Tiba";
+    return "Semua Berlangsung";
+  };
+
+  
+  
 
   // BARU: fetchOrders dibungkus useCallback agar bisa dipanggil ulang tanpa peringatan linter
   const fetchOrders = useCallback(async () => {
@@ -47,7 +68,27 @@ export default function OrderList() {
     fetchOrders();
   }, [fetchOrders]);
 
+  useEffect(() => {
+    if (statusParam) {
+      if (statusParam === "confirmed") {
+        setActiveTab("Menunggu Konfirmasi");
+        setActiveSubTab("Semua Berlangsung");
+      } else if (["pending", "processing", "shipped", "delivered"].includes(statusParam)) {
+        setActiveTab("Berlangsung");
+        if (statusParam === "pending") setActiveSubTab("Menunggu Pembayaran");
+        else if (statusParam === "processing") setActiveSubTab("Sedang Diproses");
+        else if (statusParam === "shipped") setActiveSubTab("Sedang Diantar");
+        else if (statusParam === "delivered") setActiveSubTab("Pesanan Tiba");
+      } else {
+        setActiveTab("Semua");
+        setActiveSubTab("Semua Berlangsung");
+      }
+      setCurrentPage(1);
+    }
+  }, [statusParam]);
+
   const handleConfirmDelivery = async (id: string) => {
+    // 1. Popup Konfirmasi
     const result = await Swal.fire({
       title: "Konfirmasi Penerimaan",
       text: "Apakah Anda yakin telah menerima mahakarya ini dengan baik?",
@@ -58,11 +99,10 @@ export default function OrderList() {
       background: "#FFFDF5", 
       color: "#2D1A11",      
       reverseButtons: true,
-      confirmButtonColor: "#C5A059", 
-      cancelButtonColor: "#8B7355",  
+      buttonsStyling: false, 
       customClass: {
-        confirmButton: "text-white text-sm font-bold uppercase tracking-wider rounded-lg shadow-md ml-3",
-        cancelButton: "text-white text-sm font-bold uppercase tracking-wider rounded-lg shadow-md"
+        confirmButton: "bg-[#C5A059] text-white px-6 py-2.5 text-sm font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-[#2D1A11] transition-all ml-3",
+        cancelButton: "bg-transparent border border-[#8B7355] text-[#8B7355] px-6 py-2.5 text-sm font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-[#8B7355] hover:text-white transition-all"
       }
     });
 
@@ -72,6 +112,7 @@ export default function OrderList() {
     try {
       await OrderService.confirmDelivery(id);
       await fetchOrders();
+      
       Swal.fire({
         title: "Pesanan Selesai!",
         text: "Terima kasih telah mempercayakan mahakarya Anda kepada kami.",
@@ -79,20 +120,26 @@ export default function OrderList() {
         confirmButtonText: "Oke, Tutup",
         background: "#FFFDF5",
         color: "#2D1A11",
-        confirmButtonColor: "#C5A059", 
-        customClass: { confirmButton: "text-white text-sm font-bold uppercase tracking-wider rounded-lg shadow-md" }
+        buttonsStyling: false, 
+        customClass: {
+          confirmButton: "bg-[#C5A059] text-white px-8 py-3 text-sm font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-[#2D1A11] transition-all"
+        }
       });
+
     } catch (error) {
       console.error("Gagal menyelesaikan pesanan:", error);
+    
       Swal.fire({
         title: "Gagal!",
-        text: "Terjadi kesalahan sistem.",
+        text: "Terjadi kesalahan sistem saat mencoba menyelesaikan pesanan.",
         icon: "error",
         confirmButtonText: "Tutup",
         background: "#FFFDF5",
         color: "#2D1A11",
-        confirmButtonColor: "#C5A059", 
-        customClass: { confirmButton: "text-white text-sm font-bold uppercase tracking-wider rounded-lg shadow-md" }
+        buttonsStyling: false, 
+        customClass: {
+          confirmButton: "bg-red-600 text-white px-8 py-3 text-sm font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-red-800 transition-all"
+        }
       });
     } finally {
       setUpdatingId(null);

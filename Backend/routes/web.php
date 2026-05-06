@@ -107,6 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/wishlist/{product_id}', [WishlistController::class, 'update']);
 });
 // Admin & Super Admin - bisa CRUD
+Route::get('/categories/with-product-count', [CategoryController::class, 'indexWithProductCount']);
+Route::get('/products/filter', [CategoryController::class, 'filterProducts']);
 
 // [UPDATE] Group Middleware ditambahkan :sanctum
 Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])->group(function () {
@@ -177,6 +179,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::post('/part-textures', [PartTexturesController::class, 'store']);
     Route::put('/part-textures/{id}', [PartTexturesController::class, 'update']);
     Route::delete('/part-textures/{id}', [PartTexturesController::class, 'destroy']);
+
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);

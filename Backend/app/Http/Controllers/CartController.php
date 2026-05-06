@@ -30,7 +30,7 @@ class CartController extends Controller
             if (count($imageParts) == 2) {
                 $imageBase64 = base64_decode($imageParts[1]);
                 $fileName = uniqid('cart_') . '.png';
-                
+
                 \Illuminate\Support\Facades\Storage::disk('public')->put('carts/' . $fileName, $imageBase64);
                 $imagePath = asset('storage/carts/' . $fileName);
             }
@@ -67,20 +67,16 @@ class CartController extends Controller
         // 👇 KEMBALIKAN DATA BARANGNYA KE NEXT.JS 👇
         return response()->json([
             'message' => 'Tas Kustom berhasil masuk keranjang!',
-            'cart_item' => $savedItem 
+            'cart_item' => $savedItem
         ], 200);
     }
-
-    // ========================================================
-    // 2. GET CART (LIHAT KERANJANG)
-    // ========================================================
     // ========================================================
     // 2. GET CART (LIHAT KERANJANG)
     // ========================================================
     public function getCart()
     {
-        $user = auth('sanctum')->user(); 
-        
+        $user = auth('sanctum')->user();
+
         if (!$user) {
             return response()->json([
                 'total' => 0,
@@ -89,7 +85,7 @@ class CartController extends Controller
         }
 
         $cart = Cart::with(['items.product'])->where('user_id', $user->id)->first();
-        
+
         if (!$cart) {
             return response()->json([
                 'total' => 0,
@@ -120,7 +116,7 @@ class CartController extends Controller
                         ->first();
 
         if ($item) {
-            $item->delete(); 
+            $item->delete();
             $this->updateCartTotal($cart->id); // Update total setelah dihapus
             return response()->json(['message' => 'Barang berhasil dihapus'], 200);
         }

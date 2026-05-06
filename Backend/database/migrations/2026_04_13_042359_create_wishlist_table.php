@@ -12,6 +12,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('product_id');
             $table->uuid('user_id');
+            $table->jsonb('customizations')->nullable(); // pindah ke sini
+            $table->decimal('total_price', 12, 2)->nullable(); // pindah ke sini
             $table->timestamps();
 
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

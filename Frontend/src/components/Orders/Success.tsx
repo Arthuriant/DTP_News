@@ -10,7 +10,7 @@ const Success = () => {
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
 
   return (
-    <div className="min-h-screen bg-[#F9F6EE] flex items-center justify-center py-20 px-4 relative overflow-hidden" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
+    <div className="min-h-screen bg-[#F9F6EE] flex items-center justify-center pt-54 pb-20 px-4 relative overflow-hidden" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
       
       {/* Aksesoris Latar Belakang */}
       <div

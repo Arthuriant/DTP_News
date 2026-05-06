@@ -1,15 +1,25 @@
 "use client";
-import { useState } from 'react';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
+import { useState, useEffect } from 'react';
 
-const PriceDropdown = () => {
+
+const PriceDropdown = ({ onPriceChange }: { onPriceChange?: (min: number, max: number) => void }) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
 
   const [selectedPrice, setSelectedPrice] = useState({
     from: 0,
-    to: 1000000, 
+    to: 10000000,
   });
+
+  // ← Tambah ini setelah useState
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onPriceChange?.(selectedPrice.from, selectedPrice.to);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [selectedPrice]);
 
   return (
     <>
@@ -96,14 +106,13 @@ const PriceDropdown = () => {
                   className="margin-lg mb-8"
                   step={'any'}
                   min={0}
-                  max={1000000}
-                  defaultValue={[0, 1000000]}
-                  onInput={(e: any) =>
-                    setSelectedPrice({
-                      from: Math.floor(e[0]),
-                      to: Math.ceil(e[1]),
-                    })
-                  }
+                  max={10000000}
+                  defaultValue={[0, 10000000]}
+                  onInput={(e: any) => {
+                  const min = Math.floor(e[0]);
+                  const max = Math.ceil(e[1]);
+                  setSelectedPrice({ from: min, to: max });
+                }}
                 />
 
                 {/* Indikator Angka Harga */}

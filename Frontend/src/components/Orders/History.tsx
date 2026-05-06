@@ -22,7 +22,6 @@ const History = () => {
     fetchMyOrders();
   }, []);
 
-  // 👇 PERBARUI 7 STATUS BARU BESERTA WARNANYA 👇
   const getStatusBadge = (status: string) => {
     const normalizedStatus = status?.toLowerCase() || "pending";
     const styles: any = {
@@ -61,13 +60,21 @@ const History = () => {
         <div className="grid gap-6">
           {orders.map((order) => {
             const currentStatus = order.status?.toLowerCase();
+            
+            const mainDetail = order.details?.[0];
+            const customConfig = mainDetail?.custom_configuration;
+            const productInfo = mainDetail?.product;
+            let productImg = "";
+            const previewData = customConfig?.image_preview;
+
+            productImg = `http://127.0.0.1:8000/storage/${productInfo.img}`;
 
             return (
               <div key={order.id} className="group bg-[#FFFDF5] border border-[#D9B35A]/20 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row">
                 {/* Gambar Desain */}
                 <div className="w-full md:w-48 h-48 bg-white flex items-center justify-center p-4 border-r border-[#D9B35A]/10">
-                  {order.details?.[0]?.image_preview ? (
-                    <img src={order.details[0].image_preview} alt="Preview" className="w-full h-full object-contain" />
+                  {productImg ? (
+                    <img src={productImg} alt="Preview" className="w-full h-full object-contain mix-blend-multiply" />
                   ) : (
                     <div className="text-[#D9B35A] opacity-20 text-4xl italic">UpToYou</div>
                   )}
@@ -78,7 +85,7 @@ const History = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <p className="text-[#8B7355] font-sans text-[10px] uppercase tracking-[0.2em] font-bold mb-1">ID Pesanan: {order.id.split('-')[0]}</p>
-                      <h3 className="text-[#2D1A11] font-bold text-xl">Kustom {order.details?.[0]?.product?.name || "Tas"}</h3>
+                      <h3 className="text-[#2D1A11] font-bold text-xl">Kustom {productInfo?.name || "Tas"}</h3>
                       <p className="text-[#8B7355] font-sans text-xs mt-1 italic">{order.details?.length || 1} Item • Dipesan pada {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                     {getStatusBadge(order.status)}
