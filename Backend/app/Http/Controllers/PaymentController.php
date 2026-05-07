@@ -97,31 +97,42 @@ class PaymentController extends Controller
     // 4. POST /payment/callback - Webhook dari Xendit
     public function callback(Request $request)
     {
-        \Log::info('Xendit Callback:', $request->all());
+        \Log::info('Xendit Callback masuk:', $request->all());
 
-        // Verifikasi webhook token dari Xendit
-        $xenditToken = $request->header('x-callback-token');
-        if ($xenditToken !== env('XENDIT_WEBHOOK_TOKEN')) {
+        $webhookToken = $request->header('x-callback-token');
+        if ($webhookToken !== env('XENDIT_WEBHOOK_TOKEN')) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         $externalId = $request->external_id;
         $status     = $request->status;
 
-        // Update payment
-        Payment::where('order_id', $externalId)->update([
-            'status'       => strtolower($status),
-            'payment_date' => now(),
-            'payload'      => $request->all(),
-        ]);
+        \Log::info("External ID: {$externalId}, Status: {$status}");
 
-        // Update order
-        if ($status === 'PAID') {
-            Order::where('id', $externalId)->update(['status' => 'processing']);
-        } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
-            Order::where('id', $externalId)->update(['status' => 'cancelled']);
+        // ✅ Validasi UUID dulu sebelum query
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $externalId)) {
+            \Log::warning("External ID bukan UUID valid: {$externalId}");
+            return response()->json(['message' => 'Invalid order ID format'], 200);
         }
 
-        return response()->json(['message' => 'Callback received'], 200);
+        $order = Order::find($externalId);
+        if (!$order) {
+            return response()->json(['message' => 'Order tidak ditemukan'], 200);
+        }
+
+        if ($status === 'PAID') {
+            $order->update(['status' => 'processing']);
+            Payment::where('order_id', $order->id)
+                ->update([
+                    'status'       => 'paid',
+                    'payment_date' => now(),
+                ]);
+        } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
+            $order->update(['status' => 'cancelled']);
+            Payment::where('order_id', $order->id)
+                ->update(['status' => 'failed']);
+        }
+
+        return response()->json(['message' => 'Webhook processed'], 200);
     }
 }

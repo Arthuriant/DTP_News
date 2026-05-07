@@ -49,7 +49,7 @@ const NewArrival = () => {
               Koleksi <span className="text-[#C5A059] font-medium italic">Terbaru</span>
             </h2>
           </div>
-          <Link href="/shop" className="inline-flex items-center justify-center font-sans font-bold text-[10px] tracking-[0.2em] uppercase text-[#2D1A11] rounded-full border border-[#C5A059]/60 bg-transparent py-3 px-8 hover:bg-[#C5A059] hover:text-[#F8F3E9] transition-all">
+          <Link href="/shop-with-sidebar" className="inline-flex items-center justify-center font-sans font-bold text-[10px] tracking-[0.2em] uppercase text-[#2D1A11] rounded-full border border-[#C5A059]/60 bg-transparent py-3 px-8 hover:bg-[#C5A059] hover:text-[#F8F3E9] transition-all">
             Lihat Semua Koleksi
           </Link>
         </div>
