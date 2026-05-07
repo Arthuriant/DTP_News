@@ -14,6 +14,10 @@ class CategorySeeder extends Seeder
                 'name' => 'Tas Pria',
                 'description' => 'Koleksi tas kulit premium khusus pria dengan desain maskulin dan fungsional.',
             ],
+            [
+                'name' => 'Tas Wanita',
+                'description' => 'Koleksi tas kulit premium khusus wanita dengan desain elegan dan fungsional.',
+            ],
         ];
 
         foreach ($categories as $category) {
