@@ -25,23 +25,36 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
+      
       await OrderService.downloadPDF(orderId);
       
-      // ✅ Update status order ke 'processing' setelah PDF diunduh
-      await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'processing' }),
-      });
+      const currentStatus = data?.status?.toLowerCase();
+      if (currentStatus === 'confirmed') {
+        await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'processing' }),
+        });
 
-      // Update tampilan lokal
-      setData((prev: any) => ({ ...prev, status: 'processing' }));
+        // Update tampilan lokal agar tombol Minta Resi muncul
+        setData((prev: any) => ({ ...prev, status: 'processing' }));
 
-      AlertService.success("Berhasil", "Dokumen referensi PDF berhasil diunduh dan status pesanan diperbarui ke Sedang Diproses.");
+        AlertService.success(
+          "Berhasil", 
+          "PDF berhasil diunduh dan status diperbarui ke 'Sedang Diproses'."
+        );
+      } else {
+        // Jika status sudah di tahap lanjut, hanya tampilkan pesan sukses download
+        AlertService.success(
+          "Berhasil", 
+          "Dokumen referensi PDF berhasil diunduh."
+        );
+      }
+
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
+      AlertService.error("Gagal", "Terjadi kesalahan saat menyiapkan dokumen.");
     } finally {
       setIsDownloading(false);
     }
@@ -136,7 +149,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           
           if (!texture) return null;
 
-          // Ambil URL mentah dari database
           let rawImageUrl = '';
           let rawMaskUrl = '';
 
@@ -153,10 +165,8 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
 
           if (!rawImageUrl) return null;
 
-          // 👇 FIX CORS: HAPUS DOMAIN AGAR MENJADI RELATIVE URL 👇
           const imageUrl = rawImageUrl.replace("http://127.0.0.1:8000", "");
           const maskUrl = rawMaskUrl ? rawMaskUrl.replace("http://127.0.0.1:8000", "") : "";
-          // 👆 ================================================= 👆
 
           const isColorable = texture.is_colorable;
           const hexColor = texture.selected_color || colors[part.id] || "#FFFFFF";
@@ -168,14 +178,14 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
               className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center"
               style={{ zIndex }}
             >
-              {/* 1. LAYER BAWAH: Gambar Base Tekstur */}
+              {/* LAYER BAWAH: Gambar Base Tekstur */}
               <img 
                 src={imageUrl} 
                 alt={part.name}
                 className="absolute inset-0 w-full h-full object-contain"
               />
 
-              {/* 2. LAYER ATAS: Masking Warna */}
+              {/* LAYER ATAS: Masking Warna */}
               {isColorable && maskUrl && hexColor !== "#FFFFFF" && (
                 <div 
                   className="absolute inset-0 w-full h-full mix-blend-multiply"
@@ -198,6 +208,13 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       </div>
     );
   };
+
+  // 👇 LOGIKA VISIBILITAS KARTU PENGIRIMAN 👇
+  const currentStatus = data.status?.toLowerCase() || 'pending';
+  // Tampilkan card logistik BILA statusnya BUKAN pending (tunggu konfirmasi)
+  const showShippingCard = ['processing', 'shipped', 'delivered', 'completed'].includes(currentStatus);
+  // Tampilkan tombol request resi HANYA BILA statusnya processing dan resi belum ada
+  const canRequestResi = currentStatus === 'processing' && !resi;
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11] animate-fadeIn p-4 md:p-8" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
@@ -287,12 +304,8 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                 </div>
               </div>
 
-              {/* PANEL LOGISTIK RAJAONGKIR */}
-              <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
-                <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
-                
-               {/* Tampilkan Pengiriman & Logistik hanya saat status shipped, delivered, completed */}
-              {['shipped', 'delivered', 'completed'].includes(data.status?.toLowerCase()) && (
+              {/* PANEL LOGISTIK RAJAONGKIR (MUNCUL SESUAI STATUS) */}
+              {showShippingCard && (
                 <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
                   <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                   
@@ -316,9 +329,9 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                             Cetak Label Pengiriman (AWB)
                           </button>
                         </div>
-                      ) : (
+                      ) : canRequestResi ? (
                         <div>
-                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi.</p>
+                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan dalam proses. Klik tombol di bawah untuk men-generate resi otomatis secara Cashless.</p>
                           <button 
                             onClick={handleRequestResi}
                             disabled={isRequestingResi}
@@ -326,6 +339,10 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                           >
                             {isRequestingResi ? 'Menghubungi RajaOngkir...' : 'Request Resi RajaOngkir'}
                           </button>
+                        </div>
+                      ) : (
+                        <div>
+                           <p className="text-gray-600 text-xs leading-relaxed">Status pesanan telah berubah, namun belum ada resi yang diinput.</p>
                         </div>
                       )}
                     </div>
@@ -410,6 +427,5 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
         </div>
       </div>
     </div>
-  </div>
   );
 }
