@@ -28,12 +28,20 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     try {
       await OrderService.downloadPDF(orderId);
       
-      // Munculkan notifikasi sukses setelah file PDF berhasil digenerate/diunduh
-      AlertService.success("Berhasil", "Dokumen referensi PDF pesanan berhasil diunduh.");
+      // ✅ Update status order ke 'processing' setelah PDF diunduh
+      await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'processing' }),
+      });
+
+      // Update tampilan lokal
+      setData((prev: any) => ({ ...prev, status: 'processing' }));
+
+      AlertService.success("Berhasil", "Dokumen referensi PDF berhasil diunduh dan status pesanan diperbarui ke Sedang Diproses.");
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      
-      // Ganti alert browser yang kaku dengan AlertService error
       AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
     } finally {
       setIsDownloading(false);
@@ -264,57 +272,49 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   )}
                 </div>
               </div>
-
-              {/* 👇 PANEL LOGISTIK RAJAONGKIR BARU 👇 */}
-              <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
-                <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                 
-                <div className="space-y-5 text-sm">
-                  <div>
-                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Alamat Tujuan</span>
-                    <span className="font-medium text-gray-800 leading-relaxed block">{data.shipping_address || 'Alamat belum diatur saat checkout'}</span>
-                  </div>
+               {/* Tampilkan Pengiriman & Logistik hanya saat status shipped, delivered, completed */}
+              {['shipped', 'delivered', 'completed'].includes(data.status?.toLowerCase()) && (
+                <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
+                  <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                   
-                  {/* Status Resi / Tombol */}
-                  <div className="mt-6 p-5 bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-sm">
-                     <span className="block text-[#D9B35A] text-[10px] uppercase font-bold tracking-widest mb-3">Status Pengiriman (RajaOngkir)</span>
-                     
-                     {resi ? (
-                       <div className="animate-fadeIn">
-                         <p className="text-gray-800 font-medium mb-2">Nomor Resi Resmi:</p>
-                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                           <span className="font-mono font-black text-xl text-[#2D1A11] tracking-widest bg-white px-4 py-2 border border-[#D9B35A]/50 rounded shadow-sm">{resi}</span>
-                           <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded border border-emerald-200 text-center">Menunggu Pick-up Kurir</span>
-                         </div>
-                         <button className="mt-4 w-full py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors">
-                           Cetak Label Pengiriman (AWB)
-                         </button>
-                       </div>
-                     ) : (
-                       <div>
-                         <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi. Pastikan tas sudah diproduksi sebelum men-generate resi otomatis secara Cashless.</p>
-                         <button 
-                           onClick={handleRequestResi}
-                           disabled={isRequestingResi}
-                           className="w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-[11px] uppercase tracking-[0.1em] rounded-sm shadow-md hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                         >
-                           {isRequestingResi ? (
-                             <>
-                               <svg className="animate-spin h-4 w-4 text-[#D9B35A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                               Menghubungi RajaOngkir...
-                             </>
-                           ) : (
-                             'Request Resi RajaOngkir'
-                           )}
-                         </button>
-                       </div>
-                     )}
+                  <div className="space-y-5 text-sm">
+                    <div>
+                      <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Alamat Tujuan</span>
+                      <span className="font-medium text-gray-800 leading-relaxed block">{data.shipping_address || 'Alamat belum diatur saat checkout'}</span>
+                    </div>
+                    
+                    <div className="mt-6 p-5 bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-sm">
+                      <span className="block text-[#D9B35A] text-[10px] uppercase font-bold tracking-widest mb-3">Status Pengiriman (RajaOngkir)</span>
+                      
+                      {resi ? (
+                        <div className="animate-fadeIn">
+                          <p className="text-gray-800 font-medium mb-2">Nomor Resi Resmi:</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <span className="font-mono font-black text-xl text-[#2D1A11] tracking-widest bg-white px-4 py-2 border border-[#D9B35A]/50 rounded shadow-sm">{resi}</span>
+                            <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded border border-emerald-200 text-center">Menunggu Pick-up Kurir</span>
+                          </div>
+                          <button className="mt-4 w-full py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors">
+                            Cetak Label Pengiriman (AWB)
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi.</p>
+                          <button 
+                            onClick={handleRequestResi}
+                            disabled={isRequestingResi}
+                            className="w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-[11px] uppercase tracking-[0.1em] rounded-sm shadow-md hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            {isRequestingResi ? 'Menghubungi RajaOngkir...' : 'Request Resi RajaOngkir'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-
+              )}
             </div>
-
             {/* KOLOM KANAN: DETAIL MATERIAL (TETAP SAMA) */}
             <div className="lg:col-span-7 flex flex-col h-full space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20 flex-grow">
@@ -378,7 +378,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   {isDownloading ? 'Menyiapkan PDF...' : 'Cetak Referensi PDF'}
                 </button> 
               </div>
-
             </div>
           </div>
         </div>
