@@ -19,7 +19,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   
-  // 👇 STATE BARU UNTUK RAJAONGKIR 👇
   const [resi, setResi] = useState('');
   const [isRequestingResi, setIsRequestingResi] = useState(false);
 
@@ -27,13 +26,9 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     setIsDownloading(true);
     try {
       await OrderService.downloadPDF(orderId);
-      
-      // Munculkan notifikasi sukses setelah file PDF berhasil digenerate/diunduh
       AlertService.success("Berhasil", "Dokumen referensi PDF pesanan berhasil diunduh.");
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      
-      // Ganti alert browser yang kaku dengan AlertService error
       AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
     } finally {
       setIsDownloading(false);
@@ -60,7 +55,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
         if (response.data.catatan) {
           setCatatan(response.data.catatan);
         }
-        // Jika data dari database sudah punya resi, masukkan ke state
         if (response.data.resi) {
           setResi(response.data.resi);
         }
@@ -77,19 +71,13 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
 
-  // FUNGSI SIMULASI API RAJAONGKIR
   const handleRequestResi = async () => {
     setIsRequestingResi(true);
-    
-    // Simulasi jeda waktu menembak API Komerce (1.5 detik)
-    setTimeout(async () => { // 👈 Tambahkan kata async di sini
+    setTimeout(async () => { 
       try {
         const dummyResi = "JP" + Math.floor(100000000 + Math.random() * 900000000);
-        
-        // 1. SIMPAN RESI KE DATABASE LARAVEL 👇
         await OrderService.updateResi(orderId, dummyResi);
         
-        // 2. JIKA BERHASIL, UBAH TAMPILAN DI LAYAR 👇
         setResi(dummyResi);
         setIsRequestingResi(false);
         
@@ -135,14 +123,31 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           const texture = variant?.textures?.[0];
           
           if (!texture) return null;
-          let imageUrl = '';
-          if (pov === 'front') imageUrl = texture.img_front;
-          else if (pov === 'back') imageUrl = texture.img_back;
-          else if (pov === 'top') imageUrl = texture.img_top;
 
-          if (!imageUrl) return null;
+          // Ambil URL mentah dari database
+          let rawImageUrl = '';
+          let rawMaskUrl = '';
 
-          const hexColor = colors[part.id] || "#FFFFFF";
+          if (pov === 'front') {
+            rawImageUrl = texture.img_front;
+            rawMaskUrl = texture.img_front_mask;
+          } else if (pov === 'back') {
+            rawImageUrl = texture.img_back;
+            rawMaskUrl = texture.img_back_mask;
+          } else if (pov === 'top') {
+            rawImageUrl = texture.img_top;
+            rawMaskUrl = texture.img_top_mask;
+          }
+
+          if (!rawImageUrl) return null;
+
+          // 👇 FIX CORS: HAPUS DOMAIN AGAR MENJADI RELATIVE URL 👇
+          const imageUrl = rawImageUrl.replace("http://127.0.0.1:8000", "");
+          const maskUrl = rawMaskUrl ? rawMaskUrl.replace("http://127.0.0.1:8000", "") : "";
+          // 👆 ================================================= 👆
+
+          const isColorable = texture.is_colorable;
+          const hexColor = texture.selected_color || colors[part.id] || "#FFFFFF";
           const zIndex = part.z_index ? part.z_index[pov.charAt(0).toUpperCase() + pov.slice(1)] : (index * 10);
 
           return (
@@ -151,25 +156,30 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
               className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center"
               style={{ zIndex }}
             >
-              <div 
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundColor: hexColor,
-                  WebkitMaskImage: `url('${imageUrl}')`,
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskImage: `url('${imageUrl}')`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center',
-                }}
-              />
+              {/* 1. LAYER BAWAH: Gambar Base Tekstur */}
               <img 
                 src={imageUrl} 
                 alt={part.name}
-                className="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-90"
+                className="absolute inset-0 w-full h-full object-contain"
               />
+
+              {/* 2. LAYER ATAS: Masking Warna */}
+              {isColorable && maskUrl && hexColor !== "#FFFFFF" && (
+                <div 
+                  className="absolute inset-0 w-full h-full mix-blend-multiply"
+                  style={{
+                    backgroundColor: hexColor,
+                    WebkitMaskImage: `url('${maskUrl}')`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskImage: `url('${maskUrl}')`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                  }}
+                />
+              )}
             </div>
           );
         })}
@@ -265,7 +275,7 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                 </div>
               </div>
 
-              {/* 👇 PANEL LOGISTIK RAJAONGKIR BARU 👇 */}
+              {/* PANEL LOGISTIK RAJAONGKIR */}
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
                 <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                 
@@ -315,7 +325,7 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
 
             </div>
 
-            {/* KOLOM KANAN: DETAIL MATERIAL (TETAP SAMA) */}
+            {/* KOLOM KANAN: DETAIL MATERIAL */}
             <div className="lg:col-span-7 flex flex-col h-full space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20 flex-grow">
                 <div className="flex justify-between items-end mb-6 border-b border-[#D9B35A]/20 pb-4">
@@ -353,6 +363,14 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                               <div className="flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">{selectedTexture?.name || 'Default Texture'}</span>
                                 <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">{selectedTexture?.texture_code || '-'}</span>
+                                {/* Indikator hex warna jika dikustomisasi */}
+                                {selectedTexture?.is_colorable && selectedTexture?.selected_color && (
+                                  <div className="flex items-center gap-1.5 mt-2">
+                                    <span className="text-[8px] text-gray-500 uppercase tracking-widest">Warna:</span>
+                                    <div className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: selectedTexture.selected_color}}></div>
+                                    <span className="text-[9px] font-mono text-gray-500">{selectedTexture.selected_color}</span>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>

@@ -17,9 +17,7 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import html2canvas from "html2canvas";
 import { CartService } from '@/services/CartService';
-import { flushSync } from "react-dom";
 import { AlertService } from "@/services/AlertService";
 
 export default function BagCustomizer() {
@@ -37,18 +35,24 @@ export default function BagCustomizer() {
     
     const fetchProduct = async () => {
       try {
-        // ── Cek login dulu ──────────────────────────────
-        const userRes = await fetch('/api-fe/proxy/user', {
+        await fetch('/api-fe/proxy/user', {
           credentials: 'include',
         });
 
-        // ── Fetch produk ────────────────────────────────
         const res = await fetch(`/api-fe/proxy/products/${productId}`);
         if (res.ok) {
           const json = await res.json();
           const raw = json.data;
           const slug = raw.slug;
           const localConfig = PRODUCTS_CONFIG[slug];
+
+          // 👇 HELPER UNTUK MENCEGAH DOUBLE URL 👇
+          const cleanUrl = (path: string) => {
+            if (!path) return "";
+            if (path.startsWith("http") || path.startsWith("data:image")) return path;
+            if (path.startsWith("storage/")) return `http://127.0.0.1:8000/${path}`;
+            return `http://127.0.0.1:8000/storage/${path}`;
+          };
 
           // ── Mapping parts ──────────────────────────────────
           const mappedParts = (raw.parts || []).map((part: any) => ({
@@ -62,33 +66,29 @@ export default function BagCustomizer() {
               name:       variant.name,
               variant_code: variant.variant_code || "",
               price:      parseFloat(variant.price),
-              priceLabel: variant.price > 0
-                ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
-                : "",
+              priceLabel: variant.price > 0 ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}` : "",
               textures: (variant.textures || []).map((texture: any) => ({
                 id:        texture.id,
                 name:      texture.name,
                 texture_code: texture.texture_code || "",
                 price:     parseFloat(texture.price),
-                thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
-                image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-                img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
-                img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+                thumb:     cleanUrl(texture.img_thumb),
+                image:     cleanUrl(texture.img_front),
+                img_front: cleanUrl(texture.img_front),
+                img_back:  cleanUrl(texture.img_back),
+                img_top:   cleanUrl(texture.img_top),
                 
-                // 👇 TARIK DATA PEWARNAAN DARI BACKEND 👇
+                // DATA WARNA DAN MASK
                 is_colorable:   texture.is_colorable || false,
                 colors:         texture.colors || [],
-                img_front_mask: texture.img_front_mask ? `http://127.0.0.1:8000/storage/${texture.img_front_mask}` : "",
-                img_back_mask:  texture.img_back_mask  ? `http://127.0.0.1:8000/storage/${texture.img_back_mask}`  : "",
-                img_top_mask:   texture.img_top_mask   ? `http://127.0.0.1:8000/storage/${texture.img_top_mask}`   : "",
-                // 👆 ================================== 👆
+                img_front_mask: cleanUrl(texture.img_front_mask),
+                img_back_mask:  cleanUrl(texture.img_back_mask),
+                img_top_mask:   cleanUrl(texture.img_top_mask),
               })),
             })),
             textures: part.variants?.length === 0 ? [] : undefined,
           }));
 
-          // ── Mapping sizes ──────────────────────────────────
           const mappedSizes = (raw.sizes || []).map((s: any) => ({
             id:          s.id,
             title:       s.title,
@@ -96,15 +96,9 @@ export default function BagCustomizer() {
             description: s.description,
             price:       s.price,
             image:       s.img || "",
-            dimensions: {
-              width:  s.width,
-              height: s.height,
-              depth:  s.depth,
-              unit:   s.unit,
-            },
+            dimensions: { width: s.width, height: s.height, depth: s.depth, unit: s.unit },
           }));
 
-          // ── Base data dari API ─────────────────────────────
           const baseData = {
             id:              raw.id,
             name:            raw.name,
@@ -114,36 +108,29 @@ export default function BagCustomizer() {
             reviews:         0,
             catalogPrice:    parseFloat(raw.base_price),
             discountedPrice: parseFloat(raw.base_price),
-            thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-            previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            thumbnails:      raw.img ? [cleanUrl(raw.img)] : [],
+            previews:        raw.img ? [cleanUrl(raw.img)] : [],
             gallery:         (raw.gallery || []).map((g: any) => g.img),
             dimensionsImage: raw.dimension?.img || "",
             specifications:  [
-              raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+              raw.dimension?.product_style ? { label: "Gaya Produk", value: raw.dimension.product_style } : null,
               raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
-              raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+              raw.dimension?.weight        ? { label: "Berat (lbs)", value: `${raw.dimension.weight}.2 Lb` } : null,
             ].filter(Boolean) as { label: string; value: string }[],
             marketingBlocks: (raw.marketing_blocks || []).map((block: any, index: number) => ({
-            title:        block.title,
-            subtitle:     block.subtitle || "",
-            description:  block.description || "",
-            image:        block.image || "",
-            layout:       index % 2 === 0 ? "image-left" : "image-right", 
-            featureStyle: block.feature_style || "cards",
-            features:     (block.features || []).map((f: any) => ({
-              title: f.title,
-              icon:  f.icon || "",
+              title:        block.title,
+              subtitle:     block.subtitle || "",
+              description:  block.description || "",
+              image:        block.image || "",
+              layout:       index % 2 === 0 ? "image-left" : "image-right", 
+              featureStyle: block.feature_style || "cards",
+              features:     (block.features || []).map((f: any) => ({ title: f.title, icon: f.icon || "" })),
             })),
-          })),
             sizes:           mappedSizes,
             parts:           mappedParts,
           };
 
-          // ── Gabungkan dengan localConfig kalau ada ─────────
-          const mapped: ProductConfig = localConfig
-            ? { ...localConfig, ...baseData }
-            : baseData;
-
+          const mapped: ProductConfig = localConfig ? { ...localConfig, ...baseData } : baseData;
           setProduct(mapped);
         }
       } catch (err) {
@@ -165,14 +152,6 @@ export default function BagCustomizer() {
   if (!product) {
     return (
       <div className="p-20 text-center font-serif text-3xl text-[#2D1A11] bg-[#F8F3E9] h-screen flex items-center justify-center relative overflow-hidden">
-        <div 
-          className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none mix-blend-color-dodge"
-          style={{ 
-            backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`,
-            backgroundSize: '400px',
-            backgroundRepeat: 'repeat'
-          }}
-        ></div>
         <span className="relative z-10">Produk tidak ditemukan.</span>
       </div>
     );
@@ -190,12 +169,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const bagSizes = product.sizes || [];
   const hasSizes = bagSizes.length > 0;
 
-  // --- BUILD STEPS ARRAY ---
   const steps = [];
   if (hasSizes) steps.push({ id: 'size', type: 'size', title: 'Ukuran' });
   product.parts.forEach((part) => steps.push({ id: part.id, type: 'part', title: part.name, partData: part }));
 
-  // --- SEMUA STATE ---
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const currentStep = steps[activeStepIndex];
   const [highlightedPartId, setHighlightedPartId] = useState<string | null>(null);
@@ -216,9 +193,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [startX, setStartX] = useState(0);
 
-  // --- SEMUA USEEFFECT ---
-
-  // 1. Load dari localStorage
   useEffect(() => {
     const saved = localStorage.getItem(`customization_${product.id}`);
     const savedData = saved ? JSON.parse(saved) : null;
@@ -266,7 +240,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     setIsHydrated(true);
   }, []);
 
-  // 2. Save ke localStorage
   useEffect(() => {
     if (!isHydrated) return;
     localStorage.setItem(`customization_${product.id}`, JSON.stringify({
@@ -280,7 +253,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }));
   }, [activeSize, shapeSelections, selections, textureSelections, visibleParts, activeView, isHydrated]);
 
-  // 3. Highlight part
   useEffect(() => {
     if (currentStep && currentStep.type === 'part') {
       setHighlightedPartId(currentStep.id);
@@ -292,9 +264,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   useEffect(() => {
     const checkWishlist = async () => {
       try {
-        const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, {
-          credentials: 'include',
-        });
+        const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, { credentials: 'include' });
         if (res.ok) {
           const json = await res.json();
           setIsWishlisted(json.is_wishlisted);
@@ -306,15 +276,11 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     checkWishlist();
   }, [product.id]);
 
-  // Toggle wishlist
   const handleToggleWishlist = async () => {
     setWishlistLoading(true);
     try {
       if (isWishlisted) {
-        await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        await fetch(`/api-fe/proxy/wishlist/${product.id}`, { method: 'DELETE', credentials: 'include' });
         setIsWishlisted(false);
         AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); 
       } else {
@@ -346,8 +312,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   if (!isHydrated) return null;
-  
-  // 360 ROTATION
   const TOTAL_FRAMES = 17;
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
@@ -360,7 +324,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     if (!isDragging) return;
     const clientX = "touches" in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const diff = clientX - startX;
-
     if (Math.abs(diff) > 3) {
       setFrame360((prev) => {
         let newFrame = prev + (diff > 0 ? -1 : 1);
@@ -374,13 +337,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const handleDragEnd = () => setIsDragging(false);
 
-  // --- HANDLERS ---
-  const handleColorSelect = (partId: string, hexColor: string) =>
-    setSelections((p) => ({ ...p, [partId]: hexColor }));
+  const handleColorSelect = (partId: string, hexColor: string) => setSelections((p) => ({ ...p, [partId]: hexColor }));
   
   const handleShapeSelect = (partId: string, shapeId: string) => {
     setShapeSelections((p) => ({ ...p, [partId]: shapeId }));
-
     const part = product.parts.find((p) => p.id === partId);
     if (part) {
       const variant = part.variants?.find((v) => v.id === shapeId);
@@ -390,17 +350,13 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
       setTextureSelections((prev) => {
         const currentTexture = prev[partId];
-        if (!newTextures.find((t) => t.id === currentTexture)) {
-          return { ...prev, [partId]: newTextures[0]?.id || "base" };
-        }
+        if (!newTextures.find((t) => t.id === currentTexture)) return { ...prev, [partId]: newTextures[0]?.id || "base" };
         return prev;
       });
 
       setSelections((prev) => {
         const currentColor = prev[partId];
-        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) {
-          return { ...prev, [partId]: newColors[0].hex };
-        }
+        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) return { ...prev, [partId]: newColors[0].hex };
         return prev;
       });
     }
@@ -408,21 +364,17 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const handleTextureSelect = (partId: string, textureId: string) => {
     setTextureSelections((p) => ({ ...p, [partId]: textureId }));
-
     const part = product.parts.find((p) => p.id === partId);
     if (part) {
       const activeShapeId = shapeSelections[partId] || partId;
       const variant = part.variants?.find((v) => v.id === activeShapeId);
       const textures = variant?.textures || part.textures || [];
-      
       const selectedTextureObj = textures.find((t) => t.id === textureId);
       const newColors = selectedTextureObj?.colors || [];
 
       setSelections((prev) => {
         const currentColor = prev[partId];
-        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) {
-          return { ...prev, [partId]: newColors[0].hex };
-        }
+        if (newColors.length > 0 && !newColors.find((c) => c.hex === currentColor)) return { ...prev, [partId]: newColors[0].hex };
         return prev;
       });
     }
@@ -435,9 +387,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         total += part.basePrice || 0;
         const activeShapeId = shapeSelections[part.id] || part.id;
         const variant = part.variants?.find((v) => v.id === activeShapeId);
-
         if (variant) total += variant.price || 0;
-
         const currentTextures = variant?.textures || part.textures || [];
         const activeTexture = currentTextures.find((t) => t.id === textureSelections[part.id]);
         if (activeTexture) total += activeTexture.price || 0;
@@ -446,10 +396,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     return total;
   };
 
-
   const handleAddToCart = async () => {
     setIsCapturing(true);
-
     const finalPrice = calculateTotalPrice();
     const selectedSizeObj = product?.sizes?.find((s: any) => s.id === activeSize);
     const sizeLabel = selectedSizeObj ? selectedSizeObj.title : activeSize;
@@ -457,10 +405,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     const mappedPartsPayload = product.parts.map((part: any) => {
       const activeShapeId = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v: any) => v.id === activeShapeId);
-      
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
       const activeTexture = currentTextures.find((t: any) => t.id === activeTextureId) || currentTextures[0];
+      const selectedColor = selections[part.id] || null;
 
       return {
         id: part.id,
@@ -481,7 +429,12 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 img_back: activeTexture.img_back || "",
                 img_front: activeTexture.img_front || "",
                 img_thumb: activeTexture.thumb || activeTexture.img_thumb || "", 
-                texture_code: activeTexture.texture_code || ""
+                texture_code: activeTexture.texture_code || "",
+                is_colorable: activeTexture.is_colorable || false,
+                selected_color: activeTexture.is_colorable ? selectedColor : null,
+                img_top_mask: activeTexture.img_top_mask || "",
+                img_back_mask: activeTexture.img_back_mask || "",
+                img_front_mask: activeTexture.img_front_mask || ""
               }
             ] : []
           }
@@ -490,11 +443,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     });
 
     const fullImageUrl = product?.thumbnails?.[0] || product?.gallery?.[0] || "";
-    
     let dbFormattedImage = fullImageUrl;
-    if (fullImageUrl.includes("/storage/")) {
-      dbFormattedImage = fullImageUrl.split("/storage/")[1]; 
-    }
+    if (fullImageUrl.includes("/storage/")) dbFormattedImage = fullImageUrl.split("/storage/")[1]; 
 
     const customizationsData: any = {
       size: sizeLabel,
@@ -521,17 +471,13 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           price: finalPrice,
           discountedPrice: finalPrice,
           quantity: 1,
-          imgs: {
-            previews: [fullImageUrl], 
-            thumbnails: [fullImageUrl]
-          },
+          imgs: { previews: [fullImageUrl], thumbnails: [fullImageUrl] },
           customizations: customizationsData
         } as any)
       );
 
       setIsCapturing(false);
       openCartModal();
-
     } catch (error) {
       console.error("Terjadi kesalahan jaringan", error);
       setIsCapturing(false);
@@ -540,19 +486,17 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const nextStep = () => setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStepIndex((prev) => Math.max(prev - 1, 0));
-  
-  // --- RENDERER ---
+
   const renderProductParts = (pov: string) => {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
       const activeShape = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v) => v.id === activeShape);
-      
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
 
-      // 👇 DAPATKAN URL GAMBAR BASE DARI DB 👇
+      // 👇 MENGHAPUS DOMAIN AGAR JADI RELATIVE URL (MENCEGAH CORS) 👇
       const getTextureImageUrl = (textureObj: any, pov: string) => {
         let rawUrl = "";
         switch(pov.toLowerCase()) {
@@ -561,11 +505,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           case 'top':   rawUrl = textureObj?.img_top   || ""; break;
           default:      rawUrl = textureObj?.img_front || ""; break;
         }
-        if (rawUrl) return rawUrl.replace("http://127.0.0.1:8000", "");
-        return "";
+        return rawUrl ? rawUrl.replace("http://127.0.0.1:8000", "") : "";
       };
 
-      // 👇 DAPATKAN URL GAMBAR MASK DARI DB 👇
+      // 👇 MENGHAPUS DOMAIN AGAR MASK BISA LOAD TANPA CORS 👇
       const getMaskImageUrl = (textureObj: any, pov: string) => {
         let rawUrl = "";
         switch(pov.toLowerCase()) {
@@ -574,42 +517,26 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           case 'top':   rawUrl = textureObj?.img_top_mask   || ""; break;
           default:      rawUrl = textureObj?.img_front_mask || ""; break;
         }
-        if (rawUrl) return rawUrl.replace("http://127.0.0.1:8000", "");
-        return "";
+        return rawUrl ? rawUrl.replace("http://127.0.0.1:8000", "") : "";
       };
+      // 👆 ======================================================== 👆
 
-      // Menentukan apakah komponen tersebut memiliki opsi warna
       const isColorable = activeTextureObj?.is_colorable || (activeTextureObj?.colors && activeTextureObj.colors.length > 0);
-
       const activeColor = isColorable ? selections[part.id] : "#FFFFFF";
       const activeTexture = textureSelections[part.id];
-
       const partZIndex = typeof part.zIndex === "number" ? part.zIndex : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
-      
       const activeHighlight = showFullPreview ? null : highlightedPartId;
       const isHighlighted = activeHighlight === part.id;
       const isOtherPartHighlighted = activeHighlight !== null && activeHighlight !== part.id;
 
       if (part.variants?.some((v) => v.staticOverlays)) {
         return (
-          <div
-            key={`${pov}-${part.id}`}
-            className="absolute inset-0 pointer-events-none transition-all duration-300"
-            style={{ zIndex: partZIndex }}
-          >
-            {pov === "Front" &&
-              activeVariant?.staticOverlays?.map((overlay) => (
+          <div key={`${pov}-${part.id}`} className="absolute inset-0 pointer-events-none transition-all duration-300" style={{ zIndex: partZIndex }}>
+            {pov === "Front" && activeVariant?.staticOverlays?.map((overlay) => (
                 <StaticPart key={overlay.id} imageUrl={overlay.url} zIndex={overlay.zIndex} altText={overlay.name} />
               ))}
-            {pov === "360" &&
-              activeVariant?.staticOverlays?.map((overlay) => (
-                <StaticSpritePart
-                  key={overlay.id}
-                  imageUrl={`/assets/products/${product.id}/360/${overlay.id}-base-sprite.webp`}
-                  zIndex={overlay.zIndex}
-                  currentFrame={frame360}
-                  totalFrames={TOTAL_FRAMES}
-                />
+            {pov === "360" && activeVariant?.staticOverlays?.map((overlay) => (
+                <StaticSpritePart key={overlay.id} imageUrl={`/assets/products/${product.id}/360/${overlay.id}-base-sprite.webp`} zIndex={overlay.zIndex} currentFrame={frame360} totalFrames={TOTAL_FRAMES} />
               ))}
           </div>
         );
@@ -624,15 +551,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
           style={{ zIndex: isHighlighted ? 999 : partZIndex }} 
         >
           {pov === "360" ? (
-            <SpritePart
-              productId={product.id}
-              partName={activeShape}
-              color={activeColor}
-              texture={activeTexture}
-              zIndex={partZIndex}
-              currentFrame={frame360}
-              totalFrames={TOTAL_FRAMES}
-            />
+            <SpritePart productId={product.id} partName={activeShape} color={activeColor} texture={activeTexture} zIndex={partZIndex} currentFrame={frame360} totalFrames={TOTAL_FRAMES} />
           ) : isColorable ? (
             <DynamicPart
               productId={product.id}
@@ -641,7 +560,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               color={activeColor}
               texture={activeTexture}
               textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} 
-              maskImageUrl={getMaskImageUrl(activeTextureObj, pov)} // 👈 SEKARANG MASK IMAGE DIKIRIM KE SINI
+              maskImageUrl={getMaskImageUrl(activeTextureObj, pov)} // 👈 INI YANG SEBELUMNYA HILANG!
               zIndex={partZIndex}
             />
           ) : (
@@ -672,7 +591,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   return (
     <div className="relative bg-[#F8F3E9] text-[#2D1A11] min-h-screen overflow-hidden selection:bg-[#C5A059] selection:text-white pb-20" style={{ fontFamily: "'Cinzel', 'Playfair Display', serif" }}>
       
-      {/* --- ORNAMEN SAMPING & BAWAH --- */}
       <div 
         className="absolute left-[-5%] top-[10%] w-[350px] h-[700px] pointer-events-none z-0 opacity-5 mix-blend-multiply grayscale contrast-125"
         style={{ backgroundImage: `url('https://www.shutterstock.com/shutterstock/photos/1411052360/display_1500/stock-photo-puppet-or-wayang-kulit-one-of-the-traditional-art-of-java-indonesia-mahabharata-and-ramayana-1411052360.jpg')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }}
@@ -795,7 +713,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             <div className="bg-[#2D1A11] rounded-2xl p-7 shadow-2xl h-full flex flex-col min-h-[550px] border border-[#C5A059]/30 relative overflow-hidden">
               <div className="absolute right-0 top-0 bottom-0 w-16 opacity-10 mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '200px' }}></div>
               
-              {/* HEADER */}
               <div className="flex items-center justify-between border-b border-[#C5A059]/30 pb-5 mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#C5A059] flex items-center justify-center text-[#2D1A11] font-bold text-sm shadow-inner">
@@ -839,10 +756,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 </div>
               </div>
 
-              {/* CONTENT */}
               <div key={currentStep.id} className="bg-[#F8F3E9] rounded-2xl p-7 relative flex-grow animate-soft-fade flex flex-col shadow-inner border border-[#E5D7C1] z-10">
                 
-                {/* UKURAN */}
                 {currentStep.type === 'size' && (
                   <div className="flex flex-col h-full relative z-10">
                     <div className="flex justify-between items-end mb-8 border-b border-[#C5A059]/20 pb-4">
@@ -869,7 +784,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                   </div>
                 )}
 
-                {/* PARTS */}
                 {currentStep.type === 'part' && (
                   <div className="flex flex-col h-full relative z-10">
                     <div className="flex justify-between items-start mb-6 border-b border-[#E5D7C1] pb-3">
@@ -883,8 +797,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
                       const activeTextureObj = currentTextures.find(t => t.id === activeTextureId) || currentTextures[0];
                       const currentColors = activeTextureObj?.colors || [];
-                      
-                      // Cek ketersediaan warna
                       const isColorable = activeTextureObj?.is_colorable || currentColors.length > 0;
 
                       return (
@@ -952,7 +864,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 )}
               </div>
 
-              {/* BOTTOM: Total Investasi */}
               <div className="pt-6 mt-6 border-t border-[#C5A059]/30 relative z-10">
                 <div className="flex justify-between items-center text-[#F8F3E9] mb-2">
                   <span className="text-[10px] tracking-[0.3em] font-bold uppercase text-[#C5A059] font-sans">Total Investasi</span>
@@ -977,7 +888,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         </div>
       </section>
 
-      {/* ================= BAGIAN BAWAH: DIMENSI, GALERI, DLL ================= */}
       <div className="relative z-10 bg-[#F8F3E9] pt-8">
         
         <div className="w-full max-w-[1200px] mx-auto px-4 mb-4">
@@ -991,9 +901,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         <Newsletter />
       </div>
 
-      {/* ================= MODALS ================= */} 
-      
-      {/* 1. MODAL PANDUAN UKURAN */}
       {showSizeGuideModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#1A0F0A]/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowSizeGuideModal(false)}>
           <div className="bg-[#2D1A11] rounded-[2.5rem] p-1 max-w-7xl w-full max-h-[90vh] flex flex-col scale-in-center shadow-[0_30px_60px_rgba(197,160,89,0.15)] border border-[#C5A059]/40 relative" onClick={(e) => e.stopPropagation()}>
@@ -1057,7 +964,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         </div>
       )}
 
-      {/* 2. MODAL PANDUAN BAHAN */}
       {showFabricGuideModal && selectedFabricPartId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#1A0F0A]/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowFabricGuideModal(false)}>
           <div className="bg-[#2D1A11] rounded-[2.5rem] p-1 max-w-5xl w-full max-h-[90vh] flex flex-col scale-in-center shadow-[0_30px_60px_rgba(197,160,89,0.15)] border border-[#C5A059]/40 relative" onClick={(e) => e.stopPropagation()}>
