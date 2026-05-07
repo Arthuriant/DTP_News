@@ -206,14 +206,17 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::post('/my-orders/{id}/complete', [OrderController::class, 'confirmDelivery']);
     Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::put('/admin/orders/{id}/resi', [OrderController::class, 'updateResi']);
+
+    Route::get('/dashboard-stats', [DashboardController::class, 'index']);
+    Route::get('/dashboard-report/pdf', [DashboardController::class, 'downloadPdf']);
 });
 
 Route::get('/cart', [CartController::class, 'getCart']);
 
 
-    Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index']);
-});
+//     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
+//         
+// });
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
 
