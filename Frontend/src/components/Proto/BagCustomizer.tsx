@@ -22,7 +22,7 @@ import { CartService } from '@/services/CartService';
 import { flushSync } from "react-dom";
 import { AlertService } from "@/services/AlertService";
 
-    export default function BagCustomizer() {
+export default function BagCustomizer() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
   
@@ -35,109 +35,116 @@ import { AlertService } from "@/services/AlertService";
       return;
     }
     
-      const fetchProduct = async () => {
-    try {
-      // ── Cek login dulu ──────────────────────────────
-      const userRes = await fetch('/api-fe/proxy/user', {
-        credentials: 'include',
-      });
+    const fetchProduct = async () => {
+      try {
+        // ── Cek login dulu ──────────────────────────────
+        const userRes = await fetch('/api-fe/proxy/user', {
+          credentials: 'include',
+        });
 
+        // ── Fetch produk ────────────────────────────────
+        const res = await fetch(`/api-fe/proxy/products/${productId}`);
+        if (res.ok) {
+          const json = await res.json();
+          const raw = json.data;
+          const slug = raw.slug;
+          const localConfig = PRODUCTS_CONFIG[slug];
 
-      // ── Fetch produk ────────────────────────────────
-      const res = await fetch(`/api-fe/proxy/products/${productId}`);
-      if (res.ok) {
-        const json = await res.json();
-        const raw = json.data;
-        const slug = raw.slug;
-        const localConfig = PRODUCTS_CONFIG[slug];
+          // ── Mapping parts ──────────────────────────────────
+          const mappedParts = (raw.parts || []).map((part: any) => ({
+            id:        part.id,
+            name:      part.name,
+            part_code: part.part_code || "",
+            basePrice: 0,
+            zIndex:    part.z_index,
+            variants:  (part.variants || []).map((variant: any) => ({
+              id:         variant.id,
+              name:       variant.name,
+              variant_code: variant.variant_code || "",
+              price:      parseFloat(variant.price),
+              priceLabel: variant.price > 0
+                ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
+                : "",
+              textures: (variant.textures || []).map((texture: any) => ({
+                id:        texture.id,
+                name:      texture.name,
+                texture_code: texture.texture_code || "",
+                price:     parseFloat(texture.price),
+                thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
+                image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+                img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
+                img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
+                img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+                
+                // 👇 TARIK DATA PEWARNAAN DARI BACKEND 👇
+                is_colorable:   texture.is_colorable || false,
+                colors:         texture.colors || [],
+                img_front_mask: texture.img_front_mask ? `http://127.0.0.1:8000/storage/${texture.img_front_mask}` : "",
+                img_back_mask:  texture.img_back_mask  ? `http://127.0.0.1:8000/storage/${texture.img_back_mask}`  : "",
+                img_top_mask:   texture.img_top_mask   ? `http://127.0.0.1:8000/storage/${texture.img_top_mask}`   : "",
+                // 👆 ================================== 👆
+              })),
+            })),
+            textures: part.variants?.length === 0 ? [] : undefined,
+          }));
 
-        // ── Mapping parts ──────────────────────────────────
-        const mappedParts = (raw.parts || []).map((part: any) => ({
-          id:        part.id,
-          name:      part.name,
-          part_code: part.part_code || "",
-          basePrice: 0,
-          zIndex:    part.z_index,
-          variants:  (part.variants || []).map((variant: any) => ({
-            id:         variant.id,
-            name:       variant.name,
-            variant_code: variant.variant_code || "",
-            price:      parseFloat(variant.price),
-            priceLabel: variant.price > 0
-              ? `+ Rp ${parseInt(variant.price).toLocaleString('id-ID')}`
-              : "",
-            textures: (variant.textures || []).map((texture: any) => ({
-              id:        texture.id,
-              name:      texture.name,
-              texture_code: texture.texture_code || "",
-              price:     parseFloat(texture.price),
-              thumb:     texture.img_thumb ? `http://127.0.0.1:8000/storage/${texture.img_thumb}` : "",
-              image:     texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-              img_front: texture.img_front ? `http://127.0.0.1:8000/storage/${texture.img_front}` : "",
-              img_back:  texture.img_back  ? `http://127.0.0.1:8000/storage/${texture.img_back}`  : "",
-              img_top:   texture.img_top   ? `http://127.0.0.1:8000/storage/${texture.img_top}`   : "",
+          // ── Mapping sizes ──────────────────────────────────
+          const mappedSizes = (raw.sizes || []).map((s: any) => ({
+            id:          s.id,
+            title:       s.title,
+            desc:        s.short_desc,
+            description: s.description,
+            price:       s.price,
+            image:       s.img || "",
+            dimensions: {
+              width:  s.width,
+              height: s.height,
+              depth:  s.depth,
+              unit:   s.unit,
+            },
+          }));
+
+          // ── Base data dari API ─────────────────────────────
+          const baseData = {
+            id:              raw.id,
+            name:            raw.name,
+            basePrice:       parseFloat(raw.base_price),
+            numericId:       0,
+            catalogTitle:    raw.name,
+            reviews:         0,
+            catalogPrice:    parseFloat(raw.base_price),
+            discountedPrice: parseFloat(raw.base_price),
+            thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
+            gallery:         (raw.gallery || []).map((g: any) => g.img),
+            dimensionsImage: raw.dimension?.img || "",
+            specifications:  [
+              raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
+              raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
+              raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
+            ].filter(Boolean) as { label: string; value: string }[],
+            marketingBlocks: (raw.marketing_blocks || []).map((block: any, index: number) => ({
+            title:        block.title,
+            subtitle:     block.subtitle || "",
+            description:  block.description || "",
+            image:        block.image || "",
+            layout:       index % 2 === 0 ? "image-left" : "image-right", 
+            featureStyle: block.feature_style || "cards",
+            features:     (block.features || []).map((f: any) => ({
+              title: f.title,
+              icon:  f.icon || "",
             })),
           })),
-          textures: part.variants?.length === 0 ? [] : undefined,
-        }));
+            sizes:           mappedSizes,
+            parts:           mappedParts,
+          };
 
-        // ── Mapping sizes ──────────────────────────────────
-        const mappedSizes = (raw.sizes || []).map((s: any) => ({
-          id:          s.id,
-          title:       s.title,
-          desc:        s.short_desc,
-          description: s.description,
-          price:       s.price,
-          image:       s.img || "",
-          dimensions: {
-            width:  s.width,
-            height: s.height,
-            depth:  s.depth,
-            unit:   s.unit,
-          },
-        }));
+          // ── Gabungkan dengan localConfig kalau ada ─────────
+          const mapped: ProductConfig = localConfig
+            ? { ...localConfig, ...baseData }
+            : baseData;
 
-        // ── Base data dari API ─────────────────────────────
-        const baseData = {
-          id:              raw.id,
-          name:            raw.name,
-          basePrice:       parseFloat(raw.base_price),
-          numericId:       0,
-          catalogTitle:    raw.name,
-          reviews:         0,
-          catalogPrice:    parseFloat(raw.base_price),
-          discountedPrice: parseFloat(raw.base_price),
-          thumbnails:      raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-          previews:        raw.img ? [`http://127.0.0.1:8000/storage/${raw.img}`] : [],
-          gallery:         (raw.gallery || []).map((g: any) => g.img),
-          dimensionsImage: raw.dimension?.img || "",
-          specifications:  [
-            raw.dimension?.product_style ? { label: "Gaya Produk",         value: raw.dimension.product_style           } : null,
-            raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
-            raw.dimension?.weight        ? { label: "Berat (lbs)",          value: `${raw.dimension.weight}.2 Lb`        } : null,
-          ].filter(Boolean) as { label: string; value: string }[],
-          marketingBlocks: (raw.marketing_blocks || []).map((block: any, index: number) => ({
-          title:        block.title,
-          subtitle:     block.subtitle || "",
-          description:  block.description || "",
-          image:        block.image || "",
-          layout:       index % 2 === 0 ? "image-left" : "image-right", // ← alternating
-          featureStyle: block.feature_style || "cards",
-          features:     (block.features || []).map((f: any) => ({
-            title: f.title,
-            icon:  f.icon || "",
-          })),
-        })),
-          sizes:           mappedSizes,
-          parts:           mappedParts,
-        };
-
-        // ── Gabungkan dengan localConfig kalau ada ─────────
-        const mapped: ProductConfig = localConfig
-          ? { ...localConfig, ...baseData }
-          : baseData;
-
-        setProduct(mapped);
+          setProduct(mapped);
         }
       } catch (err) {
         console.error("Gagal fetch produk:", err);
@@ -282,7 +289,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   }, [activeStepIndex, currentStep]);
 
-   useEffect(() => {
+  useEffect(() => {
     const checkWishlist = async () => {
       try {
         const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, {
@@ -301,44 +308,45 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   // Toggle wishlist
   const handleToggleWishlist = async () => {
-  setWishlistLoading(true);
-  try {
-    if (isWishlisted) {
-      await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      setIsWishlisted(false);
-      AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); // ✅
-    } else {
-      await fetch(`/api-fe/proxy/wishlist`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: product.id,
-          customizations: {
-            size:         activeSize,
-            shapes:       shapeSelections,
-            textures:     textureSelections,
-            colors:       selections,
-            visibleParts: visibleParts,
-          },
-          total_price: calculateTotalPrice(),
-        }),
-      });
-      setIsWishlisted(true);
-      AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); // ✅
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await fetch(`/api-fe/proxy/wishlist/${product.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        setIsWishlisted(false);
+        AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); 
+      } else {
+        await fetch(`/api-fe/proxy/wishlist`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            customizations: {
+              size:         activeSize,
+              shapes:       shapeSelections,
+              textures:     textureSelections,
+              colors:       selections,
+              visibleParts: visibleParts,
+            },
+            total_price: calculateTotalPrice(),
+          }),
+        });
+        setIsWishlisted(true);
+        AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); 
+      }
+    } catch (err) {
+      console.error("Gagal toggle wishlist:", err);
+      AlertService.error("Gagal", "Terjadi kesalahan, coba lagi."); 
+    } finally {
+      setWishlistLoading(false);
     }
-  } catch (err) {
-    console.error("Gagal toggle wishlist:", err);
-    AlertService.error("Gagal", "Terjadi kesalahan, coba lagi."); // ✅ tambah error alert
-  } finally {
-    setWishlistLoading(false);
-  }
-};
+  };
 
   if (!isHydrated) return null;
+  
   // 360 ROTATION
   const TOTAL_FRAMES = 17;
 
@@ -530,53 +538,54 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     }
   };
 
-
   const nextStep = () => setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setActiveStepIndex((prev) => Math.max(prev - 1, 0));
+  
   // --- RENDERER ---
   const renderProductParts = (pov: string) => {
     return product.parts.map((part) => {
       if (!visibleParts[part.id]) return null;
 
-      // const activeKompartemen = shapeSelections["kompartemen"];
-      // if (part.id === "pengait2" && activeKompartemen !== "pengait") {
-      //   return null;
-      // }
-
       const activeShape = shapeSelections[part.id] || part.id;
       const activeVariant = part.variants?.find((v) => v.id === activeShape);
       
       const currentTextures = activeVariant?.textures || part.textures || [];
-            const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
+      const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
 
-      // Pilih URL gambar sesuai POV
+      // 👇 DAPATKAN URL GAMBAR BASE DARI DB 👇
       const getTextureImageUrl = (textureObj: any, pov: string) => {
-    // 1. Tampung dulu URL aslinya ke dalam variabel rawUrl
-    let rawUrl = "";
-    switch(pov.toLowerCase()) {
-      case 'front': rawUrl = textureObj?.img_front || ""; break;
-      case 'back':  rawUrl = textureObj?.img_back  || ""; break;
-      case 'top':   rawUrl = textureObj?.img_top   || ""; break;
-      default:      rawUrl = textureObj?.img_front || ""; break;
-    }
+        let rawUrl = "";
+        switch(pov.toLowerCase()) {
+          case 'front': rawUrl = textureObj?.img_front || ""; break;
+          case 'back':  rawUrl = textureObj?.img_back  || ""; break;
+          case 'top':   rawUrl = textureObj?.img_top   || ""; break;
+          default:      rawUrl = textureObj?.img_front || ""; break;
+        }
+        if (rawUrl) return rawUrl.replace("http://127.0.0.1:8000", "");
+        return "";
+      };
 
-    // 2. Jika rawUrl ada isinya, potong domain Laravel-nya
-    if (rawUrl) {
-      return rawUrl.replace("http://127.0.0.1:8000", "");
-      
-    }
+      // 👇 DAPATKAN URL GAMBAR MASK DARI DB 👇
+      const getMaskImageUrl = (textureObj: any, pov: string) => {
+        let rawUrl = "";
+        switch(pov.toLowerCase()) {
+          case 'front': rawUrl = textureObj?.img_front_mask || ""; break;
+          case 'back':  rawUrl = textureObj?.img_back_mask  || ""; break;
+          case 'top':   rawUrl = textureObj?.img_top_mask   || ""; break;
+          default:      rawUrl = textureObj?.img_front_mask || ""; break;
+        }
+        if (rawUrl) return rawUrl.replace("http://127.0.0.1:8000", "");
+        return "";
+      };
 
-    return "";
-  };
-
-      const isColorable = activeTextureObj?.colors && activeTextureObj.colors.length > 0;
+      // Menentukan apakah komponen tersebut memiliki opsi warna
+      const isColorable = activeTextureObj?.is_colorable || (activeTextureObj?.colors && activeTextureObj.colors.length > 0);
 
       const activeColor = isColorable ? selections[part.id] : "#FFFFFF";
       const activeTexture = textureSelections[part.id];
 
       const partZIndex = typeof part.zIndex === "number" ? part.zIndex : part.zIndex[pov as keyof typeof part.zIndex] ?? part.zIndex["Front" as keyof typeof part.zIndex] ?? 10;
       
-      // TAMBAHAN: Logika Highlight Baru yang dipengaruhi showFullPreview
       const activeHighlight = showFullPreview ? null : highlightedPartId;
       const isHighlighted = activeHighlight === part.id;
       const isOtherPartHighlighted = activeHighlight !== null && activeHighlight !== part.id;
@@ -631,16 +640,17 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               partName={activeShape}
               color={activeColor}
               texture={activeTexture}
-              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} 
+              maskImageUrl={getMaskImageUrl(activeTextureObj, pov)} // 👈 SEKARANG MASK IMAGE DIKIRIM KE SINI
               zIndex={partZIndex}
-                      />
+            />
           ) : (
             <TextureOnlyPart
               productId={product.id}
               pov={pov}
               partName={activeShape}
               texture={activeTexture}
-              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} // ← tambah ini
+              textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} 
               zIndex={partZIndex}
             />
           )}
@@ -692,7 +702,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                   <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#C5A059]/60"></div>
                   <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#C5A059]/60"></div>
 
-                  {/* TAMBAHAN: Tombol Shortcut Fokus Detail / Keseluruhan */}
                   <button
                     onClick={() => setShowFullPreview(!showFullPreview)}
                     className={`absolute top-6 right-6 z-[100] px-4 py-2.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 shadow-xl border backdrop-blur-md flex items-center gap-2 ${
@@ -765,7 +774,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       <button
                         key={view.id}
                         onClick={() => setActiveView(view.id)}
-                        // TAMBAHAN: Update class name untuk mempertegas kontras tombol view saat inaktif
                         className={`px-6 py-2.5 rounded-full text-[11px] tracking-widest transition-all duration-300 uppercase border backdrop-blur-sm ${
                           activeView === view.id
                             ? "bg-[#C5A059] text-[#2D1A11] border-[#C5A059] font-bold shadow-[0_0_15px_rgba(197,160,89,0.4)]"
@@ -800,7 +808,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* ✅ Tombol Wishlist */}
                   <button
                     onClick={handleToggleWishlist}
                     disabled={wishlistLoading}
@@ -822,12 +829,10 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                     </svg>
                   </button>
 
-                  {/* Tombol Prev */}
                   <button onClick={prevStep} disabled={activeStepIndex === 0} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                   </button>
 
-                  {/* Tombol Next */}
                   <button onClick={nextStep} disabled={activeStepIndex === steps.length - 1} className="w-10 h-10 rounded-full border border-[#C5A059]/50 text-[#C5A059] flex items-center justify-center hover:bg-[#C5A059] hover:text-[#2D1A11] disabled:opacity-20 transition-all duration-300">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                   </button>
@@ -878,7 +883,9 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                       const activeTextureId = textureSelections[part.id] || currentTextures[0]?.id;
                       const activeTextureObj = currentTextures.find(t => t.id === activeTextureId) || currentTextures[0];
                       const currentColors = activeTextureObj?.colors || [];
-                      const isColorable = currentColors.length > 0;
+                      
+                      // Cek ketersediaan warna
+                      const isColorable = activeTextureObj?.is_colorable || currentColors.length > 0;
 
                       return (
                         <div className="space-y-6" style={{fontFamily: "sans-serif"}}>
@@ -924,7 +931,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
                               <p className="text-[11px] text-[#2D1A11] font-semibold mb-3 uppercase tracking-wide">Warna Solid</p>
                               <div className="flex flex-wrap gap-3">
                                 {isColorable ? (
-                                  currentColors.map((color) => {
+                                  currentColors.map((color: any) => {
                                     const isSelected = selections[part.id] === color.hex;
                                     return (
                                       <button key={color.hex} onClick={() => handleColorSelect(part.id, color.hex)} className={`w-10 h-10 rounded-[4px] transition-all duration-300 border-[3px] ${isSelected ? "border-[#2D1A11] scale-110 shadow-sm" : "border-transparent hover:scale-105 outline outline-1 outline-[#E5D7C1]"}`} style={{ backgroundColor: color.hex }} title={color.name} />

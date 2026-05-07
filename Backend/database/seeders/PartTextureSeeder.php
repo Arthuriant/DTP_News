@@ -63,68 +63,101 @@ class PartTextureSeeder extends Seeder
                 'texturesMapping' => [
                     'Badan' => [
                         'Badan Original' => [
-                            ['name' => 'base', 'price' => 0, 'texture_code' => ''],
-                            ['name' => 'leather1', 'price' => 100000, 'texture_code' => ''],
-                            ['name' => 'leather2', 'price' => 120000, 'texture_code' => ''],
-                            ['name' => 'leather3', 'price' => 130000, 'texture_code' => ''],
-                            ['name' => 'leather4', 'price' => 140000, 'texture_code' => ''],
-                            ['name' => 'leather5', 'price' => 150000, 'texture_code' => ''],
+                            ['name' => 'base', 'price' => 0, 'texture_code' => 'TEX-BADAN-BASE'],
+                            ['name' => 'leather1', 'price' => 100000, 'texture_code' => 'TEX-BADAN-L1'],
+                            ['name' => 'leather2', 'price' => 120000, 'texture_code' => 'TEX-BADAN-L2'],
+                            ['name' => 'leather3', 'price' => 130000, 'texture_code' => 'TEX-BADAN-L3'],
+                            ['name' => 'leather4', 'price' => 140000, 'texture_code' => 'TEX-BADAN-L4'],
+                            ['name' => 'leather5', 'price' => 150000, 'texture_code' => 'TEX-BADAN-L5'],
                         ],
                     ],
                     'Kunci' => [
                         'Kunci Original' => [
-                            ['name' => 'Kunci1', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Kunci1', 'price' => 0, 'texture_code' => 'TEX-KUNCI-1'],
                         ],
                         'Kunci Sabuk' => [
-                            ['name' => 'Kunci2', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Kunci2', 'price' => 0, 'texture_code' => 'TEX-KUNCI-2'],
                         ],
                         'Kunci Guci' => [
-                            ['name' => 'Kunci3', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Kunci3', 'price' => 0, 'texture_code' => 'TEX-KUNCI-3'],
                         ],
                         'Kunci Elang' => [
-                            ['name' => 'Kunci4', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Kunci4', 'price' => 0, 'texture_code' => 'TEX-KUNCI-4'],
                         ],
                     ],
                     'Lidah Kanan' => [
-                        // 'Lidah Kanan Original' => [
-                        //     ['name' => 'Lidah Kanan1', 'price' => 0, 'texture_code' => ''],
-                        // ],
+                        'Lidah Kanan Original' => [
+                            [
+                                'name' => 'Lidah Kanan1', 
+                                'price' => 0, 
+                                'texture_code' => 'TEX-LIDAH-KANAN',
+                                'is_colorable' => true,
+                                'colors' => [
+                                    ['name' => 'Kuning Emas', 'hex' => '#C5A059'],
+                                    ['name' => 'Merah Bata', 'hex' => '#8B0000'],
+                                    ['name' => 'Cokelat Tua', 'hex' => '#2D1A11'],
+                                    ['name' => 'Hitam Klasik', 'hex' => '#1A1A1A'],
+                                ]
+                            ],
+                        ],
                     ],
                     'Lidah Kiri' => [
-                        // 'Lidah Kiri Original' => [
-                        //     ['name' => 'Lidah Kiri1', 'price' => 0, 'texture_code' => ''],
-                        // ],
+                        'Lidah Kiri Original' => [
+                            [
+                                'name' => 'Lidah Kiri1', 
+                                'price' => 0, 
+                                'texture_code' => 'TEX-LIDAH-KIRI',
+                                'is_colorable' => true,
+                                'colors' => [
+                                    ['name' => 'Kuning Emas', 'hex' => '#C5A059'],
+                                    ['name' => 'Merah Bata', 'hex' => '#8B0000'],
+                                    ['name' => 'Cokelat Tua', 'hex' => '#2D1A11'],
+                                    ['name' => 'Hitam Klasik', 'hex' => '#1A1A1A'],
+                                ]
+                            ],
+                        ],
                     ],
                     'Lidah Tengah' => [
-                        // 'Lidah Tengah Original' => [
-                        //     ['name' => 'Lidah Tengah1', 'price' => 0, 'texture_code' => ''],
-                        // ],
+                        'Lidah Tengah Original' => [
+                            [
+                                'name' => 'Lidah Tengah1', 
+                                'price' => 0, 
+                                'texture_code' => 'TEX-LIDAH-TENGAH',
+                                'is_colorable' => true,
+                                'colors' => [
+                                    ['name' => 'Kuning Emas', 'hex' => '#C5A059'],
+                                    ['name' => 'Merah Bata', 'hex' => '#8B0000'],
+                                    ['name' => 'Cokelat Tua', 'hex' => '#2D1A11'],
+                                    ['name' => 'Hitam Klasik', 'hex' => '#1A1A1A'],
+                                ]
+                            ],
+                        ],
                     ],
+
                     'Pita' => [
                         'Pita Original' => [
-                            ['name' => 'Pita1', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Pita1', 'price' => 0, 'texture_code' => 'TEX-PITA-1'],
                         ],
                         'Pita Anjing' => [
-                            ['name' => 'Pita2', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Pita2', 'price' => 0, 'texture_code' => 'TEX-PITA-2'],
                         ],
                         'Pita Kitty' => [
-                            ['name' => 'Pita3', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Pita3', 'price' => 0, 'texture_code' => 'TEX-PITA-3'],
                         ],
                         'Pita Lucu' => [
-                            ['name' => 'Pita4', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Pita4', 'price' => 0, 'texture_code' => 'TEX-PITA-4'],
                         ],
                     ],
                     'Tali' => [
                         'Tali Original' => [
-                            ['name' => 'Tali1', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Tali1', 'price' => 0, 'texture_code' => 'TEX-TALI-1'],
                         ],
                     ],
                     'Tali Kunci' => [
                         'Tali Kunci Original' => [
-                            ['name' => 'Talikunci1', 'price' => 0, 'texture_code' => ''],
+                            ['name' => 'Talikunci1', 'price' => 0, 'texture_code' => 'TEX-TALI-KUNCI-1'],
                         ],
                     ],
-
                 ]
             ],
 
@@ -157,19 +190,26 @@ class PartTextureSeeder extends Seeder
                                 $textureName = $textureData['name'];
                                 $slugTexture = Str::slug($textureName); 
                                 $slugPart = Str::slug($partName); 
+                                
+                                $isColorable = $textureData['is_colorable'] ?? false;
+                                
                                 $texture = PartTextures::create([
                                     'product_id'   => $product->id,
                                     'part_id'      => $part->id,
                                     'variant_id'   => $variant->id,
                                     'name'         => $textureName,
                                     'price'        => $textureData['price'],
-                                    'texture_code' => $textureData['texture_code'],
+                                    'texture_code' => $textureData['texture_code'] ?? '',
+                                    'is_colorable' => $isColorable,
+                                    'colors'       => $isColorable ? ($textureData['colors'] ?? []) : null,
                                 ]);
 
                                 $folderPath = "products/{$product->id}/parts/{$part->id}/{$variant->id}/{$texture->id}";
                                 if (!Storage::disk('public')->exists($folderPath)) {
                                     Storage::disk('public')->makeDirectory($folderPath);
                                 }
+                                
+                                // 1. Proses Gambar Base
                                 $fileNames = [
                                     'img_top'   => "top-{$slugTexture}.webp",
                                     'img_back'  => "back-{$slugTexture}.webp",
@@ -187,6 +227,28 @@ class PartTextureSeeder extends Seeder
                                         $updateData[$column] = $destinationPath;
                                     } else {
                                         $this->command->warn(" - Gambar tidak ditemukan: {$sourceFile}");
+                                    }
+                                }
+
+                                // 2. Proses Gambar Mask (HANYA JIKA is_colorable = true)
+                                if ($isColorable) {
+                                    $maskNames = [
+                                        'img_top_mask'   => "top-mask-{$slugTexture}.webp",
+                                        'img_back_mask'  => "back-mask-{$slugTexture}.webp",
+                                        'img_front_mask' => "front-mask-{$slugTexture}.webp",
+                                    ];
+                                    
+                                    foreach ($maskNames as $column => $maskName) {
+                                        $sourceMaskFile = "{$sourcePath}/{$slugPart}/{$maskName}";
+                                        
+                                        if (File::exists($sourceMaskFile)) {
+                                            $destinationMaskPath = "{$folderPath}/{$maskName}";
+                                            Storage::disk('public')->put($destinationMaskPath, File::get($sourceMaskFile));
+                                            $updateData[$column] = $destinationMaskPath;
+                                            $this->command->info("   > File MASK '{$maskName}' berhasil dipasang.");
+                                        } else {
+                                            $this->command->warn("   [!] Peringatan: File Mask tidak ditemukan: {$sourceMaskFile}");
+                                        }
                                     }
                                 }
 

@@ -133,6 +133,11 @@ class ProductController extends Controller
                                 'img_back'  => $texture->img_back,
                                 'img_front' => $texture->img_front,
                                 'img_thumb' => $texture->img_thumb,
+                                'is_colorable'   => $texture->is_colorable,
+                                'colors'         => $texture->colors,
+                                'img_top_mask'   => $texture->img_top_mask ,
+                                'img_back_mask'  => $texture->img_back_mask ,
+                                'img_front_mask' => $texture->img_front_mask,
                             ];
                         }),
                     ];
