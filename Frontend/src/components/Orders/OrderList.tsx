@@ -20,6 +20,7 @@ export default function OrderList() {
   const [activeSubTab, setActiveSubTab] = useState("Semua Berlangsung");
   const [selectedDate, setSelectedDate] = useState(""); // BARU: State untuk Tanggal
   const [currentPage, setCurrentPage] = useState(1);
+  const [trackingModal, setTrackingModal] = useState<{open: boolean, resi: string | null}>({open: false, resi: null}); // ← tambah di sini
   const ITEMS_PER_PAGE = 15;
 
   const TABS = ["Semua", "Menunggu Konfirmasi", "Berlangsung", "Berhasil", "Tidak Berhasil"];
@@ -346,38 +347,46 @@ export default function OrderList() {
                     Lihat Detail Transaksi
                   </Link>
                   
-                  {order.status === 'pending' ? (
-                    <button className="px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all">
-                      Bayar
-                    </button>
-                  ) : order.status === 'confirmed' || order.status === 'processing' ? (
-                    <button className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all">
-                      Hubungi Admin
-                    </button>
-                  ) : order.status === 'delivered' ? (
-                    <button 
-                      onClick={() => handleConfirmDelivery(order.id)}
-                      disabled={updatingId === order.id}
-                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {updatingId === order.id ? 'Memproses...' : 'Selesai'}
-                    </button>
-                  )  : order.status === 'completed' || order.status === 'cancelled' ? (
-                    <button className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all">
-                      Beli Lagi
-                    </button>
-                  ) : (
-                    <button className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all">
-                      Lacak
-                    </button>
-                  )}
+                 {order.status === 'pending' ? (
+                  <Link 
+                    href="/order/history"
+                    className="inline-block px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs text-center font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all"
+                  >
+                    Bayar
+                  </Link>
+                ) : order.status === 'confirmed' || order.status === 'processing' ? (
+                  <button 
+                    onClick={() => window.open('https://wa.me/6283154577112', '_blank')}
+                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                  >
+                    Hubungi Admin
+                  </button>
+                ) : order.status === 'shipped' ? (
+                  <button 
+                    onClick={() => setTrackingModal({ open: true, resi: order.resi || null })}
+                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                  >
+                    Lacak
+                  </button>
+                ) : order.status === 'delivered' ? (
+                  <button 
+                    onClick={() => handleConfirmDelivery(order.id)}
+                    disabled={updatingId === order.id}
+                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all disabled:opacity-50"
+                  >
+                    {updatingId === order.id ? 'Memproses...' : 'Selesai'}
+                  </button>
+                ) : order.status === 'completed' || order.status === 'cancelled' ? (
+                  <button className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all">
+                    Beli Lagi
+                  </button>
+                ) : null}
 
                   
                   <button className="p-2.5 border border-[#E5D7C1] text-[#8B7355] rounded-lg hover:border-[#C5A059] hover:text-[#C5A059] transition-colors">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
                   </button>
                 </div>
-
               </div>
             );
           })}
@@ -415,6 +424,32 @@ export default function OrderList() {
           </button>
         </div>
       )}
+        {trackingModal.open && (
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="bg-[#FFFDF5] rounded-2xl p-8 max-w-md w-full mx-4 border border-[#D9B35A]/30 shadow-2xl">
+                <h3 className="font-bold text-xl text-[#2D1A11] mb-6 font-serif">Informasi Pengiriman</h3>
+                            
+                  {trackingModal.resi ? (
+                    <div className="space-y-4">
+                      <div className="bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-xl p-5">
+                          <p className="text-[#8B7355] text-xs uppercase font-bold tracking-widest mb-2">Nomor Resi</p>
+                          <p className="font-mono font-black text-2xl text-[#2D1A11] tracking-widest">{trackingModal.resi}</p>
+                            </div>
+                              <p className="text-[#8B7355] text-sm">Gunakan nomor resi di atas untuk melacak paket Anda melalui website kurir.</p>
+                            </div>
+                           ) : (
+                          <p className="text-[#8B7355] text-sm">Nomor resi belum tersedia. Pesanan Anda sedang dalam proses pengiriman.</p>
+                        )}
+
+                      <button
+                    onClick={() => setTrackingModal({ open: false, resi: null })}
+                className="mt-6 w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all"
+              >
+                 Tutup
+              </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
