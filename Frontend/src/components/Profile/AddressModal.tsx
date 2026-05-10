@@ -24,14 +24,12 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 👇 Tambahan destination_id dan postal_code di formData 👇
   const [formData, setFormData] = useState({
     recipient_name: "", phone_number: "", region: "", destination_id: "", street: "", details: "", label: "", is_primary: false,
   });
 
   const [mapPosition, setMapPosition] = useState<[number, number]>([-6.9175, 107.6191]);
   
-  // --- STATE PENCARIAN RAJAONGKIR ---
   const [isChangingRegion, setIsChangingRegion] = useState(false); 
   const [searchCity, setSearchCity] = useState("");
   const [cities, setCities] = useState<any[]>([]);
@@ -50,15 +48,17 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       
       if (editData) {
         setFormData({
-          recipient_name: editData.recipient_name, 
-          phone_number: editData.phone_number,
-          region: editData.region, 
-          destination_id: editData.city_id || editData.destination_id || "", 
-          street: editData.street, 
+          recipient_name: editData.recipient_name || "", 
+          phone_number: editData.phone_number || "",
+          region: editData.region || "", 
+          // Antisipasi berbagai kemungkinan nama kolom ID dari backend
+          destination_id: editData.city_id || editData.destination_id || editData.ro_city_id || "", 
+          street: editData.street || "", 
           details: editData.details || "",
           label: editData.label || "", 
-          is_primary: editData.is_primary == 1,
+          is_primary: editData.is_primary == 1 || editData.is_primary === true,
         });
+        
         setIsChangingRegion(false); 
         setSearchCity("");
 
@@ -81,10 +81,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     return () => { document.body.style.overflow = "unset"; };
   }, [isOpen, editData]);
 
-  // 👇 LOGIKA PENCARIAN RAJAONGKIR (Sama persis seperti Shipping.tsx) 👇
   const handleSearchCity = useCallback(async (query: string) => {
     setSearchCity(query);
-    setFormData(prev => ({ ...prev, destination_id: "", region: "" })); // Reset ID jika user mengetik ulang
+    setFormData(prev => ({ ...prev, destination_id: "", region: "" })); 
     
     if (query.length < 2) { setCities([]); setShowDropdown(false); return; }
 
@@ -107,9 +106,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       ...prev, 
       region: city.label, 
       destination_id: city.id,
-      // Jika API Komerce Anda mengembalikan kode pos, tangkap di sini. Jika tidak, kosongkan biarkan user ketik manual.
     }));
     setShowDropdown(false);
+    setIsChangingRegion(false); // Otomatis tutup pencarian setelah memilih
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -120,21 +119,28 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.destination_id) {
-      AlertService.error("Data Belum Lengkap", "Silakan cari dan pilih kecamatan dari hasil pencarian agar sistem bisa menghitung ongkos kirim.");
+    // ✅ PERBAIKAN LOGIKA VALIDASI: 
+    // Jika buat baru (atau sedang ganti kota), WAJIB punya destination_id.
+    // Tapi jika sedang Edit dan TIDAK ganti kota, kita izinkan lewat meskipun backend belum kirim destination_id di awal.
+    if (!formData.destination_id && (!editData || isChangingRegion)) {
+      AlertService.error("Data Belum Lengkap", "Silakan cari dan pilih kecamatan dari hasil pencarian agar sistem logistik berfungsi.");
       return;
     }
     
     setIsLoading(true);
     
-    const payload = { 
+    // Siapkan Payload
+    const payload: any = { 
         ...formData, 
-        // Pastikan Backend Anda (AddressController) siap menerima destination_id dan postal_code
-        city_id: formData.destination_id, 
         label: formData.label === "" ? null : formData.label,
         latitude: mapPosition[0],   
         longitude: mapPosition[1]   
     };
+
+    // Kirim city_id HANYA JIKA ADA (Mencegah backend menolak nilai string kosong "")
+    if (formData.destination_id) {
+      payload.city_id = formData.destination_id;
+    }
 
     try {
       if (editData) {
@@ -160,8 +166,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      // ✅ PERBAIKAN Z-INDEX: Diturunkan jadi z-[99900] agar Alert (999999) tidak tertutup
+      className="fixed inset-0 z-[99900] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans select-none"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="relative bg-[#F8F3E9] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">
         
@@ -192,9 +199,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               </div>
             </div>
 
-            {/* 👇 PERUBAHAN BESAR: PENCARIAN KOTA RAJAONGKIR 👇 */}
             <div>
-              <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Verifikasi Kota / Kecamatan Tujuan</label>
+              <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Verifikasi Provinsi / Kota / Kecamatan / Kelurahan / POS</label>
               {!isChangingRegion && formData.region ? (
                 <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)] border-none">
                   <span className="text-sm text-[#2D1A11] font-semibold truncate pr-3">{formData.region}</span>
@@ -230,17 +236,15 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-2/3">
+            <div className="flex flex-col gap-4">
+              <div className="w-full">
                 <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Detail Jalan & Nomor</label>
                 <textarea required name="street" placeholder="Nama Jalan, No. Rumah / RT RW..." rows={2} value={formData.street} onChange={handleInputChange} className={inputClass + " resize-none h-[56px]"} />
               </div>
               
-              <div className="w-full sm:w-1/3 flex gap-2">
-                <div className="w-1/2">
-                  <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Patokan</label>
-                  <input type="text" name="details" placeholder="Pagar Hitam..." value={formData.details} onChange={handleInputChange} className={inputClass + " h-[56px]"} />
-                </div>
+              <div className="w-full">
+                <label className="block text-[#8B7355] text-xs font-black uppercase tracking-widest mb-1.5 pl-1">Patokan Lokasi</label>
+                <textarea name="details" placeholder="Contoh: Pagar warna hitam, rumah tingkat dua, depan masjid..." rows={2} value={formData.details} onChange={handleInputChange} className={inputClass + " resize-none h-[56px]"} />
               </div>
             </div>
 
@@ -250,14 +254,17 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
                   📍 Tandai Titik Koordinat Peta
                 </label>
               </div>
-              <div className="h-[180px] w-full rounded-xl overflow-hidden border-2 border-[#D9B35A]/20 shadow-inner bg-[#EFE8DC]">
+              <div 
+                className="h-[180px] w-full rounded-xl overflow-hidden border-2 border-[#D9B35A]/20 shadow-inner bg-[#EFE8DC]"
+                onMouseDown={(e) => e.stopPropagation()} 
+              >
                 <MapPicker position={mapPosition} setPosition={setMapPosition} />
               </div>
             </div>
 
             <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-2">
-                {['Rumah', 'Kantor', 'Kost'].map(label => (
+                {['Rumah', 'Kantor'].map(label => (
                   <button key={label} type="button" onClick={() => setFormData({ ...formData, label: formData.label === label ? "" : label })} className={`px-5 py-2 text-[10px] uppercase tracking-widest rounded-full font-black transition-all ${formData.label === label ? 'bg-[#2D1A11] text-[#D9B35A] shadow-md' : 'bg-white text-[#8B7355] shadow-sm hover:bg-[#EFE8DC]'}`}>
                     {label}
                   </button>

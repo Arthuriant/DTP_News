@@ -3,7 +3,6 @@
 import { AuthService } from "@/services/AuthService";
 import { RoleService } from "@/services/RoleService";
 import React, { useState, useEffect } from "react";
-// 1. Import AlertService (Hapus import Swal bawaan)
 import { AlertService } from "@/services/AlertService";
 
 const AVAILABLE_PERMISSIONS = [
@@ -54,6 +53,12 @@ export default function Roles() {
   const [roles, setRoles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // STATE: Filter & Pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [accessFilter, setAccessFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // Maksimal 8 role per halaman
 
   // Status akses user login
   const [myPermissions, setMyPermissions] = useState<string[]>([]);
@@ -126,7 +131,6 @@ export default function Roles() {
 
   const handleSave = async () => {
     if (!roleName.trim()) {
-      // 2. Gunakan AlertService untuk validasi kosong
       AlertService.error("Peringatan", "Nama role tidak boleh kosong!");
       return;
     }
@@ -144,10 +148,8 @@ export default function Roles() {
       setIsModalOpen(false);
       fetchInitialData();
 
-      // 3. Gunakan AlertService untuk sukses
       AlertService.success("Berhasil!", `Role berhasil ${editingRole ? 'diperbarui' : 'ditambahkan'}.`);
     } catch (error: any) {
-      // 4. Gunakan AlertService untuk gagal simpan
       AlertService.error("Gagal!", error.message || 'Terjadi kesalahan saat menyimpan role.');
     } finally {
       setIsSaving(false);
@@ -155,7 +157,6 @@ export default function Roles() {
   };
 
   const handleDelete = async (id: number) => {
-    // 5. Gunakan AlertService untuk konfirmasi hapus
     const isConfirmed = await AlertService.confirm(
       "Hapus Role?", 
       "Role yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi hak akses pengguna yang menggunakan role ini.",
@@ -168,14 +169,37 @@ export default function Roles() {
       await RoleService.deleteRole(id);
       fetchInitialData();
       
-      // 6. Gunakan AlertService untuk sukses hapus
       AlertService.success("Terhapus!", "Role berhasil dihapus dari sistem.");
+
+      // Auto mundur halaman jika menghapus item terakhir di halaman tersebut
+      if (paginatedRoles.length === 1 && currentPage > 1) {
+        setCurrentPage(prev => prev - 1);
+      }
     } catch (error: any) {
       console.error(error);
-      // 7. Gunakan AlertService untuk gagal hapus
       AlertService.error("Gagal!", error.message || 'Gagal menghapus role.');
     }
   };
+
+  // --- LOGIKA FILTER BERLAPIS & PAGINATION ---
+  const filteredRoles = roles.filter(role => {
+    const matchesSearch = role.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    let matchesFilter = true;
+    if (accessFilter === 'full') {
+      matchesFilter = role.name === 'super_admin';
+    } else if (accessFilter === 'custom') {
+      matchesFilter = role.name !== 'super_admin' && role.permissions?.length > 0;
+    } else if (accessFilter === 'none') {
+      matchesFilter = role.name !== 'super_admin' && (!role.permissions || role.permissions.length === 0);
+    }
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRoles = filteredRoles.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2A1B14]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
@@ -191,17 +215,50 @@ export default function Roles() {
           </p>
         </div>
 
-        {canCreate && (
-          <button
-            onClick={() => handleOpenModal()}
-            className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#2A1B14] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)]"
-          >
-             <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
-             <span className="relative z-10 flex items-center gap-2 tracking-wide font-sans">
-              <span className="text-lg">✧</span> Tambah Role Baru
-            </span>
-          </button>
-        )}
+        <div className="flex w-full md:w-auto flex-col sm:flex-row gap-4 font-sans">
+          {/* Custom Search Bar */}
+          <div className="relative w-full sm:w-72">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D9B35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input 
+              type="text" 
+              placeholder="Cari nama role..." 
+              value={searchQuery} 
+              onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} 
+              className="w-full bg-[#FFFDF5]/80 backdrop-blur-sm border border-[#D9B35A]/30 pl-11 pr-4 py-3.5 rounded-full text-sm font-sans focus:outline-none focus:ring-1 focus:ring-[#D9B35A] focus:border-[#D9B35A] transition-all shadow-[inset_0_2px_4px_rgba(42,27,20,0.02)] placeholder-[#8B7355]/60" 
+            />
+          </div>
+
+          {/* Filter Status Akses */}
+          <div className="relative w-full sm:w-56">
+            <select 
+              value={accessFilter}
+              onChange={(e) => { setAccessFilter(e.target.value); setCurrentPage(1); }}
+              className="w-full bg-[#FFFDF5]/80 backdrop-blur-xl border border-[#D9B35A]/30 text-[#2A1B14] pl-4 pr-10 py-3.5 rounded-full shadow-sm focus:outline-none focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] transition-all text-sm appearance-none cursor-pointer font-bold"
+            >
+              <option value="all">Semua Tipe Akses</option>
+              <option value="full">Akses Penuh</option>
+              <option value="custom">Akses Kustom</option>
+              <option value="none">Tanpa Akses</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#D9B35A]">
+              <svg className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+
+          {canCreate && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#2A1B14] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)] whitespace-nowrap"
+            >
+               <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+               <span className="relative z-10 flex items-center gap-2 tracking-wide font-sans">
+                <span className="text-lg">✧</span> Tambah Role
+              </span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ================= MAIN DATA SECTION ================= */}
@@ -229,15 +286,25 @@ export default function Roles() {
             </thead>
 
             <tbody className="relative">
-              {isLoading && (
+              {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
-                    <div className="inline-block w-8 h-8 border-4 border-[#D9B35A] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="inline-block w-8 h-8 border-4 border-[#D9B35A] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-[#8B7355] font-bold tracking-widest uppercase text-xs">Memuat Data...</span>
+                    </div>
                   </td>
                 </tr>
-              )}
-
-              {!isLoading && roles.map((role) => (
+              ) : paginatedRoles.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center bg-white/40 backdrop-blur-md rounded-2xl border border-white/40">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <svg className="w-12 h-12 text-[#D9B35A]/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                      <span className="text-[#8B7355] font-bold text-sm">Tidak ada role yang sesuai filter pencarian.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedRoles.map((role) => (
                 <tr key={role.id} className="group transition-all duration-300 hover:-translate-y-1.5">
                   <td className="py-5 pl-8 pr-4 bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(42,27,20,0.08)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow font-bold text-[#D9B35A]">
                     #{role.id}
@@ -248,11 +315,17 @@ export default function Roles() {
                         ? "bg-purple-50 text-purple-600 border-purple-200" 
                         : "bg-[#F8F3E9] text-[#2A1B14] border-[#D9B35A]/30"
                     }`}>
-                      {role.name}
+                      {role.name.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-5 px-4 bg-white/60 backdrop-blur-xl border-y border-white/40 text-center">
-                    <span className="font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-4 py-1.5 rounded-full border border-[#D9B35A]/20 shadow-[inner_0_1px_2px_rgba(255,255,255,0.5)]">
+                    <span className={`font-bold px-4 py-1.5 rounded-full border shadow-[inner_0_1px_2px_rgba(255,255,255,0.5)] ${
+                      role.name === "super_admin" 
+                        ? "text-purple-600 bg-purple-100/50 border-purple-200" 
+                        : (!role.permissions || role.permissions.length === 0)
+                        ? "text-gray-400 bg-gray-50 border-gray-200"
+                        : "text-[#D9B35A] bg-[#D9B35A]/10 border-[#D9B35A]/20"
+                    }`}>
                       {role.name === "super_admin" ? "Akses Penuh" : `${role.permissions?.length || 0} Izin`}
                     </span>
                   </td>
@@ -285,6 +358,41 @@ export default function Roles() {
             </tbody>
           </table>
         </div>
+
+        {/* ================= KONTROL PAGINATION ================= */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8 font-sans relative z-10">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 rounded-full text-sm font-bold transition-all ${
+                  currentPage === page 
+                    ? "bg-[#C5A059] text-white shadow-md" 
+                    : "bg-white border border-[#E5D7C1] text-[#8B7355] hover:border-[#C5A059] hover:text-[#C5A059]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ================= MODAL PERMISSIONS ================= */}
@@ -357,13 +465,14 @@ export default function Roles() {
               </div>
             </div>
 
-            <div className="p-8 border-t border-gray-100 flex justify-end gap-4 shrink-0 bg-white">
+            <div className="p-8 border-t border-gray-100 flex justify-end gap-4 shrink-0 bg-white font-sans">
               <button onClick={() => setIsModalOpen(false)} className="px-8 py-3 text-xs font-bold uppercase tracking-widest text-[#8B7355] hover:bg-gray-50 rounded-full transition-colors">Batal</button>
               <button 
                 onClick={handleSave} 
                 disabled={isSaving} 
-                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#2A1B14] px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D9B35A]/30 hover:-translate-y-1 active:translate-y-0 transition-all border border-[#FFF6C5]/50"
+                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#2A1B14] px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D9B35A]/30 hover:-translate-y-1 active:translate-y-0 transition-all border border-[#FFF6C5]/50 flex items-center gap-2 disabled:opacity-70 disabled:hover:-translate-y-0"
               >
+                {isSaving && <div className="w-3.5 h-3.5 border-2 border-[#2A1B14]/30 border-t-[#2A1B14] rounded-full animate-spin"></div>}
                 {isSaving ? "Menyimpan..." : "Simpan Konfigurasi"}
               </button>
             </div>

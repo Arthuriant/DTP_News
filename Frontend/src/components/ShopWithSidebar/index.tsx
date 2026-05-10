@@ -119,7 +119,7 @@ const ShopWithSidebar = () => {
       setLoadingCategories(true);
       try {
         // Memanggil endpoint baru: GET /categories/with-product-count
-        const res = await fetch(`${API_BASE_URL}/categories/with-product-count`);
+        const res = await fetch(`/api-fe/proxy/categories/with-product-count`);
         if (!res.ok) throw new Error("Gagal mengambil data kategori");
         const data: Category[] = await res.json();
         setCategories(data);
@@ -153,7 +153,7 @@ const ShopWithSidebar = () => {
       if (filters.sortBy) params.append("sort_by", filters.sortBy);
 
       // Memanggil endpoint filter: GET /products/filter?...
-      const res = await fetch(`${API_BASE_URL}/products/filter?${params.toString()}`);
+      const res = await fetch(`/api-fe/proxy/products/filter?${params.toString()}`);
       if (!res.ok) throw new Error("Gagal mengambil data produk");
       const data = await res.json();
       setProducts(data);

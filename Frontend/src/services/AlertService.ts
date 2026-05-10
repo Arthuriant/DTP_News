@@ -5,9 +5,14 @@ const baseSwalConfig: SweetAlertOptions = {
   color: '#2D1A11',
   buttonsStyling: false,
   customClass: {
+    container: 'swal-on-top', // ✅ tambah ini
     confirmButton: 'bg-[#2D1A11] text-[#D9B35A] px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-md hover:bg-[#3d2417] transition-colors',
     cancelButton: 'bg-white text-[#8B7355] border border-[#8B7355]/30 px-6 py-2.5 rounded-full font-bold uppercase tracking-widest text-[10px] mx-2 shadow-sm hover:bg-[#EFE8DC] transition-colors'
-  }
+  },
+  didOpen: () => { // ✅ tambah ini
+    const container = document.querySelector('.swal-on-top') as HTMLElement;
+    if (container) container.style.zIndex = '999999';
+  },
 };
 
 export const AlertService = {

@@ -180,7 +180,7 @@ const Checkout = () => {
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11">
               
               <div className="lg:max-w-[670px] w-full">
-                <Login />
+                {/* <Login /> */}
 
                 {/* PILIH ALAMAT */}
                 <div className="mt-9">

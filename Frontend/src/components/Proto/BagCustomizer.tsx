@@ -650,7 +650,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   const PREVIEW_VIEWS = [
-    { id: "360", label: "360°", type: "icon" },
+    // { id: "360", label: "360°", type: "icon" },
     { id: "front", label: "Depan", type: "image" },
     { id: "back", label: "Belakang", type: "image" },
     { id: "top", label: "Atas", type: "image" },

@@ -6,10 +6,17 @@ import { AlertService } from '@/services/AlertService';
 
 export default function Pesanan() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
+  
+  // --- STATES ---
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  
+  // States untuk Search, Filter & Pagination
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('semua');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Jumlah pesanan per halaman
 
   const goToDetail = (orderId: string) => {
     router.push(`/admin/pesanan/${orderId}`);
@@ -56,11 +63,22 @@ export default function Pesanan() {
     }
   };
 
-  const filtered = orders.filter(o => {
+  // --- LOGIKA FILTER BERLAPIS ---
+  const filteredOrders = orders.filter(o => {
     const namaUser = o.user?.name || o.created_by || '';
-    return namaUser.toLowerCase().includes(search.toLowerCase()) || 
-           String(o.id).toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = namaUser.toLowerCase().includes(search.toLowerCase()) || 
+                          String(o.id).toLowerCase().includes(search.toLowerCase());
+    
+    const currentStatus = o.status?.toLowerCase() || 'pending';
+    const matchesStatus = statusFilter === 'semua' || currentStatus === statusFilter;
+
+    return matchesSearch && matchesStatus;
   });
+
+  // --- LOGIKA PAGINATION ---
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   const megaMendungUrl = "https://static.vecteezy.com/system/resources/thumbnails/024/034/191/small_2x/brown-ornament-batik-mega-mendung-cirebon-indonesia-with-transparent-background-png.png";
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
@@ -85,7 +103,8 @@ export default function Pesanan() {
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const statusOptions = [
+  const filterTabs = [
+    { value: 'semua', label: 'Semua Transaksi' },
     { value: 'pending', label: 'Tunggu Pembayaran' },
     { value: 'confirmed', label: 'Tunggu Konfirmasi' },
     { value: 'processing', label: 'Sedang Diproses' },
@@ -95,7 +114,8 @@ export default function Pesanan() {
     { value: 'cancelled', label: 'Dibatalkan' }
   ];
 
-  // Fungsi helper untuk menerjemahkan status di tombol
+  const statusOptions = filterTabs.filter(tab => tab.value !== 'semua');
+
   const getStatusLabel = (statusValue: string) => {
     const found = statusOptions.find(opt => opt.value === statusValue?.toLowerCase());
     return found ? found.label : statusValue;
@@ -113,7 +133,7 @@ export default function Pesanan() {
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 pb-2 px-2">
         <div>
           <p className="text-[#D9B35A] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Manajemen Transaksi</p>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[#2D1A11]">Daftar Pesanan</h1>
@@ -123,25 +143,43 @@ export default function Pesanan() {
           </p>
         </div>
         
+        {/* Search Bar */}
         <div className="relative group w-full md:w-80">
           <span className="absolute inset-y-0 left-0 flex items-center pl-5 text-[#D9B35A]">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           </span>
           <input 
             type="text" 
-            placeholder="Cari ID atau Nama Pelanggan..." 
+            placeholder="Cari ID atau Nama..." 
             value={search} 
-            onChange={e => setSearch(e.target.value)} 
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} // Reset page saat mencari
             className="bg-white/60 backdrop-blur-xl border border-white/50 text-[#2D1A11] pl-12 pr-6 py-4 rounded-full shadow-[0_5px_15px_rgba(45,26,17,0.05),inner_0_1px_2px_rgba(255,255,255,0.8)] focus:outline-none focus:border-[#D9B35A]/50 focus:ring-1 focus:ring-[#D9B35A]/50 w-full transition-all font-sans text-sm placeholder:text-gray-400 group-hover:shadow-[0_8px_20px_rgba(217,179,90,0.15)]"
           />
         </div>
       </div>
 
+      {/* FILTER TABS */}
+      <div className="flex items-center gap-3 overflow-x-auto custom-scrollbar pb-4 px-2 border-b border-[#D9B35A]/30 font-sans">
+        {filterTabs.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => { setStatusFilter(tab.value); setCurrentPage(1); }} // Reset page saat filter
+            className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border shrink-0 ${
+              statusFilter === tab.value 
+                ? "bg-[#D9B35A] text-[#2D1A11] border-[#D9B35A] shadow-md" 
+                : "bg-white/60 text-[#8B7355] border-[#D9B35A]/20 hover:bg-white hover:border-[#D9B35A]/50"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* MAIN DATA SECTION */}
-      <div className="relative w-full pb-10 pt-2">
+      <div className="relative w-full pb-10">
         <div className="absolute -right-10 -bottom-10 w-96 h-72 opacity-[0.04] pointer-events-none" style={{ backgroundImage: `url('${megaMendungUrl}')`, backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'right bottom' }}></div>
 
-        <div className="overflow-x-auto px-4 -mx-4 pb-64"> 
+        <div className="overflow-x-auto px-4 -mx-4 pb-12"> 
           <table className="w-full min-w-[1100px] text-sm whitespace-nowrap relative z-10 font-sans border-separate" style={{ borderSpacing: '0 16px' }}>
             
             <thead className="text-[#D9B35A] uppercase text-[11px] font-bold tracking-[0.25em] shadow-xl">
@@ -155,8 +193,8 @@ export default function Pesanan() {
             </thead>
             
             <tbody>
-              {filtered.length > 0 ? (
-                filtered.map((o) => {
+              {paginatedOrders.length > 0 ? (
+                paginatedOrders.map((o) => {
                   const userName = o.user?.name || "Pelanggan Guest";
                   const userEmail = o.user?.email || "-";
                   const itemsCount = o.details ? o.details.length : 0;
@@ -204,12 +242,10 @@ export default function Pesanan() {
                               onClick={() => setOpenDropdownId(isDropdownOpen ? null : o.id)}
                               className={`w-full flex items-center justify-between px-4 py-2 rounded-full text-[10px] uppercase tracking-widest font-bold border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#D9B35A]/50 ${getStatusStyle(currentStatus)}`}
                             >
-                              {/* 👇 PERUBAHAN 2: Menampilkan label Bahasa Indonesia di tombol utama 👇 */}
                               <span className="truncate">{getStatusLabel(currentStatus)}</span>
                               <svg className={`w-3 h-3 transition-transform duration-200 ml-2 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
 
-                            {/* Dropdown Menu */}
                             {isDropdownOpen && (
                               <>
                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
@@ -219,7 +255,6 @@ export default function Pesanan() {
                                     <button
                                       key={opt.value}
                                       onClick={() => {
-                                        // 👇 PERUBAHAN 3: Mengirim value asli (Inggris) ke API, tapi popup memunculkan label Indonesia 👇
                                         handleStatusChange(o.id, opt.value, opt.label);
                                         setOpenDropdownId(null);
                                       }}
@@ -258,7 +293,7 @@ export default function Pesanan() {
                     <div className="flex flex-col items-center justify-center">
                       <span className="text-5xl mb-4 opacity-40 text-[#8B7355]">𓍯</span>
                       <p className="text-[#2D1A11] font-bold text-xl font-serif">Tidak Ada Pesanan</p>
-                      <p className="text-[#8B7355] mt-2 font-sans text-sm">Coba sesuaikan kata kunci pencarian Anda.</p>
+                      <p className="text-[#8B7355] mt-2 font-sans text-sm">Tidak ditemukan data pesanan untuk filter yang Anda pilih.</p>
                     </div>
                   </td>
                 </tr>
@@ -266,6 +301,42 @@ export default function Pesanan() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION CONTROLS */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4 font-sans">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 rounded-full text-sm font-bold transition-all ${
+                  currentPage === page 
+                    ? "bg-[#C5A059] text-white shadow-md" 
+                    : "bg-white border border-[#E5D7C1] text-[#8B7355] hover:border-[#C5A059] hover:text-[#C5A059]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
