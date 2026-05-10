@@ -62,8 +62,19 @@ const Cart = () => {
         const dbItems = res?.items || res || []; 
         
        const formattedItems = dbItems.map((dbItem: any) => {
-        console.log("Cart item:", dbItem);
-        console.log("image_preview:", dbItem.image_preview);
+        // 👇 PERBAIKAN LOGIKA URL GAMBAR 👇
+        let finalImgUrl = "";
+        const rawPath = dbItem.image_preview || dbItem.product?.img || "";
+        
+        if (rawPath) {
+          if (rawPath.startsWith("http") || rawPath.startsWith("data:image")) {
+            finalImgUrl = rawPath;
+          } else {
+            finalImgUrl = `http://127.0.0.1:8000/storage/${rawPath}`;
+          }
+        }
+        // 👆 ============================ 👆
+
         return {
           id: dbItem.id,
           product_id: dbItem.product_id,
@@ -72,8 +83,8 @@ const Cart = () => {
           discountedPrice: dbItem.price,
           quantity: dbItem.qty,
           imgs: {
-            thumbnails: [dbItem.image_preview || dbItem.product?.img || ""],
-            previews:   [dbItem.image_preview || dbItem.product?.img || ""],
+            thumbnails: [finalImgUrl], // Gunakan URL yang sudah diformat
+            previews:   [finalImgUrl], // Gunakan URL yang sudah diformat
           },
           customizations: dbItem.custom_configuration
         };
@@ -150,7 +161,6 @@ const Cart = () => {
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
               <Discount  />
-              {/* 👇 Melempar fungsi dan state loading ke OrderSummary 👇 */}
               <OrderSummary onCheckout={handleCheckout} isCheckingOut={isCheckingOut} />
             </div>
           </div>

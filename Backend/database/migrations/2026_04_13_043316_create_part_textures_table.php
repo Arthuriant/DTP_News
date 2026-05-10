@@ -9,17 +9,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('part_textures', function (Blueprint $table) {
-            $table->uuid('id')->primary();       // 👈 Ubah jadi UUID
-            $table->uuid('part_id');             // 👈 Foreign Key UUID
-            $table->uuid('product_id');          // 👈 Foreign Key UUID
-            $table->uuid('variant_id');          // 👈 Foreign Key UUID
+            $table->uuid('id')->primary();    
+            $table->uuid('part_id');            
+            $table->uuid('product_id');          
+            $table->uuid('variant_id');         
 
             $table->string('name', 100);
             $table->string('texture_code', 50);
             $table->decimal('price', 12, 2);
+            
+            $table->boolean('is_colorable')->default(false);
+            $table->json('colors')->nullable();
+
             $table->string('img_top')->nullable();
+            $table->string('img_top_mask')->nullable(); 
+            
             $table->string('img_back')->nullable();
+            $table->string('img_back_mask')->nullable(); 
             $table->string('img_front')->nullable();
+            $table->string('img_front_mask')->nullable(); 
+            
             $table->string('img_thumb')->nullable();
             $table->timestamps();
 

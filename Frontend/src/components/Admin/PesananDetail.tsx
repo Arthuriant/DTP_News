@@ -19,30 +19,42 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   
-  // 👇 STATE BARU UNTUK RAJAONGKIR 👇
   const [resi, setResi] = useState('');
   const [isRequestingResi, setIsRequestingResi] = useState(false);
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
+      
       await OrderService.downloadPDF(orderId);
       
-      // ✅ Update status order ke 'processing' setelah PDF diunduh
-      await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'processing' }),
-      });
+      const currentStatus = data?.status?.toLowerCase();
+      if (currentStatus === 'confirmed') {
+        await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'processing' }),
+        });
 
-      // Update tampilan lokal
-      setData((prev: any) => ({ ...prev, status: 'processing' }));
+        // Update tampilan lokal agar tombol Minta Resi muncul
+        setData((prev: any) => ({ ...prev, status: 'processing' }));
 
-      AlertService.success("Berhasil", "Dokumen referensi PDF berhasil diunduh dan status pesanan diperbarui ke Sedang Diproses.");
+        AlertService.success(
+          "Berhasil", 
+          "PDF berhasil diunduh dan status diperbarui ke 'Sedang Diproses'."
+        );
+      } else {
+        // Jika status sudah di tahap lanjut, hanya tampilkan pesan sukses download
+        AlertService.success(
+          "Berhasil", 
+          "Dokumen referensi PDF berhasil diunduh."
+        );
+      }
+
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
+      AlertService.error("Gagal", "Terjadi kesalahan saat menyiapkan dokumen.");
     } finally {
       setIsDownloading(false);
     }
@@ -68,7 +80,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
         if (response.data.catatan) {
           setCatatan(response.data.catatan);
         }
-        // Jika data dari database sudah punya resi, masukkan ke state
         if (response.data.resi) {
           setResi(response.data.resi);
         }
@@ -85,19 +96,13 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
 
-  // FUNGSI SIMULASI API RAJAONGKIR
   const handleRequestResi = async () => {
     setIsRequestingResi(true);
-    
-    // Simulasi jeda waktu menembak API Komerce (1.5 detik)
-    setTimeout(async () => { // 👈 Tambahkan kata async di sini
+    setTimeout(async () => { 
       try {
         const dummyResi = "JP" + Math.floor(100000000 + Math.random() * 900000000);
-        
-        // 1. SIMPAN RESI KE DATABASE LARAVEL 👇
         await OrderService.updateResi(orderId, dummyResi);
         
-        // 2. JIKA BERHASIL, UBAH TAMPILAN DI LAYAR 👇
         setResi(dummyResi);
         setIsRequestingResi(false);
         
@@ -143,14 +148,28 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           const texture = variant?.textures?.[0];
           
           if (!texture) return null;
-          let imageUrl = '';
-          if (pov === 'front') imageUrl = texture.img_front;
-          else if (pov === 'back') imageUrl = texture.img_back;
-          else if (pov === 'top') imageUrl = texture.img_top;
 
-          if (!imageUrl) return null;
+          let rawImageUrl = '';
+          let rawMaskUrl = '';
 
-          const hexColor = colors[part.id] || "#FFFFFF";
+          if (pov === 'front') {
+            rawImageUrl = texture.img_front;
+            rawMaskUrl = texture.img_front_mask;
+          } else if (pov === 'back') {
+            rawImageUrl = texture.img_back;
+            rawMaskUrl = texture.img_back_mask;
+          } else if (pov === 'top') {
+            rawImageUrl = texture.img_top;
+            rawMaskUrl = texture.img_top_mask;
+          }
+
+          if (!rawImageUrl) return null;
+
+          const imageUrl = rawImageUrl.replace("http://127.0.0.1:8000", "");
+          const maskUrl = rawMaskUrl ? rawMaskUrl.replace("http://127.0.0.1:8000", "") : "";
+
+          const isColorable = texture.is_colorable;
+          const hexColor = texture.selected_color || colors[part.id] || "#FFFFFF";
           const zIndex = part.z_index ? part.z_index[pov.charAt(0).toUpperCase() + pov.slice(1)] : (index * 10);
 
           return (
@@ -159,31 +178,43 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
               className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center"
               style={{ zIndex }}
             >
-              <div 
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundColor: hexColor,
-                  WebkitMaskImage: `url('${imageUrl}')`,
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskImage: `url('${imageUrl}')`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center',
-                }}
-              />
+              {/* LAYER BAWAH: Gambar Base Tekstur */}
               <img 
                 src={imageUrl} 
                 alt={part.name}
-                className="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-90"
+                className="absolute inset-0 w-full h-full object-contain"
               />
+
+              {/* LAYER ATAS: Masking Warna */}
+              {isColorable && maskUrl && hexColor !== "#FFFFFF" && (
+                <div 
+                  className="absolute inset-0 w-full h-full mix-blend-multiply"
+                  style={{
+                    backgroundColor: hexColor,
+                    WebkitMaskImage: `url('${maskUrl}')`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskImage: `url('${maskUrl}')`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                  }}
+                />
+              )}
             </div>
           );
         })}
       </div>
     );
   };
+
+  // 👇 LOGIKA VISIBILITAS KARTU PENGIRIMAN 👇
+  const currentStatus = data.status?.toLowerCase() || 'pending';
+  // Tampilkan card logistik BILA statusnya BUKAN pending (tunggu konfirmasi)
+  const showShippingCard = ['processing', 'shipped', 'delivered', 'completed'].includes(currentStatus);
+  // Tampilkan tombol request resi HANYA BILA statusnya processing dan resi belum ada
+  const canRequestResi = currentStatus === 'processing' && !resi;
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11] animate-fadeIn p-4 md:p-8" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
@@ -272,9 +303,9 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   )}
                 </div>
               </div>
-                
-               {/* Tampilkan Pengiriman & Logistik hanya saat status shipped, delivered, completed */}
-              {['shipped', 'delivered', 'completed'].includes(data.status?.toLowerCase()) && (
+
+              {/* PANEL LOGISTIK RAJAONGKIR (MUNCUL SESUAI STATUS) */}
+              {showShippingCard && (
                 <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
                   <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                   
@@ -298,9 +329,9 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                             Cetak Label Pengiriman (AWB)
                           </button>
                         </div>
-                      ) : (
+                      ) : canRequestResi ? (
                         <div>
-                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi.</p>
+                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan dalam proses. Klik tombol di bawah untuk men-generate resi otomatis secara Cashless.</p>
                           <button 
                             onClick={handleRequestResi}
                             disabled={isRequestingResi}
@@ -309,13 +340,18 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                             {isRequestingResi ? 'Menghubungi RajaOngkir...' : 'Request Resi RajaOngkir'}
                           </button>
                         </div>
+                      ) : (
+                        <div>
+                           <p className="text-gray-600 text-xs leading-relaxed">Status pesanan telah berubah, namun belum ada resi yang diinput.</p>
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
               )}
             </div>
-            {/* KOLOM KANAN: DETAIL MATERIAL (TETAP SAMA) */}
+
+            {/* KOLOM KANAN: DETAIL MATERIAL */}
             <div className="lg:col-span-7 flex flex-col h-full space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20 flex-grow">
                 <div className="flex justify-between items-end mb-6 border-b border-[#D9B35A]/20 pb-4">
@@ -353,6 +389,14 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                               <div className="flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">{selectedTexture?.name || 'Default Texture'}</span>
                                 <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">{selectedTexture?.texture_code || '-'}</span>
+                                {/* Indikator hex warna jika dikustomisasi */}
+                                {selectedTexture?.is_colorable && selectedTexture?.selected_color && (
+                                  <div className="flex items-center gap-1.5 mt-2">
+                                    <span className="text-[8px] text-gray-500 uppercase tracking-widest">Warna:</span>
+                                    <div className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: selectedTexture.selected_color}}></div>
+                                    <span className="text-[9px] font-mono text-gray-500">{selectedTexture.selected_color}</span>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>

@@ -231,6 +231,14 @@
                             @if($texture)
                                 <span class="texture-badge">{{ $texture['name'] }}</span>
                                 <span class="code" style="color: #D9B35A;">{{ $texture['texture_code'] ?? 'N/A' }}</span>
+                            
+                                @if(isset($texture['is_colorable']) && $texture['is_colorable'] && !empty($texture['selected_color']))
+                                    <div style="margin-top: 8px;">
+                                        <span style="display: inline-block; width: 12px; height: 12px; background-color: {{ $texture['selected_color'] }}; border: 1px solid #8B7355; border-radius: 3px; vertical-align: middle; margin-right: 4px;"></span>
+                                        <span style="font-family: 'Courier', monospace; font-size: 10px; color: #8B7355; vertical-align: middle;">Warna: {{ $texture['selected_color'] }}</span>
+                                    </div>
+                                @endif
+
                             @else
                                 -
                             @endif
