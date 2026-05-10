@@ -17,6 +17,9 @@ class SubCategorySeeder extends Seeder
                 ['name' => 'Backpack', 'description' => 'Ransel kulit tangguh untuk mobilitas tinggi.'],
                 ['name' => 'Briefcase', 'description' => 'Tas kerja formal untuk tampilan profesional.'],
             ],
+            'Tas Wanita' => [
+                ['name' => 'Top Handle Bag', 'description' => 'Tas selempang klasik yang cocok untuk kerja.'],
+            ], 
         ];
 
         foreach ($subCategories as $categoryName => $subs) {

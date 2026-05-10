@@ -22,12 +22,19 @@ class PartTextures extends Model
         'img_back',
         'img_front',
         'img_thumb',
+        'is_colorable',
+        'colors',
+        'img_top_mask',
+        'img_back_mask',
+        'img_front_mask',
     ];
 
     protected function casts(): array
     {
         return [
             'price' => 'decimal:2',
+            'is_colorable' => 'boolean', // Pastikan formatnya selalu true/false
+            'colors'       => 'array',   // Otomatis ubah JSON dari DB jadi Array di PHP
         ];
     }
 

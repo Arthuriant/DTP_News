@@ -78,7 +78,7 @@ const BestSeller = () => {
         {/* */}
         <div className="text-center mt-20 relative z-10">
           <Link
-            href="/shop-without-sidebar"
+            href="/shop-with-sidebar"
             className="inline-flex items-center justify-center font-sans font-bold text-[10px] tracking-[0.2em] uppercase text-[#F8F3E9] rounded-full bg-[#2D1A11] border border-[#C5A059]/40 py-4 px-12 ease-out duration-300 hover:bg-[#C5A059] hover:text-[#2D1A11] hover:border-transparent shadow-[0_10px_20px_rgba(45,26,17,0.15)] hover:shadow-[0_15px_30px_rgba(197,160,89,0.3)] transition-all"
           >
             Lihat Semua Koleksi

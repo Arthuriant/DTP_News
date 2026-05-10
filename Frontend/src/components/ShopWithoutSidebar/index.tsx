@@ -128,13 +128,13 @@ const ShopWithoutSidebar = () => {
                     : "flex flex-col gap-7.5"
                 }`}
               >
-                {shopData.map((item, key) =>
+                {/* {shopData.map((item, key) =>
                   productStyle === "grid" ? (
                     <SingleGridItem item={item} key={key} />
                   ) : (
                     <SingleListItem item={item} key={key} />
                   )
-                )}
+                )} */}
               </div>
               {/* <!-- Products Grid Tab Content End --> */}
 

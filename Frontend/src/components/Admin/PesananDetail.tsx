@@ -19,22 +19,42 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   
-  // 👇 STATE BARU UNTUK RAJAONGKIR 👇
   const [resi, setResi] = useState('');
   const [isRequestingResi, setIsRequestingResi] = useState(false);
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
+      
       await OrderService.downloadPDF(orderId);
       
-      // Munculkan notifikasi sukses setelah file PDF berhasil digenerate/diunduh
-      AlertService.success("Berhasil", "Dokumen referensi PDF pesanan berhasil diunduh.");
+      const currentStatus = data?.status?.toLowerCase();
+      if (currentStatus === 'confirmed') {
+        await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'processing' }),
+        });
+
+        // Update tampilan lokal agar tombol Minta Resi muncul
+        setData((prev: any) => ({ ...prev, status: 'processing' }));
+
+        AlertService.success(
+          "Berhasil", 
+          "PDF berhasil diunduh dan status diperbarui ke 'Sedang Diproses'."
+        );
+      } else {
+        // Jika status sudah di tahap lanjut, hanya tampilkan pesan sukses download
+        AlertService.success(
+          "Berhasil", 
+          "Dokumen referensi PDF berhasil diunduh."
+        );
+      }
+
     } catch (error) {
       console.error("Gagal mendownload PDF:", error);
-      
-      // Ganti alert browser yang kaku dengan AlertService error
-      AlertService.error("Gagal Mengunduh", "Terjadi kesalahan sistem saat mencoba menyiapkan dokumen referensi.");
+      AlertService.error("Gagal", "Terjadi kesalahan saat menyiapkan dokumen.");
     } finally {
       setIsDownloading(false);
     }
@@ -60,7 +80,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
         if (response.data.catatan) {
           setCatatan(response.data.catatan);
         }
-        // Jika data dari database sudah punya resi, masukkan ke state
         if (response.data.resi) {
           setResi(response.data.resi);
         }
@@ -77,19 +96,13 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
 
-  // FUNGSI SIMULASI API RAJAONGKIR
   const handleRequestResi = async () => {
     setIsRequestingResi(true);
-    
-    // Simulasi jeda waktu menembak API Komerce (1.5 detik)
-    setTimeout(async () => { // 👈 Tambahkan kata async di sini
+    setTimeout(async () => { 
       try {
         const dummyResi = "JP" + Math.floor(100000000 + Math.random() * 900000000);
-        
-        // 1. SIMPAN RESI KE DATABASE LARAVEL 👇
         await OrderService.updateResi(orderId, dummyResi);
         
-        // 2. JIKA BERHASIL, UBAH TAMPILAN DI LAYAR 👇
         setResi(dummyResi);
         setIsRequestingResi(false);
         
@@ -135,14 +148,28 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           const texture = variant?.textures?.[0];
           
           if (!texture) return null;
-          let imageUrl = '';
-          if (pov === 'front') imageUrl = texture.img_front;
-          else if (pov === 'back') imageUrl = texture.img_back;
-          else if (pov === 'top') imageUrl = texture.img_top;
 
-          if (!imageUrl) return null;
+          let rawImageUrl = '';
+          let rawMaskUrl = '';
 
-          const hexColor = colors[part.id] || "#FFFFFF";
+          if (pov === 'front') {
+            rawImageUrl = texture.img_front;
+            rawMaskUrl = texture.img_front_mask;
+          } else if (pov === 'back') {
+            rawImageUrl = texture.img_back;
+            rawMaskUrl = texture.img_back_mask;
+          } else if (pov === 'top') {
+            rawImageUrl = texture.img_top;
+            rawMaskUrl = texture.img_top_mask;
+          }
+
+          if (!rawImageUrl) return null;
+
+          const imageUrl = rawImageUrl.replace("http://127.0.0.1:8000", "");
+          const maskUrl = rawMaskUrl ? rawMaskUrl.replace("http://127.0.0.1:8000", "") : "";
+
+          const isColorable = texture.is_colorable;
+          const hexColor = texture.selected_color || colors[part.id] || "#FFFFFF";
           const zIndex = part.z_index ? part.z_index[pov.charAt(0).toUpperCase() + pov.slice(1)] : (index * 10);
 
           return (
@@ -151,31 +178,43 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
               className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center"
               style={{ zIndex }}
             >
-              <div 
-                className="absolute inset-0 w-full h-full"
-                style={{
-                  backgroundColor: hexColor,
-                  WebkitMaskImage: `url('${imageUrl}')`,
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskImage: `url('${imageUrl}')`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center',
-                }}
-              />
+              {/* LAYER BAWAH: Gambar Base Tekstur */}
               <img 
                 src={imageUrl} 
                 alt={part.name}
-                className="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-90"
+                className="absolute inset-0 w-full h-full object-contain"
               />
+
+              {/* LAYER ATAS: Masking Warna */}
+              {isColorable && maskUrl && hexColor !== "#FFFFFF" && (
+                <div 
+                  className="absolute inset-0 w-full h-full mix-blend-multiply"
+                  style={{
+                    backgroundColor: hexColor,
+                    WebkitMaskImage: `url('${maskUrl}')`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskImage: `url('${maskUrl}')`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                  }}
+                />
+              )}
             </div>
           );
         })}
       </div>
     );
   };
+
+  // 👇 LOGIKA VISIBILITAS KARTU PENGIRIMAN 👇
+  const currentStatus = data.status?.toLowerCase() || 'pending';
+  // Tampilkan card logistik BILA statusnya BUKAN pending (tunggu konfirmasi)
+  const showShippingCard = ['processing', 'shipped', 'delivered', 'completed'].includes(currentStatus);
+  // Tampilkan tombol request resi HANYA BILA statusnya processing dan resi belum ada
+  const canRequestResi = currentStatus === 'processing' && !resi;
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2D1A11] animate-fadeIn p-4 md:p-8" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
@@ -265,57 +304,54 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                 </div>
               </div>
 
-              {/* 👇 PANEL LOGISTIK RAJAONGKIR BARU 👇 */}
-              <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
-                <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
-                
-                <div className="space-y-5 text-sm">
-                  <div>
-                    <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Alamat Tujuan</span>
-                    <span className="font-medium text-gray-800 leading-relaxed block">{data.shipping_address || 'Alamat belum diatur saat checkout'}</span>
-                  </div>
+              {/* PANEL LOGISTIK RAJAONGKIR (MUNCUL SESUAI STATUS) */}
+              {showShippingCard && (
+                <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20">
+                  <h3 className="text-xl font-bold mb-6 border-b border-[#D9B35A]/20 pb-4 text-[#2D1A11]" style={{ fontFamily: "'Playfair Display', serif" }}>Pengiriman & Logistik</h3>
                   
-                  {/* Status Resi / Tombol */}
-                  <div className="mt-6 p-5 bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-sm">
-                     <span className="block text-[#D9B35A] text-[10px] uppercase font-bold tracking-widest mb-3">Status Pengiriman (RajaOngkir)</span>
-                     
-                     {resi ? (
-                       <div className="animate-fadeIn">
-                         <p className="text-gray-800 font-medium mb-2">Nomor Resi Resmi:</p>
-                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                           <span className="font-mono font-black text-xl text-[#2D1A11] tracking-widest bg-white px-4 py-2 border border-[#D9B35A]/50 rounded shadow-sm">{resi}</span>
-                           <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded border border-emerald-200 text-center">Menunggu Pick-up Kurir</span>
-                         </div>
-                         <button className="mt-4 w-full py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors">
-                           Cetak Label Pengiriman (AWB)
-                         </button>
-                       </div>
-                     ) : (
-                       <div>
-                         <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan ini belum memiliki nomor resi. Pastikan tas sudah diproduksi sebelum men-generate resi otomatis secara Cashless.</p>
-                         <button 
-                           onClick={handleRequestResi}
-                           disabled={isRequestingResi}
-                           className="w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-[11px] uppercase tracking-[0.1em] rounded-sm shadow-md hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                         >
-                           {isRequestingResi ? (
-                             <>
-                               <svg className="animate-spin h-4 w-4 text-[#D9B35A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                               Menghubungi RajaOngkir...
-                             </>
-                           ) : (
-                             'Request Resi RajaOngkir'
-                           )}
-                         </button>
-                       </div>
-                     )}
+                  <div className="space-y-5 text-sm">
+                    <div>
+                      <span className="block text-[#8B7355] text-[10px] uppercase font-bold tracking-widest mb-1">Alamat Tujuan</span>
+                      <span className="font-medium text-gray-800 leading-relaxed block">{data.shipping_address || 'Alamat belum diatur saat checkout'}</span>
+                    </div>
+                    
+                    <div className="mt-6 p-5 bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-sm">
+                      <span className="block text-[#D9B35A] text-[10px] uppercase font-bold tracking-widest mb-3">Status Pengiriman (RajaOngkir)</span>
+                      
+                      {resi ? (
+                        <div className="animate-fadeIn">
+                          <p className="text-gray-800 font-medium mb-2">Nomor Resi Resmi:</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <span className="font-mono font-black text-xl text-[#2D1A11] tracking-widest bg-white px-4 py-2 border border-[#D9B35A]/50 rounded shadow-sm">{resi}</span>
+                            <span className="px-3 py-1.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded border border-emerald-200 text-center">Menunggu Pick-up Kurir</span>
+                          </div>
+                          <button className="mt-4 w-full py-2 bg-white border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors">
+                            Cetak Label Pengiriman (AWB)
+                          </button>
+                        </div>
+                      ) : canRequestResi ? (
+                        <div>
+                          <p className="text-gray-600 text-xs mb-4 leading-relaxed">Pesanan dalam proses. Klik tombol di bawah untuk men-generate resi otomatis secara Cashless.</p>
+                          <button 
+                            onClick={handleRequestResi}
+                            disabled={isRequestingResi}
+                            className="w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-[11px] uppercase tracking-[0.1em] rounded-sm shadow-md hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            {isRequestingResi ? 'Menghubungi RajaOngkir...' : 'Request Resi RajaOngkir'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                           <p className="text-gray-600 text-xs leading-relaxed">Status pesanan telah berubah, namun belum ada resi yang diinput.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-
+              )}
             </div>
 
-            {/* KOLOM KANAN: DETAIL MATERIAL (TETAP SAMA) */}
+            {/* KOLOM KANAN: DETAIL MATERIAL */}
             <div className="lg:col-span-7 flex flex-col h-full space-y-6">
               <div className="bg-white/90 backdrop-blur-md rounded-sm p-8 shadow-sm border border-[#D9B35A]/20 flex-grow">
                 <div className="flex justify-between items-end mb-6 border-b border-[#D9B35A]/20 pb-4">
@@ -353,6 +389,14 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                               <div className="flex flex-col items-end">
                                 <span className="text-[10px] font-bold text-[#D9B35A] bg-[#D9B35A]/10 px-3 py-1.5 rounded-sm border border-[#D9B35A]/20 shadow-sm inline-block uppercase tracking-wider">{selectedTexture?.name || 'Default Texture'}</span>
                                 <span className="text-[9px] font-mono text-[#D9B35A]/70 mt-2 tracking-wider">{selectedTexture?.texture_code || '-'}</span>
+                                {/* Indikator hex warna jika dikustomisasi */}
+                                {selectedTexture?.is_colorable && selectedTexture?.selected_color && (
+                                  <div className="flex items-center gap-1.5 mt-2">
+                                    <span className="text-[8px] text-gray-500 uppercase tracking-widest">Warna:</span>
+                                    <div className="w-3 h-3 rounded-full border border-gray-300" style={{backgroundColor: selectedTexture.selected_color}}></div>
+                                    <span className="text-[9px] font-mono text-gray-500">{selectedTexture.selected_color}</span>
+                                  </div>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -378,7 +422,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
                   {isDownloading ? 'Menyiapkan PDF...' : 'Cetak Referensi PDF'}
                 </button> 
               </div>
-
             </div>
           </div>
         </div>

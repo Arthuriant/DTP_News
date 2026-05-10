@@ -160,28 +160,25 @@ class OrderController extends Controller
     public function getMyOrders(Request $request)
     {
         $user = auth('sanctum')->user();
-        
-        // 1. Gabungkan relasi milikmu ('payment') dan milik temanmu ('details.product')
-        $query = Order::with(['details.product', 'payment']) 
-                      ->where('user_id', $user->id);
-        
-        // 2. Pertahankan fitur filter tanggal milik temanmu
+
+        $query = Order::with(['details.product', 'payment'])
+                    ->where('user_id', $user->id);
+
         if ($request->filled('date')) {
             $query->whereDate('order_date', $request->date);
         }
-        
+
         $orders = $query->orderBy('created_at', 'desc')->get();
-        
-        // 3. Pertahankan logika penampilan URL gambar penuh milik temanmu
+
         $orders->transform(function ($order) {
             foreach ($order->details as $detail) {
                 if ($detail->product && $detail->product->img) {
                     $detail->product->img_full_url = asset('storage/' . $detail->product->img);
                 }
             }
-            return $order;
+            return $order; // ← hapus duplikasi query setelah baris ini
         });
-        
+
         return response()->json($orders, 200);
     }
 
@@ -231,16 +228,16 @@ class OrderController extends Controller
     public function confirmDelivery($id)
     {
         $user = auth('sanctum')->user();
-        
+
         $order = Order::where('id', $id)
                       ->where('user_id', $user->id)
                       ->firstOrFail();
-        
-        $order->status = 'completed'; 
+
+        $order->status = 'completed';
         $order->save();
 
         return response()->json([
-            'message' => 'Pesanan berhasil dikonfirmasi selesai', 
+            'message' => 'Pesanan berhasil dikonfirmasi selesai',
             'data' => $order
         ], 200);
     }
@@ -262,7 +259,7 @@ class OrderController extends Controller
         $order->save();
 
         return response()->json([
-            'message' => 'Status pesanan berhasil diperbarui', 
+            'message' => 'Status pesanan berhasil diperbarui',
             'data' => $order
         ], 200);
     }
@@ -281,17 +278,40 @@ class OrderController extends Controller
         }
 
         $order->resi = $request->resi;
-        
+
         // Opsional: Otomatis ubah status jadi "shipped" jika resi diinput
         if ($order->status === 'processing') {
             $order->status = 'shipped';
         }
-        
+
         $order->save();
 
         return response()->json([
-            'message' => 'Nomor resi berhasil disimpan', 
+            'message' => 'Nomor resi berhasil disimpan',
             'data' => $order
         ], 200);
+    }
+
+        public function getOrderById($id)
+    {
+        $user = auth('sanctum')->user();
+
+        $order = Order::with(['details.product', 'payment'])
+            ->where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order tidak ditemukan'], 404);
+        }
+
+        // Tambah full URL gambar
+        foreach ($order->details as $detail) {
+            if ($detail->product && $detail->product->img) {
+                $detail->product->img_full_url = asset('storage/' . $detail->product->img);
+            }
+        }
+
+        return response()->json($order, 200);
     }
 }

@@ -196,6 +196,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
     Route::post('/checkout',    [OrderController::class, 'checkout']);
     Route::get('/my-orders',    [OrderController::class, 'getMyOrders']);
+    Route::get('/my-orders/{id}',    [OrderController::class, 'getOrderById']); // ← tambah ini
     Route::put('/my-orders/{id}/confirm',       [OrderController::class, 'confirmReceived']);
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
 

@@ -20,6 +20,7 @@ export default function OrderList() {
   const [activeSubTab, setActiveSubTab] = useState("Semua Berlangsung");
   const [selectedDate, setSelectedDate] = useState(""); // BARU: State untuk Tanggal
   const [currentPage, setCurrentPage] = useState(1);
+  const [trackingModal, setTrackingModal] = useState<{open: boolean, resi: string | null}>({open: false, resi: null}); // ← tambah di sini
   const ITEMS_PER_PAGE = 15;
 
   const TABS = ["Semua", "Menunggu Konfirmasi", "Berlangsung", "Berhasil", "Tidak Berhasil"];
@@ -348,22 +349,35 @@ export default function OrderList() {
                     Lihat Detail Transaksi
                   </Link>
                   
-                  {order.status === 'pending' ? (
-                    <button className="px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all">
+{order.status === 'pending' ? (
+                    // ✅ Bayar -> Dari temanmu (Pakai Link ke halaman history)
+                    <Link 
+                      href="/order/history"
+                      className="inline-block text-center px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all"
+                    >
                       Bayar
-                    </button>
+                    </Link>
                   ) : order.status === 'confirmed' || order.status === 'processing' ? (
-                    // ✅ Hubungi Admin -> Langsung buka WhatsApp
+                    // ✅ Hubungi Admin -> Dari kodemu (Pesan dinamis + Ikon SVG)
                     <a 
                       href={`https://wa.me/6283154577112?text=Halo%20Admin%20UpToYou,%20saya%20ingin%20bertanya%20mengenai%20pesanan%20saya%20dengan%20Invoice:%20${invoiceId}.`}
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-6 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-white transition-all"
+                      className="flex items-center justify-center gap-2 px-6 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-white transition-all"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                       Hubungi Admin
                     </a>
+                  ) : order.status === 'shipped' ? (
+                    // ✅ Lacak -> Dari temanmu (Buka Modal Lacak)
+                    <button 
+                      onClick={() => setTrackingModal({ open: true, resi: order.resi || null })}
+                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                    >
+                      Lacak
+                    </button>
                   ) : order.status === 'delivered' ? (
+                    // ✅ Selesai -> Dari kodemu (Ada efek cursor-not-allowed saat loading)
                     <button 
                       onClick={() => handleConfirmDelivery(order.id)}
                       disabled={updatingId === order.id}
@@ -372,22 +386,14 @@ export default function OrderList() {
                       {updatingId === order.id ? 'Memproses...' : 'Selesai'}
                     </button>
                   )  : order.status === 'completed' || order.status === 'cancelled' ? (
-                    // ✅ Beli Lagi -> Arahkan ke Halaman Produk
+                    // ✅ Beli Lagi -> Dari kodemu (Pakai Link aktif ke toko)
                     <Link 
                       href="/shop-with-sidebar" 
-                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                      className="inline-block text-center px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
                     >
                       Beli Lagi
                     </Link>
-                  ) : (
-                    // ✅ Lacak -> Arahkan ke halaman profile tab lacak
-                    <Link 
-                      href={`/profile?tab=lacak&resi=${order.resi || ''}`}
-                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
-                    >
-                      Lacak
-                    </Link>
-                  )}
+                  ) : null}
 
                   {/* Tombol Titik Tiga (Dropdown) yang sudah diperbaiki sebelumnya */}
                   <div className="relative">
@@ -427,7 +433,6 @@ export default function OrderList() {
                     )}
                   </div>
                 </div>
-
               </div>
             );
           })}
@@ -465,6 +470,32 @@ export default function OrderList() {
           </button>
         </div>
       )}
+        {trackingModal.open && (
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="bg-[#FFFDF5] rounded-2xl p-8 max-w-md w-full mx-4 border border-[#D9B35A]/30 shadow-2xl">
+                <h3 className="font-bold text-xl text-[#2D1A11] mb-6 font-serif">Informasi Pengiriman</h3>
+                            
+                  {trackingModal.resi ? (
+                    <div className="space-y-4">
+                      <div className="bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-xl p-5">
+                          <p className="text-[#8B7355] text-xs uppercase font-bold tracking-widest mb-2">Nomor Resi</p>
+                          <p className="font-mono font-black text-2xl text-[#2D1A11] tracking-widest">{trackingModal.resi}</p>
+                            </div>
+                              <p className="text-[#8B7355] text-sm">Gunakan nomor resi di atas untuk melacak paket Anda melalui website kurir.</p>
+                            </div>
+                           ) : (
+                          <p className="text-[#8B7355] text-sm">Nomor resi belum tersedia. Pesanan Anda sedang dalam proses pengiriman.</p>
+                        )}
+
+                      <button
+                    onClick={() => setTrackingModal({ open: false, resi: null })}
+                className="mt-6 w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all"
+              >
+                 Tutup
+              </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -26,14 +26,7 @@ const Checkout = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   // --- STATE FORMS ---
-  const [shippingInfo, setShippingInfo] = useState<any>({
-    address: "Alamat toko",
-    destination_id: 4866,
-    courier: "jne",
-    service: "REG",
-    cost: 0,
-    etd: "-",
-  });
+  const [shippingInfo, setShippingInfo] = useState<any>(null);
   
   const [billingData, setBillingData] = useState({
     firstName: "",
@@ -142,6 +135,10 @@ const Checkout = () => {
       alert("Keranjang Anda kosong!");
       return;
     }
+     if (!shippingInfo || shippingInfo.cost === 0) {
+    alert("Pilih layanan pengiriman terlebih dahulu!");
+    return;
+  }
 
     setIsProcessing(true);
 
@@ -183,7 +180,7 @@ const Checkout = () => {
                 {/* <Login /> */}
 
                 {/* PILIH ALAMAT */}
-                <div className="mt-9">
+                {/* <div className="mt-9">
                   <h2 className="font-bold text-[#2D1A11] text-xl sm:text-2xl mb-5.5 flex items-center gap-2">
                     <span className="text-[#D9B35A]">✧</span> Pilih Alamat Pengiriman
                   </h2>
@@ -194,9 +191,9 @@ const Checkout = () => {
                       <p className="text-sm text-[#8B7355] text-center py-4">
                         Belum ada alamat tersimpan. Tambahkan alamat pengiriman kamu.
                       </p>
-                    ) : (
-                      // Ada alamat — tampilkan list
-                      addresses.map((address) => (
+                    ) : ( */}
+                      {/* // Ada alamat — tampilkan list */}
+                      {/* addresses.map((address) => (
                         <div
                           key={address.id}
                           onClick={() => handleAddressSelect(address)}
@@ -227,10 +224,10 @@ const Checkout = () => {
                           </div>
                         </div>
                       ))
-                    )}
+                    )} */}
 
                     {/* Tombol Tambah Alamat — selalu tampil */}
-                    <Link
+                    {/* <Link
                       href="/Profile?tab=alamat"
                       className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-dashed border-[#D9B35A]/50 text-[#D9B35A] text-sm font-bold hover:bg-[#D9B35A]/10 transition-all duration-200 mt-2"
                     >
@@ -241,9 +238,10 @@ const Checkout = () => {
                     </Link>
 
                   </div>
-                </div>
+                </div> */}
 
                 <Billing formData={billingData} handleInputChange={handleBillingChange} />
+                <Shipping onShippingChange={setShippingInfo} />
 
                 <div className="bg-[#FFFDF5] shadow-sm rounded-2xl border border-[#D9B35A]/20 p-4 sm:p-8.5 mt-7.5">
                   <div>
@@ -314,9 +312,9 @@ const Checkout = () => {
 
                 <button
                   type="submit"
-                  disabled={isProcessing || cartItems.length === 0}
+                  disabled={isProcessing || cartItems.length === 0 || !shippingInfo || shippingInfo.cost === 0} // ← ganti ini
                   className={`w-full flex justify-center font-bold py-[15px] px-6 rounded-full ease-out duration-200 mt-8 uppercase tracking-widest transition-all ${
-                    isProcessing || cartItems.length === 0
+                    isProcessing || cartItems.length === 0 || !shippingInfo || shippingInfo.cost === 0
                       ? "bg-[#D9B35A]/50 text-[#1A1A1A]/50 cursor-not-allowed shadow-none"
                       : "bg-gradient-to-r from-[#EAC135] to-[#DFB121] text-[#1A1A1A] hover:-translate-y-0.5 shadow-lg shadow-[#D9B35A]/20"
                   }`}

@@ -276,12 +276,15 @@ export default function Pesanan() {
                       
                       <td className="py-5 pr-8 pl-4 bg-white/60 backdrop-blur-xl rounded-r-2xl border-y border-r border-white/40 shadow-[0_10px_30px_-10px_rgba(45,26,17,0.08)]">
                         <div className="flex justify-end items-center gap-2">
+                          {/* ✅ Sembunyikan tombol kalau status pending */}
+                         {!['pending', 'cancelled'].includes(currentStatus) && (
                           <button 
                             onClick={() => goToDetail(o.id)} 
                             className="bg-white text-[#D9B35A] border border-[#D9B35A] px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all shadow-sm whitespace-nowrap"
                           >
                             Detail Pesanan
                           </button>
+                        )}
                         </div>
                       </td>
                     </tr>
