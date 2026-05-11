@@ -17,6 +17,7 @@ return new class extends Migration
             // Relasi ke tabel users (UUID)
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); 
+            $table->string('city_id', 50)->nullable(); 
             
             // Data Penerima (Gaya Shopee/Form Anda)
             $table->string('recipient_name', 100); 

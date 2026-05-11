@@ -32,12 +32,13 @@ class AddressController extends Controller
 
         $request->validate([
             'recipient_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'region' => 'required|string|max:255',
-            'street' => 'required|string',
-            'details' => 'nullable|string',
-            'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean',
+            'phone_number'   => 'required|string|max:20',
+            'region'         => 'required|string|max:255',
+            'city_id'        => 'required|integer', // 👈 TAMBAHAN: Validasi city_id
+            'street'         => 'required|string',
+            'details'        => 'nullable|string',
+            'label'          => 'nullable|in:Rumah,Kantor,Kost', // Sesuaikan dengan label frontend
+            'is_primary'     => 'boolean',
             'latitude'       => 'nullable|numeric',
             'longitude'      => 'nullable|numeric',
         ]);
@@ -50,50 +51,47 @@ class AddressController extends Controller
             $isPrimary = true;
         }
 
-        // Jika user mencentang "Jadikan Utama", kita harus mengubah alamat utama yang lama menjadi false
+        // Jika user mencentang "Jadikan Utama", ubah alamat utama yang lama menjadi false
         if ($isPrimary) {
             Address::where('user_id', $user->id)->update(['is_primary' => false]);
         }
 
         $address = Address::create([
-            'user_id' => $user->id,
+            'user_id'        => $user->id,
             'recipient_name' => $request->recipient_name,
-            'phone_number' => $request->phone_number,
-            'region' => $request->region,
-            'street' => $request->street,
-            'details' => $request->details,
-            'label' => $request->label,
-            'is_primary' => $isPrimary,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'phone_number'   => $request->phone_number,
+            'region'         => $request->region,
+            'city_id'        => $request->city_id, // 👈 TAMBAHAN: Simpan city_id ke database
+            'street'         => $request->street,
+            'details'        => $request->details,
+            'label'          => $request->label,
+            'is_primary'     => $isPrimary,
+            'latitude'       => $request->latitude,
+            'longitude'      => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil ditambahkan', 'address' => $address], 201);
     }
+
     // Menghapus alamat
     public function destroy($id)
     {
         $user = Auth::user();
-    if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
-    $address = Address::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+        
+        $address = Address::find($id);
+        
+        if (!$address) {
+            return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
+        }
 
-    $user = Auth::user();
-    $address = Address::findOrFail($id); // cari global, bukan per user
+        // Pastikan hanya pemilik alamat ATAU admin yang bisa menghapus
+        if ($address->user_id !== $user->id && !$user->can('delete_customers')) {
+            return response()->json(['message' => 'Tidak memiliki akses'], 403);
+        }
 
-
-    if ($address) {
         $address->delete();
         return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
-    }
-    return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
-
-    // bukan pemilik DAN bukan admin → tolak
-    if ($address->user_id !== $user->id && !$user->can('delete_customers')) {
-        return response()->json(['message' => 'Tidak memiliki akses'], 403);
-    }
-
-    $address->delete();
-    return response()->json(['message' => 'Alamat berhasil dihapus'], 200);
     }
 
     // Mengubah alamat menjadi Utama
@@ -116,6 +114,7 @@ class AddressController extends Controller
 
         return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
     }
+    
     // Mengubah data alamat
     public function update(Request $request, $id)
     {
@@ -125,15 +124,15 @@ class AddressController extends Controller
         $address = Address::where('id', $id)->where('user_id', $user->id)->first();
         if (!$address) return response()->json(['message' => 'Alamat tidak ditemukan'], 404);
 
-
         $request->validate([
             'recipient_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'region' => 'required|string|max:255',
-            'street' => 'required|string',
-            'details' => 'nullable|string',
-            'label' => 'nullable|in:Rumah,Kantor',
-            'is_primary' => 'boolean',
+            'phone_number'   => 'required|string|max:20',
+            'region'         => 'required|string|max:255',
+            'city_id'        => 'required|integer', // 👈 TAMBAHAN: Validasi city_id
+            'street'         => 'required|string',
+            'details'        => 'nullable|string',
+            'label'          => 'nullable|in:Rumah,Kantor,Kost', // Sesuaikan dengan label frontend
+            'is_primary'     => 'boolean',
             'latitude'       => 'nullable|numeric',
             'longitude'      => 'nullable|numeric',
         ]);
@@ -148,14 +147,15 @@ class AddressController extends Controller
         // Update datanya
         $address->update([
             'recipient_name' => $request->recipient_name,
-            'phone_number' => $request->phone_number,
-            'region' => $request->region,
-            'street' => $request->street,
-            'details' => $request->details,
-            'label' => $request->label,
-            'is_primary' => $isPrimary,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'phone_number'   => $request->phone_number,
+            'region'         => $request->region,
+            'city_id'        => $request->city_id, // 👈 TAMBAHAN: Update city_id di database
+            'street'         => $request->street,
+            'details'        => $request->details,
+            'label'          => $request->label,
+            'is_primary'     => $isPrimary,
+            'latitude'       => $request->latitude,
+            'longitude'      => $request->longitude,
         ]);
 
         return response()->json(['message' => 'Alamat berhasil diubah', 'address' => $address], 200);

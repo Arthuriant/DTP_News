@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { AddressService } from "@/services/AddressService";
 // Sesuaikan path import AddressModal ini dengan struktur folder Anda!
 import AddressModal from "../Profile/AddressModal"; // <-- PASTIKAN PATH INI BENAR
+import Link from 'next/link';
 
 
 const SHIPPING_URL = "http://127.0.0.1:8000";
@@ -230,21 +231,21 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
                   </button>
                   
                   {/* 👇 TOMBOL EDIT ALAMAT LANGSUNG 👇 */}
-                  <button 
+                  {/* <button 
                     type="button"
                     onClick={() => handleEditAddress(activeAddress)}
                     className="px-4 py-2 border border-[#8B7355] text-[#8B7355] bg-transparent rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#8B7355] hover:text-white transition-colors"
                   >
                     Edit Alamat Ini
-                  </button>
+                  </button> */}
 
-                  <button 
+                  {/* <button 
                     type="button"
                     onClick={() => setIsManualMode(true)}
                     className="px-4 py-2 border border-gray-300 text-gray-500 bg-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors"
                   >
                     Ketik Manual
-                  </button>
+                  </button> */}
                 </div>
               </div>
 
@@ -274,13 +275,12 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
                   
                   {/* Tombol Tambah Alamat Baru */}
                   <div className="p-2 mt-1">
-                    <button 
-                      type="button"
-                      onClick={() => { setEditData(null); setIsEditModalOpen(true); }}
-                      className="w-full py-2.5 border border-dashed border-[#D9B35A] text-[#D9B35A] rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#D9B35A]/10 transition-colors"
+                    <Link 
+                      href="/Profile"
+                      className="w-full py-2.5 border border-dashed border-[#D9B35A] text-[#D9B35A] rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#D9B35A]/10 transition-colors flex items-center justify-center"
                     >
-                      + Tambah Alamat Baru
-                    </button>
+                      + Perbarui Alamat
+                    </Link>
                   </div>
                 </div>
               )}
