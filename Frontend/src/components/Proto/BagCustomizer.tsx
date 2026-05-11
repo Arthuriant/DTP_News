@@ -560,7 +560,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
               color={activeColor}
               texture={activeTexture}
               textureImageUrl={getTextureImageUrl(activeTextureObj, pov)} 
-              maskImageUrl={getMaskImageUrl(activeTextureObj, pov)} // 👈 INI YANG SEBELUMNYA HILANG!
+              maskImageUrl={getMaskImageUrl(activeTextureObj, pov)} 
               zIndex={partZIndex}
             />
           ) : (
@@ -579,7 +579,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   const PREVIEW_VIEWS = [
-    { id: "360", label: "360°", type: "icon" },
+    // { id: "360", label: "360°", type: "icon" }, // Dinonaktifkan sementara
     { id: "front", label: "Depan", type: "image" },
     { id: "back", label: "Belakang", type: "image" },
     { id: "top", label: "Atas", type: "image" },

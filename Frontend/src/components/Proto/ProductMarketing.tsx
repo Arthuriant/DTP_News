@@ -98,39 +98,36 @@ export default function ProductMarketing({ blocks }: { blocks?: MarketingBlock[]
                 )}
 
                 {/* FITUR */}
-                <div className="pt-4 max-w-lg w-full">
+<div className="pt-4 max-w-lg w-full">
                   {block.featureStyle === "cards" ? (
                     <div className="space-y-3">
                       {block.features.map((feature: any, idx: number) => {
-                        const isFeatureOpen = openFeature === feature.title;
                         return (
                           <div
                             key={idx}
-                            className={`relative rounded-md transition-all duration-300 overflow-hidden ${
-                              isFeatureOpen
-                                ? 'bg-[#F8F3E9] border border-[#C5A059] shadow-md'
-                                : 'bg-[#2D1A11] border border-[#C5A059] hover:bg-[#3a2216]'
-                            }`}
+                            // Dibuat statis: hapus hover dan transisi state
+                            className="relative rounded-md overflow-hidden bg-[#2D1A11] border border-[#C5A059] shadow-sm"
                           >
-                            <button
-                              onClick={() => toggleFeature(feature.title)}
-                              className="w-full px-6 py-4 flex items-center gap-4 text-left focus:outline-none"
-                            >
+                            {/* Ubah <button> menjadi <div> dan hapus onClick */}
+                            <div className="w-full px-6 py-4 flex items-center gap-4 text-left">
                               <span className="text-[#C5A059]">
-                                {isFeatureOpen ? (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
-                                ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
-                                )}
+                                {/* Menggunakan ikon check/statis karena bukan accordion lagi */}
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
                               </span>
-                              <span className={`font-serif text-base tracking-wide ${isFeatureOpen ? 'text-[#C5A059] font-semibold' : 'text-[#EFE8DC]'}`}>
+                              <span className="font-serif text-base tracking-wide text-[#EFE8DC]">
                                 {feature.title}
                               </span>
-                            </button>
+                            </div>
+                            
+                            {/* Jika ada konten tambahan, tampilkan secara permanen (tanpa max-h-0) */}
                             {feature.content && (
-                              <div className={`px-6 overflow-hidden transition-all duration-300 ${isFeatureOpen ? 'max-h-[500px] pb-4' : 'max-h-0'}`}>
+                              <div className="px-6 pb-4">
                                 <div className="pt-2 border-t border-[#C5A059]/30">
-                                  <p className="text-[#2D1A11] text-sm leading-relaxed font-serif">{feature.content}</p>
+                                  <p className="text-[#EFE8DC]/80 text-sm leading-relaxed font-serif">
+                                    {feature.content}
+                                  </p>
                                 </div>
                               </div>
                             )}
@@ -142,7 +139,7 @@ export default function ProductMarketing({ blocks }: { blocks?: MarketingBlock[]
                     <ul className="space-y-5">
                       {block.features.map((feature: any, idx: number) => (
                         <li key={idx} className="flex items-center gap-4 group">
-                          <div className="w-10 h-10 rounded-full bg-[#F0EBE1] flex items-center justify-center flex-shrink-0 shadow-[0_5px_15px_rgba(197,160,89,0.3)] group-hover:scale-110 transition-transform duration-300 border border-[#E5D7C1]/50">
+                          <div className="w-10 h-10 rounded-full bg-[#F0EBE1] flex items-center justify-center flex-shrink-0 shadow-[0_5px_15px_rgba(197,160,89,0.3)] transition-transform duration-300 border border-[#E5D7C1]/50">
                             {feature.icon ? (
                               <div className="w-5 h-5 text-[#2D1A11]" dangerouslySetInnerHTML={{ __html: feature.icon }} />
                             ) : (
@@ -151,7 +148,7 @@ export default function ProductMarketing({ blocks }: { blocks?: MarketingBlock[]
                               </svg>
                             )}
                           </div>
-                          <span className="text-[#2D1A11] font-serif text-lg tracking-wide group-hover:text-[#C5A059] transition-colors">
+                          <span className="text-[#2D1A11] font-serif text-lg tracking-wide transition-colors">
                             {feature.title}
                           </span>
                         </li>

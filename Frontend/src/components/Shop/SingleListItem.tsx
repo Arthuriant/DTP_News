@@ -63,7 +63,7 @@ const SingleListItem = ({ item }: { item: ProductAPI }) => {
   const handleCustomize = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    AlertService.success("Memuat Studio...", "Membuka ruang kustomisasi 3D untuk Anda.");
+    // AlertService.success("Memuat Studio...", "Membuka ruang kustomisasi 3D untuk Anda.");
     router.push(`/Proto?productId=${item.id}`);
   };
 
