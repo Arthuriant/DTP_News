@@ -112,7 +112,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Container Putih Utama */}
-          <div className="bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(42,27,20,0.03)] p-6 md:p-10 border border-white/60 relative overflow-hidden min-h-[500px]">
+          <div className="bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(42,27,20,0.03)] p-6 fmd:p-10 border border-white/60 relative overflow-hidden min-h-[500px]">
             
             {/* Dekorasi Pojok */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FFFDF5] to-transparent rounded-bl-[4rem] opacity-40 pointer-events-none"></div>

@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib ada
+use Illuminate\Database\Eloquent\Concerns\HasUuids; 
 
 class Profile extends Model
 {
-    use HasUuids; // 👈 Aktifkan UUID otomatis
+    use HasUuids; 
 
     protected $fillable = [
         'user_id',
@@ -15,20 +15,23 @@ class Profile extends Model
         'gender',
         'phone',
         'pin',
-        'created_by', // 👈 Audit Trail
-        'updated_by', // 👈 Audit Trail
+        'created_by', 
+        'updated_by',
     ];
 
-    /**
-     * Sembunyikan kolom sensitif agar tidak terkirim saat di-convert ke JSON
-     */
     protected $hidden = [
         'pin',
     ];
 
-    /**
-     * Relasi balik ke model User
-     */
+    protected $appends = [
+        'has_pin',
+    ];
+
+    public function getHasPinAttribute()
+    {
+        return !empty($this->attributes['pin']);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

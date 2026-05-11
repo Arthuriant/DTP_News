@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { AddressService } from "@/services/AddressService";
@@ -11,7 +11,7 @@ const MapPicker = dynamic(() => import("./MapPicker"), {
   loading: () => <div className="h-[200px] w-full bg-[#EFE8DC] animate-pulse rounded-xl flex items-center justify-center text-[#8B7355] text-xs font-bold tracking-widest uppercase">Memuat Peta...</div>
 });
 
-const SHIPPING_URL = "http://127.0.0.1:8000"; // Sesuaikan dengan URL Backend Logistik Anda
+const SHIPPING_URL = "http://127.0.0.1:8000"; 
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -24,7 +24,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // 👇 Tambahan destination_id dan postal_code di formData 👇
   const [formData, setFormData] = useState({
     recipient_name: "", phone_number: "", region: "", destination_id: "", street: "", details: "", label: "", is_primary: false,
   });
@@ -37,6 +36,9 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const [cities, setCities] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  // 👇 TAMBAHAN: Ref untuk menyimpan timer Debounce 👇
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
 
@@ -77,28 +79,41 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       document.body.style.overflow = "unset";
       setCities([]);
       setShowDropdown(false);
+      // Bersihkan timer jika modal ditutup
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     }
     return () => { document.body.style.overflow = "unset"; };
   }, [isOpen, editData]);
 
-  // 👇 LOGIKA PENCARIAN RAJAONGKIR (Sama persis seperti Shipping.tsx) 👇
-  const handleSearchCity = useCallback(async (query: string) => {
-    setSearchCity(query);
-    setFormData(prev => ({ ...prev, destination_id: "", region: "" })); // Reset ID jika user mengetik ulang
-    
-    if (query.length < 2) { setCities([]); setShowDropdown(false); return; }
 
-    setIsSearching(true);
-    try {
-      const res = await fetch(`${SHIPPING_URL}/shipping/destinations?search=${query}&limit=10`);
-      const data = await res.json();
-      setCities(data?.data ?? []);
-      setShowDropdown(true);
-    } catch {
-      setCities([]);
-    } finally {
-      setIsSearching(false);
+  const handleSearchCity = useCallback((query: string) => {
+    setSearchCity(query);
+    setFormData(prev => ({ ...prev, destination_id: "", region: "" })); 
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    if (query.length < 2) { 
+      setCities([]); 
+      setShowDropdown(false); 
+      setIsSearching(false);
+      return; 
+    }
+    setIsSearching(true);
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${SHIPPING_URL}/shipping/destinations?search=${query}&limit=10`);
+        const data = await res.json();
+        setCities(data?.data ?? []);
+        setShowDropdown(true);
+      } catch {
+        setCities([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 600); 
   }, []);
 
   const handleSelectCity = (city: any) => {
@@ -107,7 +122,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       ...prev, 
       region: city.label, 
       destination_id: city.id,
-      // Jika API Komerce Anda mengembalikan kode pos, tangkap di sini. Jika tidak, kosongkan biarkan user ketik manual.
     }));
     setShowDropdown(false);
   };
@@ -129,7 +143,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     
     const payload = { 
         ...formData, 
-        // Pastikan Backend Anda (AddressController) siap menerima destination_id dan postal_code
         city_id: formData.destination_id, 
         label: formData.label === "" ? null : formData.label,
         latitude: mapPosition[0],   
@@ -192,7 +205,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
               </div>
             </div>
 
-            {/* 👇 PERUBAHAN BESAR: PENCARIAN KOTA RAJAONGKIR 👇 */}
+            {/* PENCARIAN KOTA RAJAONGKIR */}
             <div>
               <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Verifikasi Kota / Kecamatan Tujuan</label>
               {!isChangingRegion && formData.region ? (

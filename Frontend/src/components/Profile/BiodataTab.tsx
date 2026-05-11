@@ -1,8 +1,7 @@
 "use client";
 
 import { ProfileService } from "@/services/ProfileService";
-import { useState } from "react";
-// 1. Import AlertService
+import { useState, useEffect } from "react";
 import { AlertService } from "@/services/AlertService";
 
 interface BiodataTabProps {
@@ -12,16 +11,31 @@ interface BiodataTabProps {
 }
 
 export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps) {
+  const isPinSet = Boolean(profile?.pin || profile?.pin_transaksi || profile?.has_pin);
+
   const [editingField, setEditingField] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
     date_of_birth: profile?.date_of_birth || "",
     gender: profile?.gender || "",
     phone: profile?.phone || "",
-    pin: profile?.pin || "",
+    pin: profile?.pin || profile?.pin_transaksi || "",
   });
+
+
+  useEffect(() => {
+    setFormData({
+      name: user?.name || "",
+      email: user?.email || "",
+      date_of_birth: profile?.date_of_birth || "",
+      gender: profile?.gender || "",
+      phone: profile?.phone || "",
+      pin: profile?.pin || profile?.pin_transaksi || "",
+    });
+  }, [user, profile]);
 
   // State khusus untuk Modal PIN
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
@@ -34,23 +48,19 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
       date_of_birth: profile?.date_of_birth || "",
       gender: profile?.gender || "",
       phone: profile?.phone || "",
-      pin: profile?.pin || "",
+      pin: profile?.pin || profile?.pin_transaksi || "",
     });
     setEditingField(field);
   };
 
-  // Handler simpan untuk data umum (kecuali PIN via modal)
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await ProfileService.updateProfile(formData);
       onUpdate({ name: formData.name, email: formData.email }, { ...formData });
       setEditingField(null);
-      
-      // 2. Tambahkan Alert Sukses
       AlertService.success("Profil Diperbarui", "Data identitas Anda berhasil disimpan ke sistem.");
     } catch (err: any) {
-      // 3. Tambahkan Alert Error
       AlertService.error("Gagal Menyimpan", err.message || "Terjadi kesalahan saat memperbarui profil.");
     } finally {
       setIsSaving(false);
@@ -71,12 +81,13 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     try {
       const updatedData = { ...formData, pin: pinInput };
       await ProfileService.updateProfile(updatedData);
-      onUpdate({ name: formData.name, email: formData.email }, { ...updatedData });
+      
+      // Update state ke parent dan berikan flag 'has_pin: true' agar UI langsung berubah
+      onUpdate({ name: formData.name, email: formData.email }, { ...updatedData, has_pin: true });
       setFormData(updatedData); 
       setIsPinModalOpen(false);
       setPinInput(""); 
       
-      // 4. Alert Sukses khusus PIN
       AlertService.success("Keamanan Terjaga", "PIN Transaksi Anda berhasil diperbarui.");
     } catch (err: any) {
       AlertService.error("Gagal Menyimpan PIN", err.message || "Sistem tidak dapat memperbarui PIN Anda.");
@@ -85,7 +96,6 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
     }
   };
 
-  // Komponen Helper untuk Baris Data (Standar)
   const DataRow = ({ id, label, value, type = "text", placeholder = "Belum dikonfigurasi" }: any) => (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl hover:bg-[#FFFDF5] transition-colors group">
       <div className="mb-2 sm:mb-0 w-1/3 shrink-0">
@@ -193,7 +203,8 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
             </div>
             <div className="flex-1 w-full flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {profile?.pin ? (
+                {/* 👇 MENGGUNAKAN VARIABEL isPinSet 👇 */}
+                {isPinSet ? (
                   <p className="text-[#2A1B14] font-bold text-xl tracking-[0.3em] mt-1">••••••</p>
                 ) : (
                   <p className="text-gray-400 italic text-sm">PIN belum diatur</p>
@@ -206,7 +217,7 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
                 }} 
                 className="text-[#D9B35A] text-xs font-bold uppercase tracking-widest hover:text-[#2A1B14] transition-colors bg-white px-4 py-2 rounded-lg shadow-sm border border-[#D9B35A]/30 hover:border-[#D9B35A]"
               >
-                {profile?.pin ? "Ganti PIN" : "Buat PIN"}
+                {isPinSet ? "Ganti PIN" : "Buat PIN"}
               </button>
             </div>
           </div>
@@ -220,7 +231,7 @@ export default function BiodataTab({ user, profile, onUpdate }: BiodataTabProps)
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D9B35A] to-transparent"></div>
             <div className="text-center mb-6">
               <h4 className="text-xl font-serif font-bold text-[#2A1B14] mb-2">
-                {profile?.pin ? "Ubah PIN Transaksi" : "Buat PIN Baru"}
+                {isPinSet ? "Ubah PIN Transaksi" : "Buat PIN Baru"}
               </h4>
               <p className="text-xs text-[#8B7355] leading-relaxed">
                 Masukkan <strong className="text-[#D9B35A]">6 digit angka</strong> untuk mengamankan transaksi Anda.
