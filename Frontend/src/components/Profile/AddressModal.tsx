@@ -37,7 +37,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   
-  // 👇 TAMBAHAN: Ref untuk menyimpan timer Debounce 👇
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
@@ -51,18 +50,28 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       document.body.style.overflow = "hidden";
       
       if (editData) {
+        // 👇 PERBAIKAN LOGIKA EDIT DATA 👇
+        const destId = editData.city_id || editData.destination_id || "";
+        
         setFormData({
           recipient_name: editData.recipient_name, 
           phone_number: editData.phone_number,
           region: editData.region, 
-          destination_id: editData.city_id || editData.destination_id || "", 
+          destination_id: destId, 
           street: editData.street, 
           details: editData.details || "",
           label: editData.label || "", 
-          is_primary: editData.is_primary == 1,
+          is_primary: editData.is_primary == 1 || editData.is_primary === true,
         });
-        setIsChangingRegion(false); 
-        setSearchCity("");
+
+        // Jika data lama tidak punya ID kecamatan, otomatis paksa user untuk mencari ulang!
+        if (!destId) {
+          setIsChangingRegion(true);
+          setSearchCity(editData.region || "");
+        } else {
+          setIsChangingRegion(false);
+          setSearchCity("");
+        }
 
         if (editData.latitude && editData.longitude) {
           setMapPosition([parseFloat(editData.latitude), parseFloat(editData.longitude)]);
@@ -79,7 +88,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       document.body.style.overflow = "unset";
       setCities([]);
       setShowDropdown(false);
-      // Bersihkan timer jika modal ditutup
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     }
     return () => { document.body.style.overflow = "unset"; };
@@ -134,6 +142,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validasi Kelengkapan Data
     if (!formData.destination_id) {
       AlertService.error("Data Belum Lengkap", "Silakan cari dan pilih kecamatan dari hasil pencarian agar sistem bisa menghitung ongkos kirim.");
       return;
@@ -143,7 +152,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
     
     const payload = { 
         ...formData, 
-        city_id: formData.destination_id, 
+        city_id: parseInt(formData.destination_id as string), // Dipastikan integer
         label: formData.label === "" ? null : formData.label,
         latitude: mapPosition[0],   
         longitude: mapPosition[1]   
@@ -158,7 +167,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       
       AlertService.success("Berhasil!", `Alamat berhasil ${editData ? 'diperbarui' : 'ditambahkan'}.`);
       onSuccess(); 
-      onClose();
+      // Hapus onClose() di sini karena jika berhasil, halaman akan di-refresh dari parent
     } catch (error: any) { 
       console.error(error);
       AlertService.error("Gagal Menyimpan", error.message || "Terjadi kesalahan saat menyimpan alamat.");
@@ -173,7 +182,8 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans"
+      // 👇 PERBAIKAN Z-INDEX (dari 999999 menjadi 100 agar alert tidak tertutup) 👇
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="relative bg-[#F8F3E9] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">
@@ -209,8 +219,11 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
             <div>
               <label className="block text-[#8B7355] text-[10px] font-black uppercase tracking-widest mb-1.5 pl-1">Verifikasi Kota / Kecamatan Tujuan</label>
               {!isChangingRegion && formData.region ? (
-                <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)] border-none">
-                  <span className="text-sm text-[#2D1A11] font-semibold truncate pr-3">{formData.region}</span>
+                <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)] border-none border border-emerald-500/30">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="text-emerald-500 font-bold">✓</span>
+                    <span className="text-sm text-[#2D1A11] font-semibold truncate pr-3">{formData.region}</span>
+                  </div>
                   <button type="button" onClick={() => { setIsChangingRegion(true); setSearchCity(formData.region); }} className="text-[#D9B35A] text-[10px] font-black uppercase tracking-wider hover:text-[#2D1A11] cursor-pointer bg-[#D9B35A]/10 px-3 py-1 rounded-md shrink-0">Ubah</button>
                 </div>
               ) : (

@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 // 1. Import AlertService
-import { AlertService } from "@/services/AlertService";
+// import { AlertService } from "@/services/AlertService";
 
 // Fix otomatis untuk masalah Ikon bawaan Leaflet di Next.js
 const customIcon = L.icon({
@@ -31,7 +31,7 @@ function LocationMarker({ position, setPosition }: MapPickerProps) {
       
       // 2. Tambahkan feedback visual sederhana saat titik dipilih
       // Kita gunakan notifikasi sukses agar user tahu lokasi sudah terkunci di koordinat tersebut
-      AlertService.success("Lokasi Terpilih", "Titik koordinat pengiriman telah diperbarui.");
+      // AlertService.success("Lokasi Terpilih", "Titik koordinat pengiriman telah diperbarui.");
     },
   });
 

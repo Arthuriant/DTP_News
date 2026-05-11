@@ -46,6 +46,8 @@ export default function OrderList() {
     return "Semua Berlangsung";
   };
 
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
   
   
 
@@ -347,45 +349,89 @@ export default function OrderList() {
                     Lihat Detail Transaksi
                   </Link>
                   
-                 {order.status === 'pending' ? (
-                  <Link 
-                    href="/order/history"
-                    className="inline-block px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs text-center font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all"
-                  >
-                    Bayar
-                  </Link>
-                ) : order.status === 'confirmed' || order.status === 'processing' ? (
-                  <button 
-                    onClick={() => window.open('https://wa.me/6283154577112', '_blank')}
-                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
-                  >
-                    Hubungi Admin
-                  </button>
-                ) : order.status === 'shipped' ? (
-                  <button 
-                    onClick={() => setTrackingModal({ open: true, resi: order.resi || null })}
-                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
-                  >
-                    Lacak
-                  </button>
-                ) : order.status === 'delivered' ? (
-                  <button 
-                    onClick={() => handleConfirmDelivery(order.id)}
-                    disabled={updatingId === order.id}
-                    className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all disabled:opacity-50"
-                  >
-                    {updatingId === order.id ? 'Memproses...' : 'Selesai'}
-                  </button>
-                ) : order.status === 'completed' || order.status === 'cancelled' ? (
-                  <button className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all">
-                    Beli Lagi
-                  </button>
-                ) : null}
+{order.status === 'pending' ? (
+                    // ✅ Bayar -> Dari temanmu (Pakai Link ke halaman history)
+                    <Link 
+                      href="/order/history"
+                      className="inline-block text-center px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all"
+                    >
+                      Bayar
+                    </Link>
+                  ) : order.status === 'confirmed' || order.status === 'processing' ? (
+                    // ✅ Hubungi Admin -> Dari kodemu (Pesan dinamis + Ikon SVG)
+                    <a 
+                      href={`https://wa.me/6283154577112?text=Halo%20Admin%20UpToYou,%20saya%20ingin%20bertanya%20mengenai%20pesanan%20saya%20dengan%20Invoice:%20${invoiceId}.`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-6 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-white transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.885m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                      Hubungi Admin
+                    </a>
+                  ) : order.status === 'shipped' ? (
+                    // ✅ Lacak -> Dari temanmu (Buka Modal Lacak)
+                    <button 
+                      onClick={() => setTrackingModal({ open: true, resi: order.resi || null })}
+                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                    >
+                      Lacak
+                    </button>
+                  ) : order.status === 'delivered' ? (
+                    // ✅ Selesai -> Dari kodemu (Ada efek cursor-not-allowed saat loading)
+                    <button 
+                      onClick={() => handleConfirmDelivery(order.id)}
+                      disabled={updatingId === order.id}
+                      className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {updatingId === order.id ? 'Memproses...' : 'Selesai'}
+                    </button>
+                  )  : order.status === 'completed' || order.status === 'cancelled' ? (
+                    // ✅ Beli Lagi -> Dari kodemu (Pakai Link aktif ke toko)
+                    <Link 
+                      href="/shop-with-sidebar" 
+                      className="inline-block text-center px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
+                    >
+                      Beli Lagi
+                    </Link>
+                  ) : null}
 
-                  
-                  <button className="p-2.5 border border-[#E5D7C1] text-[#8B7355] rounded-lg hover:border-[#C5A059] hover:text-[#C5A059] transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                  </button>
+                  {/* Tombol Titik Tiga (Dropdown) yang sudah diperbaiki sebelumnya */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setOpenDropdownId(openDropdownId === order.id ? null : order.id)}
+                      className={`p-2.5 border rounded-lg transition-colors ${
+                        openDropdownId === order.id 
+                          ? "border-[#C5A059] text-[#C5A059] bg-[#C5A059]/10" 
+                          : "border-[#E5D7C1] text-[#8B7355] hover:border-[#C5A059] hover:text-[#C5A059]"
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                    </button>
+
+                    {openDropdownId === order.id && (
+                      <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-[#E5D7C1] rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.1)] py-2 z-50 animate-fadeIn">
+                        <button 
+                          onClick={() => {
+                            setOpenDropdownId(null);
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-xs font-bold text-[#2D1A11] hover:bg-[#FFFDF5] hover:text-[#C5A059] transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                          Unduh Invoice PDF
+                        </button>
+                        <a 
+                          href="https://wa.me/6283154577112"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setOpenDropdownId(null)}
+                          className="w-full text-left px-4 py-2.5 text-xs font-bold text-[#2D1A11] hover:bg-[#FFFDF5] hover:text-[#C5A059] transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          Pusat Bantuan
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );

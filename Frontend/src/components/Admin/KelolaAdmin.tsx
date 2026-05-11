@@ -2,7 +2,6 @@
 import { AdminManagementService } from '@/services/AdminManagementService';
 import { AuthService } from '@/services/AuthService';
 import React, { useState, useEffect } from 'react';
-// 1. Import AlertService (Hapus import Swal)
 import { AlertService } from '@/services/AlertService'; 
 
 interface Admin {
@@ -14,11 +13,16 @@ interface Admin {
 }
 
 export default function KelolaAdmin() {
-  const [search, setSearch] = useState('');
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [availableRoles, setAvailableRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // STATE: Filter & Pagination
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // Menampilkan 8 pengguna per halaman
 
   // STATE: Untuk menyimpan status akses orang yang sedang login
   const [myPermissions, setMyPermissions] = useState<string[]>([]);
@@ -103,7 +107,6 @@ export default function KelolaAdmin() {
       setShowModal(false);
       fetchInitialData(); 
 
-      // 2. Gunakan AlertService untuk sukses Simpan
       AlertService.success("Berhasil!", `Data pengguna berhasil ${editTarget ? 'diperbarui' : 'ditambahkan'}.`);
 
     } catch (e: any) {
@@ -115,7 +118,6 @@ export default function KelolaAdmin() {
 
   // --- FUNGSI HAPUS ---
   const handleDelete = async (admin: Admin) => {
-    // 3. Gunakan AlertService untuk Konfirmasi
     const isConfirmed = await AlertService.confirm(
       "Hapus Pengguna?",
       `Pengguna "${admin.name}" akan dihapus permanen dari mahakarya sistem.`,
@@ -127,26 +129,35 @@ export default function KelolaAdmin() {
     try {
       await AdminManagementService.deleteAdmin(admin.id);
       fetchInitialData(); 
-      
-      // 4. Gunakan AlertService untuk sukses Hapus
       AlertService.success("Terhapus!", "Pengguna berhasil dihapus dari sistem.");
+      
+      // Auto mundur halaman jika menghapus item terakhir di halaman tersebut
+      if (paginatedAdmins.length === 1 && currentPage > 1) {
+        setCurrentPage(prev => prev - 1);
+      }
     } catch (e: any) {
-      // 5. Gunakan AlertService untuk error Hapus
       AlertService.error("Gagal!", e.message || 'Terjadi kesalahan saat menghapus pengguna.');
     }
   };
 
-  const filtered = admins.filter(a =>
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    a.email.toLowerCase().includes(search.toLowerCase()) ||
-    a.role.toLowerCase().includes(search.toLowerCase())
-  );
+  // --- LOGIKA FILTER BERLAPIS & PAGINATION ---
+  const filteredAdmins = admins.filter(a => {
+    const matchesSearch = a.name.toLowerCase().includes(search.toLowerCase()) ||
+                          a.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === 'all' || a.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+
+  const totalPages = Math.ceil(filteredAdmins.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAdmins = filteredAdmins.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-10 max-w-[1600px] mx-auto text-[#2A1B14]" style={{ fontFamily: "'Playfair Display', 'Cinzel', serif" }}>
       
       {/* ================= HEADER SECTION ================= */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-[#D9B35A]/30 pb-6 px-2 relative z-10">
         <div>
           <p className="text-[#D9B35A] font-sans text-xs tracking-[0.3em] uppercase mb-2 font-bold">Otoritas Sistem</p>
           <h1 className="text-4xl font-bold tracking-tight text-[#2A1B14]">Manajemen Pengguna</h1>
@@ -156,31 +167,55 @@ export default function KelolaAdmin() {
           </p>
         </div>
 
-        <div className="flex w-full md:w-auto flex-col sm:flex-row gap-4">
-          {/* Custom Search Bar */}
-          <div className="relative w-full sm:w-72">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D9B35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input 
-              type="text" 
-              placeholder="Cari nama atau email..." 
-              value={search} 
-              onChange={e => setSearch(e.target.value)} 
-              className="w-full bg-[#FFFDF5]/80 backdrop-blur-sm border border-[#D9B35A]/30 pl-11 pr-4 py-3.5 rounded-full text-sm font-sans focus:outline-none focus:ring-1 focus:ring-[#D9B35A] focus:border-[#D9B35A] transition-all shadow-[inset_0_2px_4px_rgba(42,27,20,0.02)] placeholder-[#8B7355]/60" 
-            />
-          </div>
-          
-          {canCreate && (
-            <button 
-              onClick={openAdd} 
-              className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#2A1B14] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)] whitespace-nowrap"
-            >
-               <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
-               <span className="relative z-10 flex items-center gap-2 tracking-wide font-sans">
-                <span className="text-lg">✧</span> Tambah Pengguna
-              </span>
-            </button>
-          )}
+        {canCreate && (
+          <button 
+            onClick={openAdd} 
+            className="group relative bg-gradient-to-r from-[#EAC135] via-[#F4D145] to-[#DFB121] hover:shadow-[0_10px_25px_rgba(234,193,53,0.4)] text-[#2A1B14] px-8 py-3.5 rounded-full font-serif font-bold transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2.5 overflow-hidden border border-[#FFF6C5]/50 shadow-[0_5px_15px_rgba(234,193,53,0.3)] whitespace-nowrap"
+          >
+            <span className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+            <span className="relative z-10 flex items-center gap-2 tracking-wide font-sans">
+              <span className="text-lg">✧</span> Tambah Pengguna
+            </span>
+          </button>
+        )}
+      </div>
+
+      {/* ================= TOOLS SECTION (SEARCH & FILTER) ================= */}
+      <div className="flex flex-col sm:flex-row gap-4 px-2 relative z-10 font-sans w-full lg:w-auto">
+        
+        {/* Search Bar */}
+        <div className="relative w-full sm:w-80 group">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D9B35A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input 
+            type="text" 
+            placeholder="Cari nama atau email..." 
+            value={search} 
+            onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} 
+            className="w-full bg-white/80 backdrop-blur-xl border border-[#D9B35A]/30 pl-11 pr-4 py-3 rounded-full text-sm font-sans focus:outline-none focus:ring-1 focus:ring-[#D9B35A] focus:border-[#D9B35A] transition-all shadow-sm placeholder-[#8B7355]/60" 
+          />
         </div>
+
+        {/* Filter Role */}
+        <div className="relative w-full sm:w-64">
+          <select 
+            value={roleFilter}
+            onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+            className="w-full bg-white/80 backdrop-blur-xl border border-[#D9B35A]/30 text-[#2A1B14] pl-4 pr-10 py-3 rounded-full shadow-sm focus:outline-none focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] transition-all text-sm appearance-none cursor-pointer font-bold"
+          >
+            <option value="all">Semua Hak Akses</option>
+            {availableRoles.map((role) => (
+              <option key={role.id} value={role.name}>
+                {role.name.replace('_', ' ').toUpperCase()}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#D9B35A]">
+            <svg className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
       </div>
 
       {error && (
@@ -228,13 +263,16 @@ export default function KelolaAdmin() {
                     </div>
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : paginatedAdmins.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center bg-white/40 backdrop-blur-md rounded-2xl border border-white/40">
-                    <span className="text-[#8B7355] font-bold text-sm">Tidak ada pengguna yang cocok dengan pencarian.</span>
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <svg className="w-12 h-12 text-[#D9B35A]/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                      <span className="text-[#8B7355] font-bold text-sm">Tidak ada pengguna yang sesuai filter pencarian.</span>
+                    </div>
                   </td>
                 </tr>
-              ) : filtered.map((a) => (
+              ) : paginatedAdmins.map((a) => (
                 <tr key={a.id} className="group transition-all duration-300 hover:-translate-y-1.5">
                   <td className="py-5 pl-8 pr-4 bg-white/60 backdrop-blur-xl rounded-l-2xl border-y border-l border-white/40 shadow-[0_10px_30px_-10px_rgba(42,27,20,0.08)] group-hover:shadow-[0_15px_35px_-10px_rgba(217,179,90,0.2)] transition-shadow font-bold text-[#2A1B14]">
                     {a.name}
@@ -286,6 +324,42 @@ export default function KelolaAdmin() {
             </tbody>
           </table>
         </div>
+
+        {/* ================= KONTROL PAGINATION ================= */}
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8 font-sans relative z-10">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-10 h-10 rounded-full text-sm font-bold transition-all ${
+                  currentPage === page 
+                    ? "bg-[#C5A059] text-white shadow-md" 
+                    : "bg-white border border-[#E5D7C1] text-[#8B7355] hover:border-[#C5A059] hover:text-[#C5A059]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className="w-10 h-10 rounded-full border border-[#D9B35A]/50 flex items-center justify-center text-[#C5A059] hover:bg-[#C5A059] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#C5A059] transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+          </div>
+        )}
+
       </div>
 
       {/* ================= MODAL TAMBAH / EDIT ================= */}
@@ -333,19 +407,26 @@ export default function KelolaAdmin() {
 
                   <div>
                     <label className="block text-[10px] uppercase font-black text-[#8B7355] tracking-widest mb-2">Hak Akses (Role)</label>
-                    <select 
-                      value={form.role} 
-                      onChange={e => setForm({ ...form, role: e.target.value })}
-                      disabled={editTarget?.role === 'super_admin'}
-                      className="w-full bg-[#FFFDF5] border border-gray-200 px-5 py-3.5 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm font-bold text-[#2A1B14] disabled:bg-gray-100 disabled:text-gray-400"
-                    >
-                      <option value="" disabled>Pilih peran pengguna...</option>
-                      {availableRoles.map(role => (
-                        <option key={role.id} value={role.name}>
-                          {role.name.replace('_', ' ').toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select 
+                        value={form.role} 
+                        onChange={e => setForm({ ...form, role: e.target.value })}
+                        disabled={editTarget?.role === 'super_admin'}
+                        className="w-full bg-[#FFFDF5] border border-gray-200 px-5 py-3.5 pr-10 rounded-2xl focus:border-[#D9B35A] focus:ring-1 focus:ring-[#D9B35A] outline-none transition-all text-sm font-bold text-[#2A1B14] disabled:bg-gray-100 disabled:text-gray-400 appearance-none"
+                      >
+                        <option value="" disabled>Pilih peran pengguna...</option>
+                        {availableRoles.map(role => (
+                          <option key={role.id} value={role.name}>
+                            {role.name.replace('_', ' ').toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#D9B35A]">
+                        <svg className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
                     {editTarget?.role === 'super_admin' && <p className="text-[10px] text-purple-600 font-bold mt-2 uppercase tracking-wide">Hak akses super admin tidak dapat diubah di sini.</p>}
                   </div>
 
@@ -368,7 +449,7 @@ export default function KelolaAdmin() {
               <button 
                 onClick={handleSubmit} 
                 disabled={submitting} 
-                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#2A1B14] px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D9B35A]/30 hover:-translate-y-1 active:translate-y-0 transition-all border border-[#FFF6C5]/50 flex items-center gap-2"
+                className="bg-gradient-to-r from-[#D9B35A] to-[#C5A059] text-[#2A1B14] px-10 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D9B35A]/30 hover:-translate-y-1 active:translate-y-0 transition-all border border-[#FFF6C5]/50 flex items-center gap-2 disabled:opacity-70 disabled:hover:-translate-y-0"
               >
                 {submitting && <div className="w-3.5 h-3.5 border-2 border-[#2A1B14]/30 border-t-[#2A1B14] rounded-full animate-spin"></div>}
                 {submitting ? 'Menyimpan...' : 'Simpan Pengguna'}
