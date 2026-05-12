@@ -29,4 +29,8 @@ class ProductGalleries extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+    public function getImgAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
 }

@@ -45,7 +45,7 @@ export default function Produk() {
     try {
       const [productData, userData, categoryData] = await Promise.all([
         ProductService.getProducts(),
-        AuthService.getUser(),
+        AuthService.getUser().catch(() => null),
         CategoryService.getAll() 
       ]);
       
@@ -86,6 +86,16 @@ export default function Produk() {
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  // 👇 PERBAIKAN: Fungsi Ekstraktor URL Anti-Double & Anti-CORS 👇
+  const extractPath = (url: string) => {
+    if (!url) return "";
+    const parts = url.split("/storage/");
+    if (parts.length > 1) {
+      return "/storage/" + parts[parts.length - 1];
+    }
+    return url;
+  };
 
   // ================= HANDLERS =================
   const handleSave = async (e: React.FormEvent) => {
@@ -278,13 +288,8 @@ export default function Produk() {
                   {/* 1. Bagian Gambar & Status */}
                   <div className="relative h-64 w-full overflow-hidden bg-[#FFFDF5]">
                     <img 
-                      src={
-                        p.img 
-                          ? (p.img.startsWith('storage/') 
-                            ? `http://127.0.0.1:8000/${p.img}` 
-                            : `http://127.0.0.1:8000/storage/${p.img}`)
-                          : '/placeholder.jpg'
-                      } 
+                      // 👇 PERBAIKAN: Menggunakan extractPath untuk gambar produk 👇
+                      src={p.img ? extractPath(p.img) : '/placeholder.jpg'} 
                       alt={p.name} 
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out mix-blend-multiply" 
                     />

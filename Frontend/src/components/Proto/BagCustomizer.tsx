@@ -17,8 +17,12 @@ import TextureOnlyPart from "./TextureOnlyPart";
 import { useDispatch } from "react-redux";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+
 import { CartService } from '@/services/CartService';
 import { AlertService } from "@/services/AlertService";
+import { ProductService } from "@/services/ProductService";
+import { WishlistService } from "@/services/WishlistService";
+import { AuthService } from "@/services/AuthService";
 
 export default function BagCustomizer() {
   const searchParams = useSearchParams();
@@ -35,26 +39,14 @@ export default function BagCustomizer() {
     
     const fetchProduct = async () => {
       try {
-        await fetch('/api-fe/proxy/user', {
-          credentials: 'include',
-        });
+        await AuthService.getUser().catch(() => null);
+        const res = await ProductService.getProduct(productId);
+        const raw = res.data || res;
 
-        const res = await fetch(`/api-fe/proxy/products/${productId}`);
-        if (res.ok) {
-          const json = await res.json();
-          const raw = json.data;
+        if (raw) {
           const slug = raw.slug;
           const localConfig = PRODUCTS_CONFIG[slug];
 
-          // 👇 HELPER UNTUK MENCEGAH DOUBLE URL 👇
-          const cleanUrl = (path: string) => {
-            if (!path) return "";
-            if (path.startsWith("http") || path.startsWith("data:image")) return path;
-            if (path.startsWith("storage/")) return `http://127.0.0.1:8000/${path}`;
-            return `http://127.0.0.1:8000/storage/${path}`;
-          };
-
-          // ── Mapping parts ──────────────────────────────────
           const mappedParts = (raw.parts || []).map((part: any) => ({
             id:        part.id,
             name:      part.name,
@@ -72,18 +64,16 @@ export default function BagCustomizer() {
                 name:      texture.name,
                 texture_code: texture.texture_code || "",
                 price:     parseFloat(texture.price),
-                thumb:     cleanUrl(texture.img_thumb),
-                image:     cleanUrl(texture.img_front),
-                img_front: cleanUrl(texture.img_front),
-                img_back:  cleanUrl(texture.img_back),
-                img_top:   cleanUrl(texture.img_top),
-                
-                // DATA WARNA DAN MASK
+                thumb:     texture.img_thumb || "",
+                image:     texture.img_front || "",
+                img_front: texture.img_front || "",
+                img_back:  texture.img_back || "",
+                img_top:   texture.img_top || "",
                 is_colorable:   texture.is_colorable || false,
                 colors:         texture.colors || [],
-                img_front_mask: cleanUrl(texture.img_front_mask),
-                img_back_mask:  cleanUrl(texture.img_back_mask),
-                img_top_mask:   cleanUrl(texture.img_top_mask),
+                img_front_mask: texture.img_front_mask || "",
+                img_back_mask:  texture.img_back_mask || "",
+                img_top_mask:   texture.img_top_mask || "",
               })),
             })),
             textures: part.variants?.length === 0 ? [] : undefined,
@@ -108,8 +98,8 @@ export default function BagCustomizer() {
             reviews:         0,
             catalogPrice:    parseFloat(raw.base_price),
             discountedPrice: parseFloat(raw.base_price),
-            thumbnails:      raw.img ? [cleanUrl(raw.img)] : [],
-            previews:        raw.img ? [cleanUrl(raw.img)] : [],
+            thumbnails:      raw.img ? [raw.img] : [],
+            previews:        raw.img ? [raw.img] : [],
             gallery:         (raw.gallery || []).map((g: any) => g.img),
             dimensionsImage: raw.dimension?.img || "",
             specifications:  [
@@ -264,11 +254,8 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   useEffect(() => {
     const checkWishlist = async () => {
       try {
-        const res = await fetch(`/api-fe/proxy/wishlist/check/${product.id}`, { credentials: 'include' });
-        if (res.ok) {
-          const json = await res.json();
-          setIsWishlisted(json.is_wishlisted);
-        }
+        const json = await WishlistService.checkWishlist(product.id);
+        setIsWishlisted(json.is_wishlisted);
       } catch (err) {
         console.error("Gagal cek wishlist:", err);
       }
@@ -280,25 +267,20 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
     setWishlistLoading(true);
     try {
       if (isWishlisted) {
-        await fetch(`/api-fe/proxy/wishlist/${product.id}`, { method: 'DELETE', credentials: 'include' });
+        await WishlistService.removeFromWishlist(product.id);
         setIsWishlisted(false);
         AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); 
       } else {
-        await fetch(`/api-fe/proxy/wishlist`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            product_id: product.id,
-            customizations: {
-              size:         activeSize,
-              shapes:       shapeSelections,
-              textures:     textureSelections,
-              colors:       selections,
-              visibleParts: visibleParts,
-            },
-            total_price: calculateTotalPrice(),
-          }),
+        await WishlistService.addToWishlist({
+          product_id: product.id,
+          customizations: {
+            size:         activeSize,
+            shapes:       shapeSelections,
+            textures:     textureSelections,
+            colors:       selections,
+            visibleParts: visibleParts,
+          },
+          total_price: calculateTotalPrice(),
         });
         setIsWishlisted(true);
         AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); 
@@ -444,7 +426,7 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
     const fullImageUrl = product?.thumbnails?.[0] || product?.gallery?.[0] || "";
     let dbFormattedImage = fullImageUrl;
-    if (fullImageUrl.includes("/storage/")) dbFormattedImage = fullImageUrl.split("/storage/")[1]; 
+    if (fullImageUrl.includes("/storage/")) dbFormattedImage = fullImageUrl.substring(fullImageUrl.indexOf("/storage/") + 9);
 
     const customizationsData: any = {
       size: sizeLabel,
@@ -496,30 +478,32 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
 
-      // 👇 MENGHAPUS DOMAIN AGAR JADI RELATIVE URL (MENCEGAH CORS) 👇
-      const getTextureImageUrl = (textureObj: any, pov: string) => {
-        let rawUrl = "";
-        switch(pov.toLowerCase()) {
-          case 'front': rawUrl = textureObj?.img_front || ""; break;
-          case 'back':  rawUrl = textureObj?.img_back  || ""; break;
-          case 'top':   rawUrl = textureObj?.img_top   || ""; break;
-          default:      rawUrl = textureObj?.img_front || ""; break;
+      const extractPath = (fullUrl: string) => {
+        if (!fullUrl) return "";
+        try {
+          return new URL(fullUrl).pathname;
+        } catch (e) {
+          return fullUrl;
         }
-        return rawUrl ? rawUrl.replace("http://127.0.0.1:8000", "") : "";
       };
 
-      // 👇 MENGHAPUS DOMAIN AGAR MASK BISA LOAD TANPA CORS 👇
-      const getMaskImageUrl = (textureObj: any, pov: string) => {
-        let rawUrl = "";
+     const getTextureImageUrl = (textureObj: any, pov: string) => {
         switch(pov.toLowerCase()) {
-          case 'front': rawUrl = textureObj?.img_front_mask || ""; break;
-          case 'back':  rawUrl = textureObj?.img_back_mask  || ""; break;
-          case 'top':   rawUrl = textureObj?.img_top_mask   || ""; break;
-          default:      rawUrl = textureObj?.img_front_mask || ""; break;
+          case 'front': return extractPath(textureObj?.img_front);
+          case 'back':  return extractPath(textureObj?.img_back);
+          case 'top':   return extractPath(textureObj?.img_top);
+          default:      return extractPath(textureObj?.img_front);
         }
-        return rawUrl ? rawUrl.replace("http://127.0.0.1:8000", "") : "";
       };
-      // 👆 ======================================================== 👆
+
+      const getMaskImageUrl = (textureObj: any, pov: string) => {
+        switch(pov.toLowerCase()) {
+          case 'front': return extractPath(textureObj?.img_front_mask);
+          case 'back':  return extractPath(textureObj?.img_back_mask);
+          case 'top':   return extractPath(textureObj?.img_top_mask);
+          default:      return extractPath(textureObj?.img_front_mask);
+        }
+      };
 
       const isColorable = activeTextureObj?.is_colorable || (activeTextureObj?.colors && activeTextureObj.colors.length > 0);
       const activeColor = isColorable ? selections[part.id] : "#FFFFFF";
@@ -579,7 +563,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
   };
 
   const PREVIEW_VIEWS = [
-    // { id: "360", label: "360°", type: "icon" }, // Dinonaktifkan sementara
     { id: "front", label: "Depan", type: "image" },
     { id: "back", label: "Belakang", type: "image" },
     { id: "top", label: "Atas", type: "image" },
@@ -587,7 +570,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
 
   const globalAnimationKey = `${activeView}-${JSON.stringify(selections)}-${JSON.stringify(textureSelections)}-${JSON.stringify(shapeSelections)}-${JSON.stringify(visibleParts)}`;
 
-  // ================= RENDER UTAMA =================
   return (
     <div className="relative bg-[#F8F3E9] text-[#2D1A11] min-h-screen overflow-hidden selection:bg-[#C5A059] selection:text-white pb-20" style={{ fontFamily: "'Cinzel', 'Playfair Display', serif" }}>
       
@@ -610,7 +592,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
         
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-stretch">
         
-          {/* ================= KIRI: PREVIEW ================= */}
           <div className="w-full lg:w-[55%] lg:sticky lg:top-24 flex flex-col bg-[#2D1A11] rounded-2xl p-1 relative shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#C5A059]/40">
             <div className="bg-[#2D1A11] p-3 rounded-2xl relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '300px' }}></div>
@@ -708,7 +689,6 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
             </div>
           </div>
 
-          {/* ================= KANAN: WIZARD CONTROLS ================= */}
           <div className="w-full lg:w-[45%] flex flex-col relative z-10">
             <div className="bg-[#2D1A11] rounded-2xl p-7 shadow-2xl h-full flex flex-col min-h-[550px] border border-[#C5A059]/30 relative overflow-hidden">
               <div className="absolute right-0 top-0 bottom-0 w-16 opacity-10 mix-blend-screen pointer-events-none" style={{ backgroundImage: `url('https://img.freepik.com/premium-vector/traditional-batik-pattern-from-indonesia-vector-illustration-batik-motifs-cloth-batik-national-day_354831-1016.jpg?w=2000')`, backgroundSize: '200px' }}></div>

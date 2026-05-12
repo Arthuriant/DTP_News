@@ -75,4 +75,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductMarketingBlocks::class, 'product_id')->orderBy('id');
     }
+    
+    public function getImgAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
 }

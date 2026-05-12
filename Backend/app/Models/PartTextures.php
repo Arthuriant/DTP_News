@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids; // 👈 Wajib tambah ini
+use Illuminate\Database\Eloquent\Concerns\HasUuids; 
 
 class PartTextures extends Model
 {
-    use HasUuids; // 👈 Auto-pilot UUID aktif!
+    use HasUuids; 
 
     protected $table = 'part_textures';
 
@@ -33,8 +33,8 @@ class PartTextures extends Model
     {
         return [
             'price' => 'decimal:2',
-            'is_colorable' => 'boolean', // Pastikan formatnya selalu true/false
-            'colors'       => 'array',   // Otomatis ubah JSON dari DB jadi Array di PHP
+            'is_colorable' => 'boolean', 
+            'colors'       => 'array', 
         ];
     }
 
@@ -52,5 +52,42 @@ class PartTextures extends Model
     public function variant()
     {
         return $this->belongsTo(PartVariants::class, 'variant_id');
+    }
+
+   public function getImgTopAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    public function getImgBackAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    public function getImgFrontAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    public function getImgThumbAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    // --- ACCESSORS UNTUK GAMBAR MASKING ---
+
+    public function getImgTopMaskAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    public function getImgBackMaskAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
+    }
+
+    public function getImgFrontMaskAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
     }
 }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ProductService } from '@/services/ProductService'; 
-import Swal from 'sweetalert2'; // 👈 Import SweetAlert2
+import Swal from 'sweetalert2'; 
 
 export default function PartTexture() {
   const params = useParams();
@@ -174,8 +174,8 @@ export default function PartTexture() {
   };
 
   const getImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/150?text=No+Image'; // 👈 Fallback jika kosong
-    return path.startsWith('storage/') ? `http://127.0.0.1:8000/${path}` : `http://127.0.0.1:8000/storage/${path}`;
+    if (!path) return 'https://via.placeholder.com/150?text=No+Image'; 
+    return path.startsWith('storage/') ? `${path}` : `${path}`;
   };
 
   return (

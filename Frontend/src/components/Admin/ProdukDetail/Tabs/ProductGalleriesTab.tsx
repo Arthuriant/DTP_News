@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { ProductService } from '@/services/ProductService';
-// 1. Import Alert Service
 import { AlertService } from '@/services/AlertService';
 
 export default function GaleriTab() {
@@ -32,10 +31,14 @@ export default function GaleriTab() {
   useEffect(() => {
     if (productId) fetchGalleries();
   }, [fetchGalleries, productId]);
-
-  const getImageUrl = (path: string) => {
-    if (!path) return '/placeholder.jpg';
-    return path.startsWith('storage/') ? `http://127.0.0.1:8000/${path}` : `http://127.0.0.1:8000/storage/${path}`;
+  
+  const extractPath = (url: string) => {
+    if (!url) return "/placeholder.jpg";
+    const parts = url.split("/storage/");
+    if (parts.length > 1) {
+      return "/storage/" + parts[parts.length - 1];
+    }
+    return url;
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,10 +57,8 @@ export default function GaleriTab() {
       if (fileInputRef.current) fileInputRef.current.value = '';
       await fetchGalleries(); 
       
-      // 2. Tambahkan Notifikasi Sukses Upload
       AlertService.success("Berhasil", "Gambar baru telah ditambahkan ke galeri mahakarya.");
     } catch (error: any) {
-      // 3. Ganti alert bawaan dengan AlertService Error
       AlertService.error("Gagal Mengunggah", error.message);
     } finally {
       setIsUploading(false);
@@ -65,7 +66,6 @@ export default function GaleriTab() {
   };
 
   const handleDelete = async (id: string) => {
-    // 4. Ganti confirm bawaan dengan AlertService Confirm
     const isConfirmed = await AlertService.confirm(
       "Hapus Gambar?",
       "Apakah Anda yakin ingin menghapus gambar ini dari galeri mahakarya?",
@@ -77,10 +77,8 @@ export default function GaleriTab() {
         await ProductService.deleteGallery(id);
         setGalleries(galleries.filter(g => g.id !== id));
         
-        // 5. Tambahkan Notifikasi Sukses Hapus
         AlertService.success("Terhapus!", "Gambar berhasil dihapus dari galeri.");
       } catch (error: any) {
-        // 6. Ganti alert bawaan dengan AlertService Error
         AlertService.error("Gagal Menghapus", error.message);
       }
     }
@@ -108,7 +106,6 @@ export default function GaleriTab() {
     } catch (error) {
       console.error("Gagal mengurutkan:", error);
       fetchGalleries(); 
-      // Opsional: Bisa tambahkan AlertService.error jika gagal reorder
       AlertService.error("Gagal Mengurutkan", "Terjadi kesalahan saat menyimpan urutan gambar.");
     }
   };
@@ -211,7 +208,7 @@ export default function GaleriTab() {
 
                 {/* Gambar Utama dengan Zoom Halus */}
                 <div className="w-full h-full bg-white p-6 flex items-center justify-center transition-transform duration-1000 group-hover:scale-110">
-                  <img src={getImageUrl(item.img)} alt={`Gallery ${index}`} className="w-full h-full object-contain mix-blend-multiply" />
+                  <img src={extractPath(item.img)} alt={`Gallery ${index}`} className="w-full h-full object-contain mix-blend-multiply" />
                 </div>
 
                 {/* Overlay Aksi - Dark Glassmorphism */}

@@ -17,10 +17,8 @@ const CartSidebarModal = () => {
   const totalPrice = useSelector(selectTotalPrice);
   const dispatch = useDispatch();
 
-  // 1. Fetch data dari Laravel saat Sidebar dibuka atau halaman di-refresh
   useEffect(() => {
     const fetchDbCart = async () => {
-      // Sidebar hanya mengambil data jika Redux benar-benar kosong (0)
       if (cartItems.length === 0) {
         try {
           const res = await CartService.getCart();
@@ -35,10 +33,10 @@ const CartSidebarModal = () => {
               if (previewData.startsWith("http") || previewData.startsWith("data:image")) {
                 finalImageUrl = previewData;
               } else {
-                finalImageUrl = `http://127.0.0.1:8000/storage/${previewData}`;
+                finalImageUrl = `${previewData}`;
               }
             } else if (dbItem.product?.img) {
-              finalImageUrl = `http://127.0.0.1:8000/storage/${dbItem.product.img}`;
+              finalImageUrl = `${dbItem.product.img}`;
             }
             return {
               id: dbItem.id, 

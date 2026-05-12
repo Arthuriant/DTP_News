@@ -8,14 +8,6 @@ import SingleGridItem from "../Shop/SingleGridItem";
 import SingleListItem from "../Shop/SingleListItem";
 import { ProductService } from "@/services/ProductService";
 
-// ============================================================
-// KONFIGURASI BASE URL API — sesuaikan dengan environment Anda
-// ============================================================
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-// ============================================================
-// TIPE DATA
-// ============================================================
 interface SubCategory {
   id: string;
   name: string;
@@ -40,24 +32,18 @@ interface FilterState {
   sortBy: string;
 }
 
-// ============================================================
-// KOMPONEN UTAMA
-// ============================================================
 const ShopWithSidebar = () => {
   
   const [productStyle, setProductStyle] = useState("grid");
   const [productSidebar, setProductSidebar] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
 
-  // State Data Produk
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
-  // State Data Kategori (dinamis dari API)
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
-  // State Filter Aktif
   const [activeFilters, setActiveFilters] = useState<FilterState>({
     categoryIds: [],
     subCategoryIds: [],
@@ -70,7 +56,6 @@ const ShopWithSidebar = () => {
   });
   const [resetKey, setResetKey] = useState(0);
 
-  // Opsi pengurutan
   const options = [
     { label: "Koleksi Terbaru", value: "latest" },
     { label: "Terlaris", value: "best_seller" },
@@ -78,16 +63,6 @@ const ShopWithSidebar = () => {
     { label: "Harga: Tinggi ke Rendah", value: "price_desc" },
   ];
 
-  // Data gender — masih statis karena biasanya tidak ada endpoint khusus untuk ini
-  const genders = [
-    { name: "Pria", products: 24 },
-    { name: "Wanita", products: 32 },
-    { name: "Uniseks", products: 14 },
-  ];
-
-  // ============================================================
-  // SCROLL HANDLER
-  // ============================================================
   const handleStickyMenu = () => {
     setStickyMenu(window.scrollY >= 80);
   };
@@ -111,17 +86,11 @@ const ShopWithSidebar = () => {
     };
   }, [productSidebar]);
 
-  // ============================================================
-  // FETCH KATEGORI DARI API (saat komponen pertama dimuat)
-  // ============================================================
   useEffect(() => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        // Memanggil endpoint baru: GET /categories/with-product-count
-        const res = await fetch(`/api-fe/proxy/categories/with-product-count`);
-        if (!res.ok) throw new Error("Gagal mengambil data kategori");
-        const data: Category[] = await res.json();
+        const data: Category[] = await ProductService.getCategoriesWithCount();
         setCategories(data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -133,13 +102,9 @@ const ShopWithSidebar = () => {
     fetchCategories();
   }, []);
 
-  // ============================================================
-  // FETCH PRODUK DENGAN FILTER (dipanggil ulang setiap filter berubah)
-  // ============================================================
   const fetchFilteredProducts = useCallback(async (filters: FilterState) => {
     setLoadingProducts(true);
     try {
-      // Bangun query string dari state filter
       const params = new URLSearchParams();
 
       filters.categoryIds.forEach((id) => params.append("category_ids[]", id));
@@ -152,10 +117,7 @@ const ShopWithSidebar = () => {
       if (filters.maxPrice < 10000000) params.append("max_price", String(filters.maxPrice));
       if (filters.sortBy) params.append("sort_by", filters.sortBy);
 
-      // Memanggil endpoint filter: GET /products/filter?...
-      const res = await fetch(`/api-fe/proxy/products/filter?${params.toString()}`);
-      if (!res.ok) throw new Error("Gagal mengambil data produk");
-      const data = await res.json();
+      const data = await ProductService.filterProducts(params.toString());
       setProducts(data);
     } catch (error) {
       console.error("Error fetching filtered products:", error);
@@ -164,31 +126,22 @@ const ShopWithSidebar = () => {
     }
   }, []);
 
-  // Panggil ulang setiap kali activeFilters berubah
   useEffect(() => {
     fetchFilteredProducts(activeFilters);
   }, [activeFilters, fetchFilteredProducts]);
 
-  // ============================================================
-  // HANDLER PERUBAHAN FILTER
-  // ============================================================
-
-  // Dipanggil oleh <CategoryDropdown> saat checkbox berubah
   const handleCategoryChange = (categoryIds: string[], subCategoryIds: string[]) => {
     setActiveFilters((prev) => ({ ...prev, categoryIds, subCategoryIds }));
   };
 
-  // Dipanggil oleh <PriceDropdown>
-    const handlePriceChange = (minPrice: number, maxPrice: number) => {
+  const handlePriceChange = (minPrice: number, maxPrice: number) => {
     setActiveFilters((prev) => ({ ...prev, minPrice, maxPrice }));
   };
 
-  // Dipanggil oleh <CustomSelect> (pengurutan)
   const handleSortChange = (sortBy: string) => {
     setActiveFilters((prev) => ({ ...prev, sortBy }));
   };
 
-  // Reset semua filter
   const handleResetAllFilters = () => {
      setResetKey(prev => prev + 1);
     setActiveFilters({
@@ -203,7 +156,6 @@ const ShopWithSidebar = () => {
     });
   };
 
-  // Hitung total filter aktif (untuk ditampilkan di tombol "Penyaringan")
   const totalActiveFilters =
     activeFilters.categoryIds.length +
     activeFilters.subCategoryIds.length +
@@ -212,7 +164,6 @@ const ShopWithSidebar = () => {
     activeFilters.colors.length +
     (activeFilters.minPrice > 0 || activeFilters.maxPrice < 10000000 ? 1 : 0);
 
-  // URL Ornamen Latar Belakang
   const gununganUrl =
     "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
   const wayangUrl =
@@ -310,12 +261,6 @@ const ShopWithSidebar = () => {
                   </div>
 
                   <div className="flex flex-col gap-6">
-                    {/* 
-                      CategoryDropdown sekarang menerima data dari API dan callback onSelectionChange.
-                      Saat pengguna memilih/membatalkan kategori atau sub-kategori,
-                      handleCategoryChange akan dipanggil → activeFilters diperbarui →
-                      fetchFilteredProducts dipanggil ulang secara otomatis.
-                    */}
                     <CategoryDropdown
                       key={resetKey}
                       categories={categories}

@@ -18,9 +18,9 @@ export default function OrderList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("Semua");
   const [activeSubTab, setActiveSubTab] = useState("Semua Berlangsung");
-  const [selectedDate, setSelectedDate] = useState(""); // BARU: State untuk Tanggal
+  const [selectedDate, setSelectedDate] = useState(""); 
   const [currentPage, setCurrentPage] = useState(1);
-  const [trackingModal, setTrackingModal] = useState<{open: boolean, resi: string | null}>({open: false, resi: null}); // ← tambah di sini
+  const [trackingModal, setTrackingModal] = useState<{open: boolean, resi: string | null}>({open: false, resi: null});
   const ITEMS_PER_PAGE = 15;
 
   const TABS = ["Semua", "Menunggu Konfirmasi", "Berlangsung", "Berhasil", "Tidak Berhasil"];
@@ -47,15 +47,18 @@ export default function OrderList() {
   };
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const extractPath = (url: string) => {
+    if (!url) return "";
+    const parts = url.split("/storage/");
+    if (parts.length > 1) {
+      return "/storage/" + parts[parts.length - 1];
+    }
+    return url;
+  };
 
-  
-  
-
-  // BARU: fetchOrders dibungkus useCallback agar bisa dipanggil ulang tanpa peringatan linter
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Mengirim selectedDate ke service
       const response = await OrderService.getMyOrders(selectedDate);
       const data = Array.isArray(response) ? response : response.data || [];
       setOrders(data);
@@ -66,7 +69,6 @@ export default function OrderList() {
     }
   }, [selectedDate]);
 
-  // BARU: Trigger fetchOrders setiap kali selectedDate berubah
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -91,7 +93,6 @@ export default function OrderList() {
   }, [statusParam]);
 
   const handleConfirmDelivery = async (id: string) => {
-    // 1. Popup Konfirmasi
     const result = await Swal.fire({
       title: "Konfirmasi Penerimaan",
       text: "Apakah Anda yakin telah menerima mahakarya ini dengan baik?",
@@ -220,7 +221,6 @@ export default function OrderList() {
             />
           </div>
 
-          {/* BARU: Input Date yang berfungsi */}
           <div className="relative md:w-64">
             <input
               type="date"
@@ -248,7 +248,6 @@ export default function OrderList() {
             </button>
           ))}
           
-          {/* BARU: Reset filter sekarang juga mengosongkan selectedDate */}
           {(searchQuery || activeTab !== "Semua" || selectedDate) && (
             <button 
               onClick={() => { setSearchQuery(""); setActiveTab("Semua"); setActiveSubTab("Semua Berlangsung"); setSelectedDate(""); setCurrentPage(1); }}
@@ -297,8 +296,16 @@ export default function OrderList() {
             const orderDate = new Date(order.order_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
             
             const mainDetail = order.details?.[0];
-            const product = mainDetail?.product;
-            const productImg = product?.img_full_url || (product?.img ? `http://127.0.0.1:8000/storage/${product.img}` : '/images/placeholder.jpg');
+            const productInfo = mainDetail?.product;
+            const customConfig = mainDetail?.custom_configuration;
+            
+            let productImg = "/placeholder.png"; 
+            if (productInfo?.img) {
+                productImg = extractPath(productInfo.img);
+            } else if (customConfig?.image_preview) {
+                productImg = extractPath(customConfig.image_preview);
+            }
+
             const additionalItemsCount = (order.details?.length || 1) - 1;
 
             return (
@@ -321,10 +328,10 @@ export default function OrderList() {
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex flex-1 gap-4">
                     <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-[#E5D7C1] bg-[#FFFDF5] p-2">
-                      <img src={productImg} alt={product?.name || "Produk"} className="w-full h-full object-contain mix-blend-multiply" />
+                      <img src={productImg} alt={productInfo?.name || "Produk"} className="w-full h-full object-contain mix-blend-multiply" />
                     </div>
                     <div className="flex flex-col justify-center">
-                      <h4 className="font-bold text-base text-[#2D1A11] mb-1">{product?.name || "Kustom Mahakarya"}</h4>
+                      <h4 className="font-bold text-base text-[#2D1A11] mb-1">{productInfo?.name || "Kustom Mahakarya"}</h4>
                       <p className="text-sm text-[#8B7355] mb-2">
                         {mainDetail?.qty} barang x Rp {parseFloat(mainDetail?.price || 0).toLocaleString('id-ID')}
                       </p>
@@ -349,8 +356,7 @@ export default function OrderList() {
                     Lihat Detail Transaksi
                   </Link>
                   
-{order.status === 'pending' ? (
-                    // ✅ Bayar -> Dari temanmu (Pakai Link ke halaman history)
+                  {order.status === 'pending' ? (
                     <Link 
                       href="/order/history"
                       className="inline-block text-center px-8 py-2.5 bg-[#C5A059] text-[#2D1A11] text-xs font-bold uppercase tracking-widest rounded-lg shadow-md hover:bg-[#2D1A11] hover:text-[#C5A059] transition-all"
@@ -358,7 +364,6 @@ export default function OrderList() {
                       Bayar
                     </Link>
                   ) : order.status === 'confirmed' || order.status === 'processing' ? (
-                    // ✅ Hubungi Admin -> Dari kodemu (Pesan dinamis + Ikon SVG)
                     <a 
                       href={`https://wa.me/6283154577112?text=Halo%20Admin%20UpToYou,%20saya%20ingin%20bertanya%20mengenai%20pesanan%20saya%20dengan%20Invoice:%20${invoiceId}.`}
                       target="_blank" 
@@ -369,7 +374,6 @@ export default function OrderList() {
                       Hubungi Admin
                     </a>
                   ) : order.status === 'shipped' ? (
-                    // ✅ Lacak -> Dari temanmu (Buka Modal Lacak)
                     <button 
                       onClick={() => setTrackingModal({ open: true, resi: order.resi || null })}
                       className="px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
@@ -377,7 +381,6 @@ export default function OrderList() {
                       Lacak
                     </button>
                   ) : order.status === 'delivered' ? (
-                    // ✅ Selesai -> Dari kodemu (Ada efek cursor-not-allowed saat loading)
                     <button 
                       onClick={() => handleConfirmDelivery(order.id)}
                       disabled={updatingId === order.id}
@@ -386,16 +389,14 @@ export default function OrderList() {
                       {updatingId === order.id ? 'Memproses...' : 'Selesai'}
                     </button>
                   )  : order.status === 'completed' || order.status === 'cancelled' ? (
-                    // ✅ Beli Lagi -> Dari kodemu (Pakai Link aktif ke toko)
                     <Link 
-                      href="/shop-with-sidebar" 
+                      href="/shop" 
                       className="inline-block text-center px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
                     >
                       Beli Lagi
                     </Link>
                   ) : null}
 
-                  {/* Tombol Titik Tiga (Dropdown) yang sudah diperbaiki sebelumnya */}
                   <div className="relative">
                     <button 
                       onClick={() => setOpenDropdownId(openDropdownId === order.id ? null : order.id)}
@@ -470,32 +471,33 @@ export default function OrderList() {
           </button>
         </div>
       )}
-        {trackingModal.open && (
-              <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <div className="bg-[#FFFDF5] rounded-2xl p-8 max-w-md w-full mx-4 border border-[#D9B35A]/30 shadow-2xl">
-                <h3 className="font-bold text-xl text-[#2D1A11] mb-6 font-serif">Informasi Pengiriman</h3>
-                            
-                  {trackingModal.resi ? (
-                    <div className="space-y-4">
-                      <div className="bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-xl p-5">
-                          <p className="text-[#8B7355] text-xs uppercase font-bold tracking-widest mb-2">Nomor Resi</p>
-                          <p className="font-mono font-black text-2xl text-[#2D1A11] tracking-widest">{trackingModal.resi}</p>
-                            </div>
-                              <p className="text-[#8B7355] text-sm">Gunakan nomor resi di atas untuk melacak paket Anda melalui website kurir.</p>
-                            </div>
-                           ) : (
-                          <p className="text-[#8B7355] text-sm">Nomor resi belum tersedia. Pesanan Anda sedang dalam proses pengiriman.</p>
-                        )}
+      
+      {trackingModal.open && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[#FFFDF5] rounded-2xl p-8 max-w-md w-full mx-4 border border-[#D9B35A]/30 shadow-2xl">
+            <h3 className="font-bold text-xl text-[#2D1A11] mb-6 font-serif">Informasi Pengiriman</h3>
+                        
+            {trackingModal.resi ? (
+              <div className="space-y-4">
+                <div className="bg-[#D9B35A]/5 border border-[#D9B35A]/30 rounded-xl p-5">
+                    <p className="text-[#8B7355] text-xs uppercase font-bold tracking-widest mb-2">Nomor Resi</p>
+                    <p className="font-mono font-black text-2xl text-[#2D1A11] tracking-widest">{trackingModal.resi}</p>
+                </div>
+                <p className="text-[#8B7355] text-sm">Gunakan nomor resi di atas untuk melacak paket Anda melalui website kurir.</p>
+              </div>
+            ) : (
+              <p className="text-[#8B7355] text-sm">Nomor resi belum tersedia. Pesanan Anda sedang dalam proses pengiriman.</p>
+            )}
 
-                      <button
-                    onClick={() => setTrackingModal({ open: false, resi: null })}
-                className="mt-6 w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all"
-              >
-                 Tutup
-              </button>
+            <button
+              onClick={() => setTrackingModal({ open: false, resi: null })}
+              className="mt-6 w-full py-3 bg-[#2D1A11] text-[#D9B35A] font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-[#D9B35A] hover:text-[#2D1A11] transition-all"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 }

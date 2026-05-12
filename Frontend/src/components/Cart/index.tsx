@@ -11,6 +11,7 @@ import { CartService } from "@/services/CartService";
 import { addItemToCart, updateCartItemQuantity, clearCart, setCartItems } from "@/redux/features/cart-slice";
 import { OrderService } from '@/services/OrderService';
 
+
 const Cart = () => {
   const dispatch = useDispatch();
   const cartItems = useAppSelector((state) => state.cartReducer.items);
@@ -62,7 +63,6 @@ const Cart = () => {
         const dbItems = res?.items || res || []; 
         
        const formattedItems = dbItems.map((dbItem: any) => {
-        // 👇 PERBAIKAN LOGIKA URL GAMBAR 👇
         let finalImgUrl = "";
         const rawPath = dbItem.image_preview || dbItem.product?.img || "";
         
@@ -70,10 +70,9 @@ const Cart = () => {
           if (rawPath.startsWith("http") || rawPath.startsWith("data:image")) {
             finalImgUrl = rawPath;
           } else {
-            finalImgUrl = `http://127.0.0.1:8000/storage/${rawPath}`;
+            finalImgUrl = `${rawPath}`;
           }
         }
-        // 👆 ============================ 👆
 
         return {
           id: dbItem.id,
@@ -83,8 +82,8 @@ const Cart = () => {
           discountedPrice: dbItem.price,
           quantity: dbItem.qty,
           imgs: {
-            thumbnails: [finalImgUrl], // Gunakan URL yang sudah diformat
-            previews:   [finalImgUrl], // Gunakan URL yang sudah diformat
+            thumbnails: [finalImgUrl], 
+            previews:   [finalImgUrl], 
           },
           customizations: dbItem.custom_configuration
         };
@@ -160,7 +159,6 @@ const Cart = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
-              <Discount  />
               <OrderSummary onCheckout={handleCheckout} isCheckingOut={isCheckingOut} />
             </div>
           </div>

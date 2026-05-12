@@ -1,13 +1,11 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { AddressService } from "@/services/AddressService";
-// Sesuaikan path import AddressModal ini dengan struktur folder Anda!
-import AddressModal from "../Profile/AddressModal"; // <-- PASTIKAN PATH INI BENAR
+import { ShippingService } from "@/services/ShippingService"; 
+import AddressModal from "../Profile/AddressModal"; 
 import Link from 'next/link';
 
-
-const SHIPPING_URL = "http://127.0.0.1:8000";
-const ORIGIN_ID = 4816; // ID kota toko (Bandung)
+const ORIGIN_ID = 4816; 
 
 interface ShippingResult {
   destination_id: number;
@@ -26,18 +24,15 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
   const inputClass = "rounded-xl border border-[#D9B35A]/30 bg-white placeholder:text-[#8B7355]/40 w-full py-3 px-5 outline-none duration-200 focus:border-[#D9B35A] focus:ring-2 focus:ring-[#D9B35A]/20 text-[#2D1A11] shadow-sm";
   const labelClass = "block mb-2.5 font-bold text-[#2D1A11] text-sm";
 
-  // --- STATE ALAMAT TERSIMPAN ---
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [activeAddress, setActiveAddress] = useState<any>(null);
   const [showAddressList, setShowAddressList] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
 
-  // --- STATE MODAL EDIT ALAMAT ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editData, setEditData] = useState<any | null>(null);
 
-  // --- STATE ALAMAT MANUAL / RAJAONGKIR ---
   const [address, setAddress]           = useState("");
   const [searchCity, setSearchCity]     = useState("");
   const [cities, setCities]             = useState<any[]>([]);
@@ -45,19 +40,13 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
   const [isSearching, setIsSearching]   = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // --- STATE ONGKIR ---
-  const [selectedCourier, setSelectedCourier] = useState("");
+  // --- STATE KURIR & ONGKIR ---
+  const [couriers, setCouriers]                = useState<any[]>([]);
+  const [isLoadingCouriers, setIsLoadingCouriers] = useState(true);
+  const [selectedCourier, setSelectedCourier]  = useState("");
   const [costResults, setCostResults]          = useState<any[]>([]);
   const [isLoadingCost, setIsLoadingCost]      = useState(false);
   const [selectedService, setSelectedService]  = useState<any>(null);
-
-  const couriers = [
-    { code: "jne",     name: "JNE" },
-    { code: "jnt",     name: "J&T Express" },
-    { code: "sicepat", name: "SiCepat" },
-    { code: "pos",     name: "POS Indonesia" },
-    { code: "tiki",    name: "TIKI" },
-  ];
 
   const fetchMyAddresses = async () => {
     try {
@@ -79,29 +68,45 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
     }
   };
 
+  const fetchCouriersList = async () => {
+    try {
+      setIsLoadingCouriers(true);
+      const res = await ShippingService.getCouriers();
+      if (res.success && res.data) {
+        setCouriers(res.data);
+      } else {
+        setCouriers([]);
+      }
+    } catch (error) {
+      console.error("Gagal memuat daftar kurir:", error);
+      setCouriers([]);
+    } finally {
+      setIsLoadingCouriers(false);
+    }
+  };
+
   useEffect(() => {
     fetchMyAddresses();
+    fetchCouriersList(); 
   }, []);
 
   const handleUseSavedAddress = (addr: any) => {
     setActiveAddress(addr);
     setAddress(addr.street);
     
-    // Cek ID RajaOngkir dari database
     const destinationId = addr.city_id || addr.destination_id || null; 
     
     if (destinationId) {
-      setSelectedCity({ id: destinationId, label: addr.region });
+      setSelectedCity({ id: Number(destinationId), label: addr.region });
       setSearchCity(addr.region);
     } else {
       setSelectedCity(null);
-      // PINTAR: Jika tidak ada ID, otomatis isi kolom pencarian dengan nama Kota/Kecamatan agar user tinggal klik
       const regionParts = addr.region ? addr.region.split(',') : [];
       const searchHint = regionParts.length > 1 ? regionParts[1].trim() : addr.region;
       setSearchCity(searchHint || "");
       
       if (searchHint) {
-        handleSearchCity(searchHint); // Langsung tembak API pencarian
+        handleSearchCity(searchHint); 
       }
     }
 
@@ -112,7 +117,6 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
     onShippingChange(null);
   };
 
-  // Handler Buka Modal Edit
   const handleEditAddress = (addr: any) => {
     setEditData(addr);
     setIsEditModalOpen(true);
@@ -129,8 +133,7 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
 
     setIsSearching(true);
     try {
-      const res = await fetch(`${SHIPPING_URL}/shipping/destinations?search=${query}&limit=10`);
-      const data = await res.json();
+      const data = await ShippingService.getDestinations(query);
       setCities(data?.data ?? []);
       setShowDropdown(true);
     } catch {
@@ -141,7 +144,7 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
   }, [onShippingChange]);
 
   const handleSelectCity = (city: any) => {
-    setSelectedCity(city);
+    setSelectedCity({ ...city, id: Number(city.id) });
     setSearchCity(city.label); 
     setShowDropdown(false);
     setCostResults([]);
@@ -161,20 +164,24 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
     onShippingChange(null);
 
     try {
-      const res = await fetch(`${SHIPPING_URL}/shipping/cost`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          origin:      ORIGIN_ID,
-          destination: selectedCity.id, 
-          weight:      1000, 
-          courier:     selectedCourier,
-        }),
-      });
-      const data = await res.json();
+      const payload = {
+        origin: Number(ORIGIN_ID),
+        destination: Number(selectedCity.id), 
+        weight: 1000, 
+        courier: selectedCourier,
+      };
+
+      const data = await ShippingService.calculateCost(payload);
+
+      if (data?.meta?.code === 404 || data?.meta?.status === "error") {
+        alert(data?.meta?.message || "Kurir ini belum mendukung rute pengiriman ke daerah Anda.");
+        setIsLoadingCost(false);
+        return;
+      }
+
       setCostResults(data?.data ?? []);
     } catch {
-      alert("Gagal mengecek ongkir dari server.");
+      alert("Gagal mengecek ongkir dari server logistik.");
     } finally {
       setIsLoadingCost(false);
     }
@@ -183,7 +190,7 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
   const handleSelectService = (item: any) => {
     setSelectedService(item);
     onShippingChange({
-      destination_id: selectedCity.id, 
+      destination_id: Number(selectedCity.id), 
       address:        activeAddress ? `${activeAddress.recipient_name} - ${activeAddress.phone_number} | ${address}` : address,
       courier:        selectedCourier,
       service:        item.service,
@@ -230,22 +237,6 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
                     Pilih Alamat Lain
                   </button>
                   
-                  {/* 👇 TOMBOL EDIT ALAMAT LANGSUNG 👇 */}
-                  {/* <button 
-                    type="button"
-                    onClick={() => handleEditAddress(activeAddress)}
-                    className="px-4 py-2 border border-[#8B7355] text-[#8B7355] bg-transparent rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-[#8B7355] hover:text-white transition-colors"
-                  >
-                    Edit Alamat Ini
-                  </button> */}
-
-                  {/* <button 
-                    type="button"
-                    onClick={() => setIsManualMode(true)}
-                    className="px-4 py-2 border border-gray-300 text-gray-500 bg-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors"
-                  >
-                    Ketik Manual
-                  </button> */}
                 </div>
               </div>
 
@@ -262,7 +253,6 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
                         <p className="text-gray-500 text-xs mt-1 truncate">{addr.street}</p>
                       </div>
                       
-                      {/* Tombol Edit di List Alamat */}
                       <button 
                         type="button"
                         onClick={() => handleEditAddress(addr)}
@@ -340,8 +330,13 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
       <div className="mb-6 relative z-10">
         <label className={labelClass}>Kurir Pengiriman <span className="text-rose-500">*</span></label>
         <div className="relative">
-          <select value={selectedCourier} onChange={e => { setSelectedCourier(e.target.value); setCostResults([]); setSelectedService(null); }} className={`${inputClass} appearance-none cursor-pointer`}>
-            <option value="">-- Pilih Kurir --</option>
+          <select 
+            value={selectedCourier} 
+            onChange={e => { setSelectedCourier(e.target.value); setCostResults([]); setSelectedService(null); }} 
+            className={`${inputClass} appearance-none cursor-pointer`}
+            disabled={isLoadingCouriers}
+          >
+            <option value="">{isLoadingCouriers ? "-- Memuat Daftar Kurir... --" : "-- Pilih Kurir --"}</option>
             {couriers.map(c => (<option key={c.code} value={c.code}>{c.name}</option>))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#D9B35A]">▼</div>
@@ -372,13 +367,13 @@ const Shipping = ({ onShippingChange }: ShippingProps) => {
         </div>
       )}
 
-      {/* 👇 INTEGRASI MODAL ALAMAT 👇 */}
+      {/* MODAL ALAMAT */}
       {isEditModalOpen && (
         <AddressModal 
           isOpen={isEditModalOpen} 
           onClose={() => setIsEditModalOpen(false)} 
           onSuccess={() => {
-            fetchMyAddresses(); // Tarik ulang data alamat jika berhasil diedit/ditambah
+            fetchMyAddresses(); 
             setIsEditModalOpen(false);
           }} 
           editData={editData} 

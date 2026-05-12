@@ -1,8 +1,6 @@
 "use client";
 import { useModalContext } from "@/app/context/QuickViewModalContext";
 import { updateQuickView } from "@/redux/features/quickView-slice";
-import { addItemToCart } from "@/redux/features/cart-slice";
-import { addItemToWishlist } from "@/redux/features/wishlist-slice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
@@ -10,8 +8,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { AlertService } from "@/services/AlertService";
+import { WishlistService } from "@/services/WishlistService"; 
 
-// 1. Sesuaikan Interface dengan JSON API Laravel kamu
 export interface ProductAPI {
   id: string;
   name: string;
@@ -30,7 +28,6 @@ const SingleGridItem = ({ item }: { item: ProductAPI }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  // 2. Format harga dengan aman untuk mencegah error "undefined"
   const priceNumber = parseFloat(item.base_price || "0");
   const formattedPrice = priceNumber.toLocaleString("id-ID");
 
@@ -39,79 +36,46 @@ const SingleGridItem = ({ item }: { item: ProductAPI }) => {
   };
 
   useEffect(() => {
-  const checkWishlist = async () => {
-    try {
-      const res = await fetch(`/api-fe/proxy/wishlist/check/${item.id}`, {
-        credentials: 'include',
-      });
-      if (res.ok) {
-        const json = await res.json();
+    const checkWishlist = async () => {
+      try {
+        const json = await WishlistService.checkWishlist(item.id);
         setIsWishlisted(json.is_wishlisted);
+      } catch (err) {
+        console.error("Gagal cek wishlist:", err);
+      }
+    };
+    checkWishlist();
+  }, [item.id]);
+
+  const handleItemToWishList = async () => {
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await WishlistService.removeFromWishlist(item.id);
+        setIsWishlisted(false);
+        AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); 
+      } else {
+        await WishlistService.addToWishlist({ product_id: item.id });
+        setIsWishlisted(true);
+        AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); 
       }
     } catch (err) {
-      console.error("Gagal cek wishlist:", err);
+      console.error("Gagal toggle wishlist:", err);
+    } finally {
+      setWishlistLoading(false);
     }
   };
-  checkWishlist();
-}, [item.id]);
-
-// Ubah fungsi handleItemToWishList
-const handleItemToWishList = async () => {
-  setWishlistLoading(true);
-  try {
-    if (isWishlisted) {
-      await fetch(`/api-fe/proxy/wishlist/${item.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      setIsWishlisted(false);
-      AlertService.success("Dihapus", "Desain dihapus dari daftar impian Anda."); // ✅ pindah ke sini
-    } else {
-      await fetch(`/api-fe/proxy/wishlist`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: item.id }),
-      });
-      setIsWishlisted(true);
-      AlertService.success("Tersimpan!", "Desain berhasil ditambahkan ke daftar impian."); // ✅ pindah ke sini
-    }
-  } catch (err) {
-    console.error("Gagal toggle wishlist:", err);
-  } finally {
-    setWishlistLoading(false);
-  }
-};
-
-  // const handleAddToCart = () => {
-  //   dispatch(
-  //     addItemToCart({
-  //       ...item,
-  //       quantity: 1,
-  //     })
-  //   );
-  // };
 
   const handleCustomize = () => {
-    // Sesuaikan ID dengan data API
     router.push(`/Proto?productId=${item.id}`);
   };
 
-  // const handleItemToWishList = () => {
-  //   dispatch(
-  //     addItemToWishlist({
-  //       ...item,
-  //       status: "available",
-  //       quantity: 1,
-  //     })
-  //   );
-  // };
+  // const LARAVEL_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";
   
-  // 3. Konfigurasi path gambar ke storage Laravel
   const imageUrl = item.img 
-    ? `http://localhost:8000/storage/${item.img}` // 👈 Ganti 127.0.0.1 menjadi localhost
+    ? `${item.img}`
     : "https://via.placeholder.com/220x220?text=No+Image";
 
   return (
@@ -150,9 +114,9 @@ const handleItemToWishList = async () => {
 
           <button
             onClick={(e) => { 
-  e.stopPropagation(); 
-  handleItemToWishList(); // ✅ cukup ini saja
-}}
+              e.stopPropagation(); 
+              handleItemToWishList();
+            }}
             disabled={wishlistLoading}
             aria-label="tombol untuk pilih favorit"
             title={isWishlisted ? "Hapus dari Favorit" : "Tambah ke Favorit"}

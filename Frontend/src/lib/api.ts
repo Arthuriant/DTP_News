@@ -14,7 +14,6 @@ export const api = async <T>(
     ...(options.headers as Record<string, string>),
   };
 
-  // Set Content-Type ke application/json secara otomatis jika bukan FormData
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }

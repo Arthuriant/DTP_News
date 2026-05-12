@@ -12,6 +12,13 @@ export const ProductService = {
     return response.data; 
   },
 
+  getProduct: async (productId: string) => {
+      return await api<any>(`/products/${productId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+    },
+
   // 2. Membuat produk baru (Penting: menggunakan FormData karena ada gambar)
   createProduct: async (formData: FormData) => {
     const response = await api<any>("/products", {
@@ -220,5 +227,23 @@ export const ProductService = {
   deleteProductSize: async (id: string) => {
     const response = await api<any>(`/product-sizes/${id}`, { method: "DELETE" });
     return response;
+
+  },
+  getCategoriesWithCount: async () => {
+    const response = await api<any>("/categories/with-product-count", {
+      method: "GET",
+      cache: "no-store", 
+    });
+    // Gunakan fallback .data barangkali backend membungkus json-nya
+    return response.data || response; 
+  },
+  filterProducts: async (queryString: string) => {
+    const response = await api<any>(`/products/filter?${queryString}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    return response.data || response; 
   }
+
+  
 };

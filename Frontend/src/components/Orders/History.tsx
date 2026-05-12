@@ -41,6 +41,16 @@ const History = () => {
     );
   };
 
+
+  const extractPath = (url: string) => {
+    if (!url) return "";
+    const parts = url.split("/storage/");
+    if (parts.length > 1) {
+      return "/storage/" + parts[parts.length - 1];
+    }
+    return url;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -64,10 +74,13 @@ const History = () => {
             const mainDetail = order.details?.[0];
             const customConfig = mainDetail?.custom_configuration;
             const productInfo = mainDetail?.product;
+            
             let productImg = "";
-            const previewData = customConfig?.image_preview;
-
-            productImg = `http://127.0.0.1:8000/storage/${productInfo.img}`;
+            if (productInfo?.img) {
+                productImg = extractPath(productInfo.img);
+            } else if (customConfig?.image_preview) {
+                productImg = extractPath(customConfig.image_preview);
+            }
 
             return (
               <div key={order.id} className="group bg-[#FFFDF5] border border-[#D9B35A]/20 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row">
@@ -121,7 +134,7 @@ const History = () => {
       ) : (
         <div className="text-center py-20 bg-white/40 rounded-3xl border border-dashed border-[#D9B35A]/30">
           <p className="text-[#8B7355] italic">Anda belum memiliki riwayat pesanan.</p>
-          <Link href="/shop" className="text-[#D9B35A] font-bold underline mt-2 inline-block">Mulai Kustom Tas Sekarang</Link>
+          <Link href="/shop-with-sidebar" className="text-[#D9B35A] font-bold underline mt-2 inline-block">Mulai Kustom Tas Sekarang</Link>
         </div>
       )}
     </div>

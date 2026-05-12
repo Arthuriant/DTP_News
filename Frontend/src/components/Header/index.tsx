@@ -30,8 +30,7 @@ const Header = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
-  // 1. Tambahkan state untuk menyimpan data user
+
   const [userData, setUserData] = useState<{ name: string } | null>(null);
   
   const { openCartModal } = useCartModalContext();
@@ -56,7 +55,6 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleStickyMenu);
   }, []);
 
-  // 2. Fetch data user dari Laravel saat komponen dimuat
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -97,7 +95,6 @@ const Header = () => {
     fetchUserData();
   }, [dispatch]);
 
-  // 3. Fungsi untuk Logout
   const handleLogout = async () => {
     console.log("Tombol logout ditekan...");
 
@@ -129,7 +126,7 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-[9999] transition-all duration-500 border-b ${
+      className={`fixed left-0 top-0 w-full z-[999] transition-all duration-500 border-b ${
         stickyMenu 
           ? "bg-[#F8F3E9]/95 backdrop-blur-md shadow-[0_10px_30px_rgba(45,26,17,0.08)] border-[#C5A059]/30" 
           : "bg-[#F8F3E9] border-transparent"

@@ -10,7 +10,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AlertService } from "@/services/AlertService";
 
-// 1. Interface yang disesuaikan dengan API Laravel
 export interface ProductAPI {
   id: string;
   name: string;
@@ -26,18 +25,15 @@ const SingleListItem = ({ item }: { item: ProductAPI }) => {
   const { openModal } = useModalContext();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  
-  // STATE WISHLIST (Mengikuti logika SingleGridItem)
+
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  // 2. Format harga dengan aman
   const priceNumber = parseFloat(item.base_price || "0");
   const formattedPrice = priceNumber.toLocaleString("id-ID");
 
-  // 3. Konfigurasi path gambar
   const imageUrl = item.img 
-    ? `http://localhost:8000/storage/${item.img}` 
+    ? `${item.img}` 
     : "https://via.placeholder.com/220x220?text=No+Image";
 
   const brownBatikUrl = "https://img.freepik.com/premium-photo/traditional-indonesian-batik-vector-pattern_1267718-2022.jpg";

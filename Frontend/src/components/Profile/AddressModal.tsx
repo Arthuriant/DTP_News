@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { AddressService } from "@/services/AddressService";
+import { ShippingService } from "@/services/ShippingService";
 import { AlertService } from '@/services/AlertService';
 
 // IMPORT KOMPONEN PETA SECARA DINAMIS
@@ -10,8 +11,6 @@ const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
   loading: () => <div className="h-[200px] w-full bg-[#EFE8DC] animate-pulse rounded-xl flex items-center justify-center text-[#8B7355] text-xs font-bold tracking-widest uppercase">Memuat Peta...</div>
 });
-
-const SHIPPING_URL = "http://127.0.0.1:8000"; 
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -50,7 +49,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       document.body.style.overflow = "hidden";
       
       if (editData) {
-        // 👇 PERBAIKAN LOGIKA EDIT DATA 👇
         const destId = editData.city_id || editData.destination_id || "";
         
         setFormData({
@@ -64,7 +62,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
           is_primary: editData.is_primary == 1 || editData.is_primary === true,
         });
 
-        // Jika data lama tidak punya ID kecamatan, otomatis paksa user untuk mencari ulang!
         if (!destId) {
           setIsChangingRegion(true);
           setSearchCity(editData.region || "");
@@ -112,8 +109,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${SHIPPING_URL}/shipping/destinations?search=${query}&limit=10`);
-        const data = await res.json();
+        const data = await ShippingService.getDestinations(query);
         setCities(data?.data ?? []);
         setShowDropdown(true);
       } catch {
@@ -142,7 +138,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validasi Kelengkapan Data
     if (!formData.destination_id) {
       AlertService.error("Data Belum Lengkap", "Silakan cari dan pilih kecamatan dari hasil pencarian agar sistem bisa menghitung ongkos kirim.");
       return;
@@ -167,7 +162,6 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
       
       AlertService.success("Berhasil!", `Alamat berhasil ${editData ? 'diperbarui' : 'ditambahkan'}.`);
       onSuccess(); 
-      // Hapus onClose() di sini karena jika berhasil, halaman akan di-refresh dari parent
     } catch (error: any) { 
       console.error(error);
       AlertService.error("Gagal Menyimpan", error.message || "Terjadi kesalahan saat menyimpan alamat.");
@@ -182,8 +176,7 @@ export default function AddressModal({ isOpen, onClose, onSuccess, editData }: A
 
   const modalContent = (
     <div 
-      // 👇 PERBAIKAN Z-INDEX (dari 999999 menjadi 100 agar alert tidak tertutup) 👇
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans"
+      className="fixed inset-0 z-[1050] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn transition-all duration-300 font-sans"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="relative bg-[#F8F3E9] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">

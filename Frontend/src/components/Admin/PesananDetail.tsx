@@ -30,14 +30,7 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       
       const currentStatus = data?.status?.toLowerCase();
       if (currentStatus === 'confirmed') {
-        await fetch(`/api-fe/proxy/admin/orders/${orderId}/status`, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'processing' }),
-        });
-
-        // Update tampilan lokal agar tombol Minta Resi muncul
+        await OrderService.updateOrderStatus(orderId, 'processing');
         setData((prev: any) => ({ ...prev, status: 'processing' }));
 
         AlertService.success(
@@ -45,7 +38,6 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           "PDF berhasil diunduh dan status diperbarui ke 'Sedang Diproses'."
         );
       } else {
-        // Jika status sudah di tahap lanjut, hanya tampilkan pesan sukses download
         AlertService.success(
           "Berhasil", 
           "Dokumen referensi PDF berhasil diunduh."
@@ -86,7 +78,7 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
       }
     } catch (error) {
       console.error("Gagal mengambil data detail pesanan:", error);
-      alert("Terjadi kesalahan saat memuat data.");
+      AlertService.error("Error", "Terjadi kesalahan saat memuat data.");
     } finally {
       setIsLoading(false);
     }
@@ -116,6 +108,15 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
         AlertService.error("Error", "Gagal menyimpan resi ke database.");
       }
     }, 1500);
+  };
+
+  const extractPath = (url: string) => {
+    if (!url) return "";
+    const parts = url.split("/storage/");
+    if (parts.length > 1) {
+      return "/storage/" + parts[parts.length - 1];
+    }
+    return url;
   };
 
   if (isLoading) {
@@ -165,8 +166,8 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
 
           if (!rawImageUrl) return null;
 
-          const imageUrl = rawImageUrl.replace("http://127.0.0.1:8000", "");
-          const maskUrl = rawMaskUrl ? rawMaskUrl.replace("http://127.0.0.1:8000", "") : "";
+          const imageUrl = extractPath(rawImageUrl);
+          const maskUrl = rawMaskUrl ? extractPath(rawMaskUrl) : "";
 
           const isColorable = texture.is_colorable;
           const hexColor = texture.selected_color || colors[part.id] || "#FFFFFF";
@@ -209,11 +210,8 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
     );
   };
 
-  // 👇 LOGIKA VISIBILITAS KARTU PENGIRIMAN 👇
   const currentStatus = data.status?.toLowerCase() || 'pending';
-  // Tampilkan card logistik BILA statusnya BUKAN pending (tunggu konfirmasi)
   const showShippingCard = ['processing', 'shipped', 'delivered', 'completed'].includes(currentStatus);
-  // Tampilkan tombol request resi HANYA BILA statusnya processing dan resi belum ada
   const canRequestResi = currentStatus === 'processing' && !resi;
 
   return (

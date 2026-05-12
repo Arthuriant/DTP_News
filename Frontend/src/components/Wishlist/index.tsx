@@ -4,24 +4,19 @@ import Breadcrumb from "../Common/Breadcrumb";
 import DynamicPart from "../Proto/DynamicPart";
 import Link from "next/link";
 import { AlertService } from "@/services/AlertService";
+import { WishlistService } from "@/services/WishlistService";
 
 export const Wishlist = () => {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Akses elemen estetik tema UpToYou
   const gununganUrl = "https://static.vecteezy.com/system/resources/previews/045/771/399/non_2x/indonesian-javanese-culture-golden-gunungan-wayang-shapes-free-png.png";
 
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        const res = await fetch('/api-fe/proxy/wishlist', {
-          credentials: 'include',
-        });
-        if (res.ok) {
-          const json = await res.json();
-          setWishlistItems(json.data || []);
-        }
+        const data = await WishlistService.getWishlists();
+        setWishlistItems(data || []);
       } catch (err) {
         console.error("Gagal fetch wishlist:", err);
       } finally {
@@ -32,7 +27,6 @@ export const Wishlist = () => {
   }, []);
 
   const handleRemove = async (productId: string, wishlistId: string) => {
-    // 1. Konfirmasi sebelum menghapus
     const isConfirmed = await AlertService.confirm(
       "Hapus dari Wishlist?",
       "Apakah Anda yakin ingin menghapus desain kustom ini dari daftar impian Anda?",
@@ -42,22 +36,21 @@ export const Wishlist = () => {
     if (!isConfirmed) return;
 
     try {
-      // 2. Eksekusi API Hapus
-      const res = await fetch(`/api-fe/proxy/wishlist/${productId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (res.ok) {
-        // 3. Hapus dari State UI
-        setWishlistItems((prev) => prev.filter((w) => w.id !== wishlistId));
-        // 4. Munculkan Alert Sukses
-        AlertService.success("Terhapus!", "Desain berhasil dihapus dari Wishlist Anda.");
-      } else {
-        throw new Error("Gagal menghapus dari server");
-      }
+      await WishlistService.removeFromWishlist(productId);
+      setWishlistItems((prev) => prev.filter((w) => w.id !== wishlistId));
+      AlertService.success("Terhapus!", "Desain berhasil dihapus dari Wishlist Anda.");
+      
     } catch (error) {
       AlertService.error("Gagal", "Terjadi kesalahan saat menghapus data.");
+    }
+  };
+
+  const extractPath = (fullUrl: string) => {
+    if (!fullUrl) return "";
+    try {
+      return new URL(fullUrl).pathname;
+    } catch (e) {
+      return fullUrl;
     }
   };
 
@@ -89,7 +82,8 @@ export const Wishlist = () => {
           const activeTextureId = customizations.textures?.[part.id];
           const textureObj = textures.find((t: any) => t.id === activeTextureId) || textures[0];
 
-          const textureImageUrl = textureObj?.img_front || "";
+          // 👇 PERBAIKAN: Terapkan extractPath ke gambar texture yang masuk ke Canvas 👇
+          const textureImageUrl = extractPath(textureObj?.img_front);
           const color = customizations.colors?.[part.id] || "#FFFFFF";
 
           return (
@@ -154,7 +148,7 @@ export const Wishlist = () => {
                     <span className="text-6xl mb-4 opacity-30 text-[#D9B35A]">✧</span>
                     <p className="text-[#2D1A11] font-bold text-xl font-serif">Belum ada desain yang disimpan.</p>
                     <p className="text-[#8B7355] text-sm mt-2">Mulai kreasikan tas impian Anda sekarang!</p>
-                    <Link href="/shop" className="mt-6 bg-[#2D1A11] text-[#D9B35A] px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-[#3d2417] transition-all hover:-translate-y-1 shadow-lg">
+                    <Link href="/shop-with-sidebar" className="mt-6 bg-[#2D1A11] text-[#D9B35A] px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-[#3d2417] transition-all hover:-translate-y-1 shadow-lg">
                       Mulai Kustomisasi
                     </Link>
                   </div>

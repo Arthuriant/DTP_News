@@ -8,7 +8,7 @@ use App\Models\ProductMarketingBlock;
 
 class ProductMarketingBlocks extends Model
 {
-    use HasUuids; // 👈 Auto-pilot UUID aktif!
+    use HasUuids;
 
     protected $table = 'product_marketing_blocks';
 
@@ -30,5 +30,10 @@ class ProductMarketingBlocks extends Model
     public function features()
     {
         return $this->hasMany(ProductMarketingFeatures::class, 'block_id')->orderBy('id');
+    }
+
+    public function getImgAttribute($value)
+    {
+        return $value ? asset('storage/' . $value) : null; 
     }
 }

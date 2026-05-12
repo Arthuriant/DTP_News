@@ -58,7 +58,7 @@ export default function ProductDimensionsTab() {
 
   const getImageUrl = (path: string) => {
     if (!path) return '';
-    return path.startsWith('storage/') ? `http://127.0.0.1:8000/${path}` : `http://127.0.0.1:8000/storage/${path}`;
+    return path.startsWith('storage/') ? `${path}` : `${path}`;
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

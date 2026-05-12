@@ -78,4 +78,13 @@ export const OrderService = {
       body: JSON.stringify({ resi }),
     });
   },
+
+  updateOrderStatus: async (orderId: string, status: string) => {
+    const response = await api<any>(`/admin/orders/${orderId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
+    return response;
+  },
+
 };

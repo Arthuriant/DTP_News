@@ -21,7 +21,6 @@ class PartTexturesController extends Controller
         if ($request->has('variant_id')) {
             $query->where('variant_id', $request->variant_id);
         }
-
         $data = $query->get();
 
         return response()->json([

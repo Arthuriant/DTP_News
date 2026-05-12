@@ -92,14 +92,14 @@ class ProductController extends Controller
     /**
      * Show single product
      */
-     public function show($id)
+    public function show($id)
     {
         $product = Product::with([
             'subCategory',
-            'parts.variants.textures', // ← load semua relasi sekaligus
-            'gallery', // ← tambah ini
-            'sizes', // ← tambah ini
-            'dimension', // ← tambah
+            'parts.variants.textures', 
+            'gallery', 
+            'sizes', 
+            'dimension', 
             'marketingBlocks.features',
         ])->find($id);
 
@@ -109,7 +109,6 @@ class ProductController extends Controller
             ], 404);
         }
 
-        // Format data sesuai kebutuhan BagCustomizer
         $formattedParts = $product->parts->map(function ($part) {
             return [
                 'id'       => $part->id,
@@ -118,32 +117,33 @@ class ProductController extends Controller
                 'z_index'  => $part->z_index,
                 'variants' => $part->variants->map(function ($variant) {
                     return [
-                        'id'       => $variant->id,
-                        'name'     => $variant->name,
+                        'id'           => $variant->id,
+                        'name'         => $variant->name,
                         'variant_code' => $variant->variant_code,
-                        'price'    => $variant->price,
-                        'textures' => $variant->textures->map(function ($texture) {
-
+                        'price'        => $variant->price,
+                        'textures'     => $variant->textures->map(function ($texture) {
                             return [
-                                'id'        => $texture->id,
-                                'name'      => $texture->name,
-                                'texture_code' => $texture->texture_code,
-                                'price'     => $texture->price,
-                                'img_top'   => $texture->img_top,
-                                'img_back'  => $texture->img_back,
-                                'img_front' => $texture->img_front,
-                                'img_thumb' => $texture->img_thumb,
+                                'id'             => $texture->id,
+                                'name'           => $texture->name,
+                                'texture_code'   => $texture->texture_code,
+                                'price'          => $texture->price,
+                                
+                                'img_top'        => $texture->img_top ? asset('storage/' . $texture->img_top) : null,
+                                'img_back'       => $texture->img_back ? asset('storage/' . $texture->img_back) : null,
+                                'img_front'      => $texture->img_front ? asset('storage/' . $texture->img_front) : null,
+                                'img_thumb'      => $texture->img_thumb ? asset('storage/' . $texture->img_thumb) : null,
+                                
                                 'is_colorable'   => $texture->is_colorable,
                                 'colors'         => $texture->colors,
-                                'img_top_mask'   => $texture->img_top_mask ,
-                                'img_back_mask'  => $texture->img_back_mask ,
-                                'img_front_mask' => $texture->img_front_mask,
+ 
+                                'img_top_mask'   => $texture->img_top_mask ? asset('storage/' . $texture->img_top_mask) : null,
+                                'img_back_mask'  => $texture->img_back_mask ? asset('storage/' . $texture->img_back_mask) : null,
+                                'img_front_mask' => $texture->img_front_mask ? asset('storage/' . $texture->img_front_mask) : null,
                             ];
                         }),
                     ];
                 }),
             ];
-
         });
 
         return response()->json([
@@ -155,13 +155,15 @@ class ProductController extends Controller
                 'description'  => $product->description,
                 'summary'      => $product->summary,
                 'base_price'   => $product->base_price,
-                'img'          => $product->img,
+                
+                // Mengubah hardcode 127.0.0.1 menjadi asset() agar dinamis saat di-hosting
+                'img'          => $product->img ? asset('storage/' . $product->img) : null,
                 'is_active'    => $product->is_active,
                 'sub_category' => $product->subCategory,
                 'gallery'      => $product->gallery->map(function ($item) {
                     return [
                         'id'         => $item->id,
-                        'img'        => $item->img ? "http://127.0.0.1:8000/storage/{$item->img}" : null,
+                        'img'        => $item->img ? asset('storage/' . $item->img) : null,
                         'sort_order' => $item->sort_order,
                     ];
                 }),
@@ -177,18 +179,15 @@ class ProductController extends Controller
                         'height'      => $size->height,
                         'depth'       => $size->depth,
                         'unit'        => $size->unit,
-                        'img'         => $size->img ? "http://127.0.0.1:8000/storage/{$size->img}" : null,
+                        'img'         => $size->img ? asset('storage/' . $size->img) : null,
                     ];
                 }),
                 'dimension'    => $product->dimension ? [
                     'product_style' => $product->dimension->product_style,
                     'total_volumes' => $product->dimension->total_volumes,
                     'weight'        => $product->dimension->weight,
-                    'img'           => $product->dimension->img
-                                        ? "http://127.0.0.1:8000/storage/{$product->dimension->img}"
-                                        : null,
+                    'img'           => $product->dimension->img ? asset('storage/' . $product->dimension->img) : null,
                 ] : null,
-                // ← marketing_blocks di dalam data
                 'marketing_blocks' => $product->marketingBlocks->map(function ($block) {
                     return [
                         'id'                    => $block->id,
@@ -199,7 +198,7 @@ class ProductController extends Controller
                         'title_highlight'       => $block->title_highlight,
                         'title_highlight_style' => $block->title_highlight_style,
                         'description'           => $block->description,
-                        'image'                 => $block->img ? "http://127.0.0.1:8000/storage/{$block->img}" : null,
+                        'image'                 => $block->img ? asset('storage/' . $block->img) : null,
                         'feature_style'         => $block->feature_style,
                         'features'              => $block->features->map(function ($feature) {
                             return [

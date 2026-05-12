@@ -184,6 +184,10 @@ class CategoryController extends Controller
      *
      * Catatan: Sesuaikan nama kolom di bawah ini dengan struktur tabel produk Anda.
      */
+   // Pastikan Anda sudah mengimport model ini di atas file Controller:
+    // use App\Models\Product;
+    // use Illuminate\Support\Facades\DB;
+
     public function filterProducts(Request $request)
     {
         $request->validate([
@@ -202,16 +206,14 @@ class CategoryController extends Controller
             'sort_by'            => 'nullable|string|in:latest,best_seller,price_asc,price_desc',
         ]);
 
-        $query = DB::table('products')->where('is_active', true);
+        $query = Product::where('is_active', true);
 
-        // --- Filter Kategori & Sub-Kategori ---
         $hasCategoryFilter    = $request->filled('category_ids');
         $hasSubCategoryFilter = $request->filled('sub_category_ids');
 
         if ($hasCategoryFilter || $hasSubCategoryFilter) {
             $query->where(function ($q) use ($request, $hasCategoryFilter, $hasSubCategoryFilter) {
                 if ($hasCategoryFilter) {
-                    // Cari sub_categories_id yang belong to category yang dipilih
                     $subIds = DB::table('sub_categories')
                         ->whereIn('categories_id', $request->category_ids)
                         ->pluck('id');
