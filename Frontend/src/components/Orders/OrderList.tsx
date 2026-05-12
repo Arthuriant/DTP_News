@@ -390,7 +390,7 @@ export default function OrderList() {
                     </button>
                   )  : order.status === 'completed' || order.status === 'cancelled' ? (
                     <Link 
-                      href="/shop" 
+                      href="/shop-with-sidebar" 
                       className="inline-block text-center px-8 py-2.5 bg-transparent border border-[#C5A059] text-[#C5A059] text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#C5A059] hover:text-[#2D1A11] transition-all"
                     >
                       Beli Lagi
