@@ -24,6 +24,16 @@ import { ProductService } from "@/services/ProductService";
 import { WishlistService } from "@/services/WishlistService";
 import { AuthService } from "@/services/AuthService";
 
+// 👇 HELPER PEMBERSIH URL ANTI-DOUBLE & ANTI-CORS 👇
+const extractPath = (url: string) => {
+  if (!url) return "";
+  const parts = url.split("/storage/");
+  if (parts.length > 1) {
+    return "/storage/" + parts[parts.length - 1];
+  }
+  return url;
+};
+
 export default function BagCustomizer() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
@@ -64,16 +74,17 @@ export default function BagCustomizer() {
                 name:      texture.name,
                 texture_code: texture.texture_code || "",
                 price:     parseFloat(texture.price),
-                thumb:     texture.img_thumb || "",
-                image:     texture.img_front || "",
-                img_front: texture.img_front || "",
-                img_back:  texture.img_back || "",
-                img_top:   texture.img_top || "",
+                // 👇 SEMUA DATA DIBERSIHKAN SEJAK AWAL 👇
+                thumb:     extractPath(texture.img_thumb),
+                image:     extractPath(texture.img_front),
+                img_front: extractPath(texture.img_front),
+                img_back:  extractPath(texture.img_back),
+                img_top:   extractPath(texture.img_top),
                 is_colorable:   texture.is_colorable || false,
                 colors:         texture.colors || [],
-                img_front_mask: texture.img_front_mask || "",
-                img_back_mask:  texture.img_back_mask || "",
-                img_top_mask:   texture.img_top_mask || "",
+                img_front_mask: extractPath(texture.img_front_mask),
+                img_back_mask:  extractPath(texture.img_back_mask),
+                img_top_mask:   extractPath(texture.img_top_mask),
               })),
             })),
             textures: part.variants?.length === 0 ? [] : undefined,
@@ -85,7 +96,7 @@ export default function BagCustomizer() {
             desc:        s.short_desc,
             description: s.description,
             price:       s.price,
-            image:       s.img || "",
+            image:       extractPath(s.img),
             dimensions: { width: s.width, height: s.height, depth: s.depth, unit: s.unit },
           }));
 
@@ -98,10 +109,11 @@ export default function BagCustomizer() {
             reviews:         0,
             catalogPrice:    parseFloat(raw.base_price),
             discountedPrice: parseFloat(raw.base_price),
-            thumbnails:      raw.img ? [raw.img] : [],
-            previews:        raw.img ? [raw.img] : [],
-            gallery:         (raw.gallery || []).map((g: any) => g.img),
-            dimensionsImage: raw.dimension?.img || "",
+            // 👇 BERSIH DARI DOMAIN LARAVEL 👇
+            thumbnails:      raw.img ? [extractPath(raw.img)] : [],
+            previews:        raw.img ? [extractPath(raw.img)] : [],
+            gallery:         (raw.gallery || []).map((g: any) => extractPath(g.img)),
+            dimensionsImage: extractPath(raw.dimension?.img),
             specifications:  [
               raw.dimension?.product_style ? { label: "Gaya Produk", value: raw.dimension.product_style } : null,
               raw.dimension?.total_volumes ? { label: "Total Volume (liter)", value: `${raw.dimension.total_volumes}.00 L` } : null,
@@ -111,7 +123,7 @@ export default function BagCustomizer() {
               title:        block.title,
               subtitle:     block.subtitle || "",
               description:  block.description || "",
-              image:        block.image || "",
+              image:        extractPath(block.image),
               layout:       index % 2 === 0 ? "image-left" : "image-right", 
               featureStyle: block.feature_style || "cards",
               features:     (block.features || []).map((f: any) => ({ title: f.title, icon: f.icon || "" })),
@@ -478,30 +490,22 @@ function BagCustomizerInner({ product }: { product: ProductConfig }) {
       const currentTextures = activeVariant?.textures || part.textures || [];
       const activeTextureObj = currentTextures.find(t => t.id === textureSelections[part.id]) || currentTextures[0];
 
-      const extractPath = (fullUrl: string) => {
-        if (!fullUrl) return "";
-        try {
-          return new URL(fullUrl).pathname;
-        } catch (e) {
-          return fullUrl;
-        }
-      };
-
-     const getTextureImageUrl = (textureObj: any, pov: string) => {
+      // 👇 Tidak perlu extractPath lokal lagi karena statenya sudah bersih! 👇
+      const getTextureImageUrl = (textureObj: any, pov: string) => {
         switch(pov.toLowerCase()) {
-          case 'front': return extractPath(textureObj?.img_front);
-          case 'back':  return extractPath(textureObj?.img_back);
-          case 'top':   return extractPath(textureObj?.img_top);
-          default:      return extractPath(textureObj?.img_front);
+          case 'front': return textureObj?.img_front;
+          case 'back':  return textureObj?.img_back;
+          case 'top':   return textureObj?.img_top;
+          default:      return textureObj?.img_front;
         }
       };
 
       const getMaskImageUrl = (textureObj: any, pov: string) => {
         switch(pov.toLowerCase()) {
-          case 'front': return extractPath(textureObj?.img_front_mask);
-          case 'back':  return extractPath(textureObj?.img_back_mask);
-          case 'top':   return extractPath(textureObj?.img_top_mask);
-          default:      return extractPath(textureObj?.img_front_mask);
+          case 'front': return textureObj?.img_front_mask;
+          case 'back':  return textureObj?.img_back_mask;
+          case 'top':   return textureObj?.img_top_mask;
+          default:      return textureObj?.img_front_mask;
         }
       };
 
