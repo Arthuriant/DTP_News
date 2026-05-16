@@ -61,9 +61,18 @@ class OrderDetailController extends Controller
         $parts = $config['parts'] ?? [];
         $visibleParts = $config['visibleParts'] ?? [];
 
-        // Hapus use ($parts, ...) karena di PHP modern $this otomatis terbawa
         $buildLayers = function($pov) use ($parts, $visibleParts) {
             $layers = [];
+            
+            $cleanToLocalPath = function($url) {
+                if (empty($url)) return '';
+                
+                $segments = explode('/storage/', $url);
+                $path = end($segments); 
+                $path = ltrim($path, '/');
+                
+                return storage_path('app/public/' . $path);
+            };
             
             foreach ($parts as $part) {
                 if (isset($visibleParts[$part['id']]) && $visibleParts[$part['id']] === false) {
@@ -77,7 +86,6 @@ class OrderDetailController extends Controller
                     $imgUrl = '';
                     $maskUrl = '';
 
-                    // Tangkap URL Base & URL Mask
                     if ($pov === 'front') {
                         $imgUrl = $texture['img_front'] ?? '';
                         $maskUrl = $texture['img_front_mask'] ?? '';
@@ -91,25 +99,17 @@ class OrderDetailController extends Controller
 
                     if (empty($imgUrl)) continue;
 
-                    // Konversi URL Web menjadi Path Folder Lokal Server
-                    if (str_contains($imgUrl, '127.0.0.1:8000/storage/')) {
-                        $path = str_replace('http://127.0.0.1:8000/storage/', '', $imgUrl);
-                        $imgUrl = storage_path('app/public/' . $path);
-                    }
-                    if (!empty($maskUrl) && str_contains($maskUrl, '127.0.0.1:8000/storage/')) {
-                        $maskPath = str_replace('http://127.0.0.1:8000/storage/', '', $maskUrl);
-                        $maskUrl = storage_path('app/public/' . $maskPath);
+                    $imgUrl = $cleanToLocalPath($imgUrl);
+                    if (!empty($maskUrl)) {
+                        $maskUrl = $cleanToLocalPath($maskUrl);
                     }
 
-                    // 👇 PROSES PEWARNAAN MASKING UNTUK PDF 👇
                     $isColorable = $texture['is_colorable'] ?? false;
                     $selectedColor = $texture['selected_color'] ?? null;
 
                     if ($isColorable && !empty($maskUrl) && $selectedColor && $selectedColor !== '#FFFFFF') {
-                        // Panggil fungsi render gambar fisik
                         $imgUrl = $this->generateColorizedImage($imgUrl, $maskUrl, $selectedColor);
                     }
-                    // 👆 =================================== 👆
 
                     $zIndex = $part['z_index'][ucfirst($pov)] ?? 10;
 
@@ -120,7 +120,6 @@ class OrderDetailController extends Controller
                 }
             }
 
-            // Urutkan tumpukan layer berdasarkan z-index
             usort($layers, function($a, $b) {
                 return $a['z_index'] <=> $b['z_index'];
             });
@@ -139,8 +138,7 @@ class OrderDetailController extends Controller
             'detail_material' => $config,
         ];
 
-        // Render PDF
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.order_reference', $data)->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('pdf.order_reference', $data)->setPaper('a4', 'portrait');
         return $pdf->download('Lembar-Kerja-Mahakarya-'.$id.'.pdf');
     }
 

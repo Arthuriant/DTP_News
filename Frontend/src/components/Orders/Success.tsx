@@ -114,13 +114,6 @@ const Success = () => {
                 Detail Pesanan
               </p>
               <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-[#D9B35A]/20">
-                {order.details[0].product?.img_full_url && (
-                  <img
-                    src={order.details[0].product.img_full_url}
-                    alt="product"
-                    className="w-16 h-16 object-contain rounded-lg"
-                  />
-                )}
                 <div>
                   <p className="font-bold text-[#2D1A11]">
                     Kustom {order.details[0].product?.name}
