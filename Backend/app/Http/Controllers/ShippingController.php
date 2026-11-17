@@ -18,6 +18,17 @@ class ShippingController extends Controller
 
 public function destinations(Request $request)
 {
+    if (env('SHIPPING_MOCK', false)) {
+        return response()->json([
+            'meta' => ['code' => 200, 'status' => 'success'],
+            'data' => [
+                ['id' => 55001, 'label' => 'COBLONG, BANDUNG, JAWA BARAT, 40132'],
+                ['id' => 55002, 'label' => 'SUKAJADI, BANDUNG, JAWA BARAT, 40162'],
+                ['id' => 55003, 'label' => 'CIMAHI TENGAH, CIMAHI, JAWA BARAT, 40525'],
+            ],
+        ]);
+    }
+
     $response = Http::withHeaders([
         'key' => $this->apiKey, // ← pakai 'key'
     ])->get("{$this->baseUrl}/destination/domestic-destination", [
@@ -38,6 +49,16 @@ public function cost(Request $request)
         'weight'      => 'required|integer',
         'courier'     => 'required|string',
     ]);
+
+    if (env('SHIPPING_MOCK', false)) {
+        return response()->json([
+            'meta' => ['code' => 200, 'status' => 'success'],
+            'data' => [
+                ['service' => 'REG', 'description' => 'Layanan Reguler', 'cost' => 18000, 'etd' => '2-3'],
+                ['service' => 'YES', 'description' => 'Yakin Esok Sampai', 'cost' => 32000, 'etd' => '1'],
+            ],
+        ]);
+    }
 
     $response = Http::withHeaders([
         'key'          => $this->apiKey,

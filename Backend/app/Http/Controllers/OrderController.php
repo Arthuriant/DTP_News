@@ -153,6 +153,8 @@ class OrderController extends Controller
 
     public function getAllOrders()
     {
+        $this->syncPendingPayments();
+
         $orders = Order::with(['user', 'details'])->orderBy('created_at', 'desc')->get();
         return response()->json($orders, 200);
     }
@@ -160,6 +162,8 @@ class OrderController extends Controller
     public function getMyOrders(Request $request)
     {
         $user = auth('sanctum')->user();
+
+        $this->syncPendingPayments($user->id);
 
         $query = Order::with(['details.product', 'payment'])
                     ->where('user_id', $user->id);
@@ -314,4 +318,54 @@ class OrderController extends Controller
 
         return response()->json($order, 200);
     }
+
+        /**
+     * Cek langsung ke Xendit status invoice untuk pesanan yang masih "pending".
+     * Berguna saat webhook tidak bisa sampai (misalnya backend jalan di localhost).
+     * Kalau Xendit tidak bisa dihubungi, halaman tetap tampil seperti biasa.
+     */
+    private function syncPendingPayments(?string $userId = null): void
+    {
+        $query = Order::with('payment')
+            ->where('status', 'pending')
+            ->where('created_at', '>=', now()->subDays(2)); // invoice Xendit berlaku 24 jam
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        foreach ($query->get() as $order) {
+            try {
+                $invoiceId = $order->payment->payload['id'] ?? null;
+                $path = $invoiceId
+                    ? "/v2/invoices/{$invoiceId}"
+                    : "/v2/invoices?external_id={$order->id}";
+
+                $response = Http::withBasicAuth(env('XENDIT_SECRET_KEY'), '')
+                    ->timeout(5)
+                    ->get(env('XENDIT_BASE_URL') . $path);
+
+                if (!$response->successful()) {
+                    continue;
+                }
+
+                $invoice = $invoiceId ? $response->json() : ($response->json()[0] ?? null);
+                $status  = $invoice['status'] ?? null;
+
+                if (in_array($status, ['PAID', 'SETTLED'])) {
+                    $order->update(['status' => 'confirmed']);
+                    Payment::where('order_id', $order->id)->update([
+                        'status'       => 'paid',
+                        'payment_date' => now(),
+                    ]);
+                } elseif ($status === 'EXPIRED') {
+                    $order->update(['status' => 'cancelled']);
+                    Payment::where('order_id', $order->id)->update(['status' => 'failed']);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('Sync pembayaran Xendit gagal untuk order ' . $order->id . ': ' . $e->getMessage());
+            }
+        }
+    }
 }
+

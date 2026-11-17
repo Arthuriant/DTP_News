@@ -232,7 +232,7 @@ export default function PesananDetail({ orderId }: { orderId: string }) {
           <p className="text-[#D9B35A] font-sans text-[10px] tracking-[0.4em] uppercase mb-3 font-semibold">
             Manajemen Transaksi <span className="text-[#8B7355] mx-2">|</span> ID: {orderId?.split('-')[0]}
           </p>
-          <h1 className="text-4xl md:text-5xl font-medium tracking-wide text-[#2D1A11] mb-2">Detail Pesanan Custom</h1>
+          <h1 className="text-4xl md:text-5xl font-medium tracking-wide text-[#2D1A11] mb-2">Detail Pesanan Customer</h1>
           <p className="text-[#8B7355] font-sans text-sm font-light tracking-wide flex items-center gap-3">
             <span className="w-8 h-[1px] bg-[#D9B35A]/50"></span>
             Verifikasi desain pelanggan dan terbitkan instruksi produksi bengkel.

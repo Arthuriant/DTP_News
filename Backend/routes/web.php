@@ -81,10 +81,10 @@ Route::get('/login', function () {
 Route::post('/login', [AuthController::class, 'login']);
 
 // Simpan kustomisasi tas
-// Route::post('/save-bag', [SaveBagController::class, 'store']);
+Route::post('/save-bag', [SaveBagController::class, 'store']);
 
 // // Ambil daftar tas yang disimpan - [UPDATE] auth:sanctum
-// Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:sanctum');
 
 // [UPDATE] Group Middleware auth:sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -198,7 +198,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
 
     Route::post('/checkout',    [OrderController::class, 'checkout']);
     Route::get('/my-orders',    [OrderController::class, 'getMyOrders']);
-    Route::get('/my-orders/{id}',    [OrderController::class, 'getOrderById']); 
+    Route::get('/my-orders/{id}',    [OrderController::class, 'getOrderById']);
     Route::put('/my-orders/{id}/confirm',       [OrderController::class, 'confirmReceived']);
 
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
