@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('admin'), // Password default
             ]
         );
-        
+
         // Berikan pangkat admin ke akun ini
         $admin->assignRole('super_admin');
 

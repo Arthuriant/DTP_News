@@ -34,6 +34,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+//customer
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
@@ -80,10 +81,10 @@ Route::get('/login', function () {
 Route::post('/login', [AuthController::class, 'login']);
 
 // Simpan kustomisasi tas
-Route::post('/save-bag', [SaveBagController::class, 'store']);
+// Route::post('/save-bag', [SaveBagController::class, 'store']);
 
-// Ambil daftar tas yang disimpan - [UPDATE] auth:sanctum
-Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:sanctum');
+// // Ambil daftar tas yang disimpan - [UPDATE] auth:sanctum
+// Route::get('/save-bag', [SaveBagController::class, 'index'])->middleware('auth:sanctum');
 
 // [UPDATE] Group Middleware auth:sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -193,13 +194,14 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::post('/cart', [CartController::class, 'addToCart']);
     Route::delete('/cart/{id}', [CartController::class, 'removeItem']);
     Route::put('/cart/{id}', [CartController::class, 'updateQuantity']);
+    Route::get('/cart', [CartController::class, 'getCart']);
 
     Route::post('/checkout',    [OrderController::class, 'checkout']);
     Route::get('/my-orders',    [OrderController::class, 'getMyOrders']);
-    Route::get('/my-orders/{id}',    [OrderController::class, 'getOrderById']); // ← tambah ini
+    Route::get('/my-orders/{id}',    [OrderController::class, 'getOrderById']); 
     Route::put('/my-orders/{id}/confirm',       [OrderController::class, 'confirmReceived']);
-    Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
 
+    Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
     Route::get('/admin/order-details/{id}', [OrderDetailController::class, 'index']);
     Route::get('/admin/order-details/{id}/download-pdf', [OrderDetailController::class, 'downloadPdf']);
     Route::get('/my-orders', [OrderController::class, 'getMyOrders']);
@@ -211,11 +213,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\LogUserActivity::class])
     Route::get('/dashboard-report/pdf', [DashboardController::class, 'downloadPdf']);
 });
 
-Route::get('/cart', [CartController::class, 'getCart']);
-
 
 //     Route::middleware(['auth:sanctum', 'role:super_admin|admin'])->group(function () {
-//         
+//
 // });
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);

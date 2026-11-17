@@ -64,6 +64,9 @@ php artisan db:seed
 
 # 7. Jalankan server lokal backend
 php artisan serve
+
+# 8. Membuat symbolic link storage
+php artisan storage:link
 ```
 
 ### 2. Setup Fronted (Next Js)
